@@ -2,26 +2,29 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { StyleSheet } from 'react-native';
+import { Theme, createStyles } from '@/constants/Colors';
 
-const HIGHLIGHT_COLOR = '#FFCC00';
-const BACKGROUND_COLOR = '#242427';
-const INACTIVE_COLOR = '#777777';
+const styles = createStyles(StyleSheet);
 
 export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: HIGHLIGHT_COLOR,
-        tabBarInactiveTintColor: INACTIVE_COLOR,
+        tabBarActiveTintColor: Theme.colors.highlight,
+        tabBarInactiveTintColor: Theme.colors.inactive,
         tabBarStyle: styles.tabBar,
         headerShown: false,
-        tabBarShowLabel: false, // This hides the tab labels
+        tabBarShowLabel: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIcon 
+              name={focused ? 'home' : 'home-outline'} 
+              color={color} 
+              style={styles.tabBarIcon}
+            />
           ),
         }}
       />
@@ -29,7 +32,11 @@ export default function TabLayout() {
         name="shop"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'cart' : 'cart-outline'} color={color} />
+            <TabBarIcon 
+              name={focused ? 'cart' : 'cart-outline'} 
+              color={color} 
+              style={styles.tabBarIcon}
+            />
           ),
         }}
       />
@@ -37,7 +44,11 @@ export default function TabLayout() {
         name="wallet"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'wallet' : 'wallet-outline'} color={color} />
+            <TabBarIcon 
+              name={focused ? 'wallet' : 'wallet-outline'} 
+              color={color} 
+              style={styles.tabBarIcon}
+            />
           ),
         }}
       />
@@ -45,25 +56,26 @@ export default function TabLayout() {
         name="phone"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'call' : 'call-outline'} color={color} />
+            <TabBarIcon 
+              name={focused ? 'call' : 'call-outline'} 
+              color={color} 
+              style={styles.tabBarIcon}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="options"
+        name="settings"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'menu' : 'menu-outline'} color={color} />
+            <TabBarIcon 
+              name={focused ? 'menu' : 'menu-outline'} 
+              color={color} 
+              style={styles.tabBarIcon}
+            />
           ),
         }}
       />
     </Tabs>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: BACKGROUND_COLOR,
-    borderTopColor: '#242427',
-  },
-});
