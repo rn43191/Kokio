@@ -16,8 +16,10 @@ const menuItems = [
 const MenuItem = ({ title, iconLeft, iconRight }: { title: string, iconLeft: string, iconRight: string }) => (
   <TouchableOpacity style={globalStyles.menuItem}>
     <View style={globalStyles.menuItemContent}>
+      { /* @ts-ignore */ }
       <Ionicons name={iconLeft} size={24} color={Colors.light.icon} style={globalStyles.iconLeft} />
       <ThemedText style={globalStyles.menuItemText}>{title}</ThemedText>
+      { /* @ts-ignore */ }
       <Ionicons name={iconRight} size={24} color={Colors.light.icon} style={globalStyles.iconRight} />
     </View>
   </TouchableOpacity>
