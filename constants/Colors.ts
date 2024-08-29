@@ -45,41 +45,42 @@ export const Colors = {
 
     ring: "#006FEE",
   },
+
   dark: {
-    text: "#ECEDEE",
-    background: "#151718",
+    text: "#AEAEB2",
+    background: "#000000",
     tint: tintColorDark,
     icon: "#9BA1A6",
     tabIconDefault: "#9BA1A6",
     tabIconSelected: tintColorDark,
 
     // background: '#ffffff',
-    foreground: "#09090b",
+    foreground: "#AEAEB2",
 
-    card: "#ffffff",
-    cardForeground: "#09090b",
+    card: "#FFD60A",
+    cardForeground: "#000000",
 
-    popover: "#ffffff",
-    popoverForeground: "#09090b",
+    popover: "#242427",
+    popoverForeground: "#E5E5EA",
 
-    primary: "#006FEE",
-    primaryForeground: "#ffffff",
+    primary: "#FF9F0A",
+    primaryForeground: "#000000",
 
-    secondary: "#f4f4f5",
-    secondaryForeground: "#09090b",
+    secondary: "#FFD60A",
+    secondaryForeground: "#000000",
 
-    muted: "#f4f4f5",
-    mutedForeground: "#71717a",
+    muted: "#46464B",
+    mutedForeground: "#AEAEB2",
 
-    accent: "#f4f4f5",
-    accentForeground: "#09090b",
+    accent: "#767680",
+    accentForeground: "#8E8E93",
 
     destructive: "#ff0000",
     destructiveForeground: "#ffffff",
 
-    border: "#e4e4e7",
+    border: "#FF9F0A",
 
-    input: "#e4e4e7",
+    input: "#46464B",
 
     ring: "#006FEE",
   },
