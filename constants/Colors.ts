@@ -1,5 +1,5 @@
 // styles.ts
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 const tintColorLight = "#0a7ea4";
 const tintColorDark = "#fff";
@@ -42,28 +42,57 @@ export const Colors = {
     input: "#e4e4e7",
 
     ring: "#006FEE",
-
   },
 
   dark: {
-    text: 'white',
-    background: '#000',
-    tint: '#fff',
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: '#fff',
-    highlight: '#FFCC00',
-    secondaryBackground: '#242427',
-    inactive: '#777777',
+    text: "white",
+    background: "#000",
+    tint: "#fff",
+    icon: "#9BA1A6",
+    tabIconDefault: "#9BA1A6",
+    tabIconSelected: "#fff",
+    highlight: "#FFCC00",
+    secondaryBackground: "#242427",
+    inactive: "#777777",
+
+    // background: '#ffffff',
+    foreground: "#AEAEB2",
+
+    card: "#FFD60A",
+    cardForeground: "#000000",
+
+    popover: "#242427",
+    popoverForeground: "#E5E5EA",
+
+    primary: "#FF9F0A",
+    primaryForeground: "#000000",
+
+    secondary: "#FFD60A",
+    secondaryForeground: "#000000",
+
+    muted: "#46464B",
+    mutedForeground: "#AEAEB2",
+
+    accent: "#767680",
+    accentForeground: "#8E8E93",
+
+    destructive: "#ff0000",
+    destructiveForeground: "#ffffff",
+
+    border: "#FF9F0A",
+
+    input: "#46464B",
+
+    ring: "#006FEE",
   },
 };
 
 export const Theme = {
   colors: {
     ...Colors.dark, // Using dark theme as default
-    highlight: '#FFCC00',
-    background: '#242427',
-    inactive: '#777777',
+    highlight: "#FFCC00",
+    background: "#242427",
+    inactive: "#777777",
   },
   spacing: {
     xs: 4,
@@ -79,32 +108,31 @@ export const Theme = {
   },
 };
 
-export const createStyles = (StyleSheet: any) => StyleSheet.create({
-  tabBar: {
-    backgroundColor: Theme.colors.background,
-    borderTopColor: Theme.colors.background,
-    height: 60,
-    paddingBottom: Theme.spacing.xs,
-  },
-  tabBarIcon: {
-    marginTop: Theme.spacing.xs,
-  },
-});
-
-
+export const createStyles = (StyleSheet: any) =>
+  StyleSheet.create({
+    tabBar: {
+      backgroundColor: Theme.colors.background,
+      borderTopColor: Theme.colors.background,
+      height: 60,
+      paddingBottom: Theme.spacing.xs,
+    },
+    tabBarIcon: {
+      marginTop: Theme.spacing.xs,
+    },
+  });
 
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Theme.colors.background,
     padding: 10,
     paddingTop: 20,
     paddingBottom: 40,
   },
   list: {
-    backgroundColor: Colors.light.secondaryBackground,
+    backgroundColor: Theme.colors.secondaryBackground,
     borderRadius: 25,
-    maxHeight: 'auto',
+    maxHeight: "auto",
     padding: 10,
     paddingTop: 20,
     paddingBottom: 40,
@@ -113,13 +141,13 @@ export const globalStyles = StyleSheet.create({
     padding: 16,
   },
   menuItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   menuItemText: {
     color: Colors.light.text,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     flex: 1,
   },
   iconLeft: {
@@ -129,7 +157,7 @@ export const globalStyles = StyleSheet.create({
     marginLeft: 16,
   },
   tabBar: {
-    backgroundColor: Colors.light.secondaryBackground,
-    borderTopColor: Colors.light.secondaryBackground,
+    backgroundColor: Theme.colors.secondaryBackground,
+    borderTopColor: Theme.colors.secondaryBackground,
   },
 });
