@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
+import Active from "@/components/home/active";
 
 export default function HomeScreen() {
   return (
@@ -28,6 +29,8 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      {/* Active eSims */}
+      <Active />
       <Card>
         <CardHeader>
           <CardTitle>Step 1: Try it!</CardTitle>
