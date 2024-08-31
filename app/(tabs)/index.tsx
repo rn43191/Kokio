@@ -5,6 +5,13 @@ import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import Button from "@/components/ui/Button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/Card";
 
 export default function HomeScreen() {
   return (
@@ -21,6 +28,17 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+      <Card>
+        <CardHeader>
+          <CardTitle>Step 1: Try it!</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ThemedText>Testing</ThemedText>
+        </CardContent>
+        <CardFooter>
+          <Button>Test</Button>
+        </CardFooter>
+      </Card>
       <ThemedView style={styles.stepContainer}>
         <Button>Test</Button>
         <ThemedText type="subtitle">Step 1: Try it!</ThemedText>

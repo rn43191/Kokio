@@ -70,13 +70,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.card,
     borderRadius: 21,
   },
-  cardContent: {
-    backgroundColor: "transparent",
-    padding: 16,
-  },
   cardHeader: {
     alignItems: "center",
-    backgroundColor: "transparent",
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 16,
@@ -84,12 +79,13 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   cardTitle: {
-    fontSize: 14,
-    fontWeight: "300",
+    fontSize: 24,
+    fontWeight: 700,
+  },
+  cardContent: {
+    padding: 16,
   },
   cardFooter: {
-    backgroundColor: "transparent",
-    flexDirection: "row",
     paddingLeft: 16,
     paddingRight: 16,
     paddingBottom: 16,
