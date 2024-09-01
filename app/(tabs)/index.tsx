@@ -13,6 +13,38 @@ import {
   CardTitle,
 } from "@/components/ui/Card";
 import Active from "@/components/home/active";
+import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
+
+const mockEsims = [
+  {
+    id: "1",
+    country: "Italy",
+    duration: 3,
+    data: 1.7,
+    minutes: 52,
+    sms: 27,
+    flagColor: "#008C45",
+  },
+  {
+    id: "2",
+    country: "Greece",
+    duration: 5,
+    data: 3,
+    minutes: 120,
+    sms: 100,
+    flagColor: "#008C45",
+  },
+  {
+    id: "3",
+    country: "France",
+    duration: 20,
+    data: 5.7,
+    minutes: 52,
+    sms: 7,
+    flagColor: "#008C45",
+  },
+  // Add more eSIM objects as needed
+];
 
 export default function HomeScreen() {
   return (
@@ -30,7 +62,8 @@ export default function HomeScreen() {
         <HelloWave />
       </ThemedView>
       {/* Active eSims */}
-      <Active />
+      {/* <Active /> */}
+      <ActiveESIMsScroll esims={mockEsims} />
       <Card>
         <CardHeader>
           <CardTitle>Step 1: Try it!</CardTitle>

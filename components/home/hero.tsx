@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text } from "react-native";
 
-const Wallet = () => {
+const Hero = () => {
   return (
     <View>
-      <Text>Wallet</Text>
+      <Text>Hero</Text>
     </View>
   );
 };
 
-export default Wallet;
+export default Hero;
