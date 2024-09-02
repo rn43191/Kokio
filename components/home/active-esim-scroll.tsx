@@ -1,5 +1,7 @@
 import React from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { View, Text, FlatList, StyleSheet } from "react-native";
+import { Theme } from "@/constants/Colors";
 
 interface Esim {
   id: string;
@@ -12,21 +14,23 @@ interface Esim {
 }
 
 const ActiveESIMItem = ({ item }: { item: Esim }) => (
-  <>
+  <View style={styles.esimItemContainer}>
+    <View style={styles.flagContainer}>
+      <View style={[styles.flag, { backgroundColor: item.flagColor }]} />
+    </View>
     <View style={styles.esimItem}>
-      <View style={styles.flagContainer}>
-        {/* Replace with actual flag component or image */}
-        <View style={[styles.flag, { backgroundColor: item.flagColor }]} />
-      </View>
+      <Text style={styles.country}>{item.country}</Text>
       <View style={styles.detailsContainer}>
-        <Text style={styles.country}>{item.country}</Text>
-        <Text style={styles.details}>{item.duration} Days</Text>
+        <View style={styles.detailItem}>
+          <Ionicons name="calendar-outline" size={20} />
+          <Text style={styles.details}>{item.duration} Days</Text>
+        </View>
         <Text style={styles.details}>{item.data}GB</Text>
         <Text style={styles.details}>{item.minutes} Mins</Text>
         <Text style={styles.details}>{item.sms} SMS</Text>
       </View>
     </View>
-  </>
+  </View>
 );
 
 const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
@@ -57,35 +61,47 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 10,
+    paddingTop: 20, // Add padding to accommodate the flag
+  },
+  esimItemContainer: {
+    marginHorizontal: 5,
+    width: 320,
   },
   esimItem: {
     backgroundColor: "#FFD700",
     borderRadius: 10,
     padding: 15,
-    marginHorizontal: 5,
-    width: 320,
+    width: "100%",
   },
   flagContainer: {
-    marginBottom: 10,
+    position: "absolute",
+    top: -20,
+    right: 20,
+    zIndex: 10,
   },
   flag: {
-    width: 30,
-    height: 20,
+    width: 60,
+    height: 40,
     borderRadius: 4,
   },
   country: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "700",
     marginBottom: 5,
-  },
-  details: {
-    fontSize: 14,
-    marginBottom: 2,
   },
   detailsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+  details: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  detailItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
   },
 });
 
