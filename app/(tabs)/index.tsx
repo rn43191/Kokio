@@ -12,8 +12,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/Card";
-import Active from "@/components/home/active";
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
+import Wallet from "@/components/home/wallet";
 
 const mockEsims = [
   {
@@ -61,8 +61,8 @@ export default function HomeScreen() {
       }
     >
       {/* Active eSims */}
-      {/* <Active /> */}
       <ActiveESIMsScroll esims={mockEsims} />
+      <Wallet />
       <Card>
         <CardHeader>
           <CardTitle>Step 1: Try it!</CardTitle>
@@ -74,37 +74,6 @@ export default function HomeScreen() {
           <Button>Test</Button>
         </CardFooter>
       </Card>
-      <ThemedView style={styles.stepContainer}>
-        <Button>Test</Button>
-        <ThemedText type="subtitle">Step 1: Try it!</ThemedText>
-        <ThemedText>
-          Edit{" "}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText>{" "}
-          to see changes. Press{" "}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: "cmd + d", android: "cmd + m" })}
-          </ThemedText>{" "}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this
-          starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{" "}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText>{" "}
-          to get a fresh <ThemedText type="defaultSemiBold">app</ThemedText>{" "}
-          directory. This will move the current{" "}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{" "}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
     </ParallaxScrollView>
   );
 }

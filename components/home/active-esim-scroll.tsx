@@ -67,8 +67,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    marginBottom: 10,
-    paddingHorizontal: 15,
+    marginBottom: 2,
     color: "#AEAEB2",
   },
   listContent: {
