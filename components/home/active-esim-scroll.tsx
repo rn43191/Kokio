@@ -2,10 +2,12 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { Theme } from "@/constants/Colors";
+import CountryFlag from "react-native-country-flag";
 
 interface Esim {
   id: string;
   country: string;
+  isoCode: string;
   duration: number;
   data: number;
   minutes: number;
@@ -16,7 +18,8 @@ interface Esim {
 const ActiveESIMItem = ({ item }: { item: Esim }) => (
   <View style={styles.esimItemContainer}>
     <View style={styles.flagContainer}>
-      <View style={[styles.flag, { backgroundColor: item.flagColor }]} />
+      {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
+      <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
     </View>
     <View style={styles.esimItem}>
       <Text style={styles.country}>{item.country}</Text>
