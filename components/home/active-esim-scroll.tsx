@@ -25,9 +25,18 @@ const ActiveESIMItem = ({ item }: { item: Esim }) => (
           <Ionicons name="calendar-outline" size={20} />
           <Text style={styles.details}>{item.duration} Days</Text>
         </View>
-        <Text style={styles.details}>{item.data}GB</Text>
-        <Text style={styles.details}>{item.minutes} Mins</Text>
-        <Text style={styles.details}>{item.sms} SMS</Text>
+        <View style={styles.detailItem}>
+          <Ionicons name="cellular-outline" size={20} />
+          <Text style={styles.details}>{item.data}GB</Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Ionicons name="call-outline" size={20} />
+          <Text style={styles.details}>{item.minutes} Mins</Text>
+        </View>
+        <View style={styles.detailItem}>
+          <Ionicons name="chatbox-outline" size={20} />
+          <Text style={styles.details}>{item.sms} SMS</Text>
+        </View>
       </View>
     </View>
   </View>
@@ -54,10 +63,10 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   title: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
     marginBottom: 10,
     paddingHorizontal: 15,
+    color: "#AEAEB2",
   },
   listContent: {
     paddingHorizontal: 10,
@@ -65,18 +74,19 @@ const styles = StyleSheet.create({
   },
   esimItemContainer: {
     marginHorizontal: 5,
-    width: 320,
+    width: 330,
   },
   esimItem: {
     backgroundColor: "#FFD700",
-    borderRadius: 10,
-    padding: 15,
+    borderRadius: 21,
+    padding: 16,
+    gap: 8,
     width: "100%",
   },
   flagContainer: {
     position: "absolute",
     top: -20,
-    right: 20,
+    right: 40,
     zIndex: 10,
   },
   flag: {
