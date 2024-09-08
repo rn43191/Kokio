@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/Card";
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
+import Hero from "@/components/home/hero";
 
 const mockEsims = [
   {
@@ -60,7 +61,7 @@ export default function HomeScreen() {
         />
       }
     >
-      {/* Active eSims */}
+      <Hero />
       <ActiveESIMsScroll esims={mockEsims} />
       <Wallet />
       <Card>
