@@ -33,11 +33,15 @@ const Hero = () => {
         </CardContent>
       </ImageBackground>
       <CardFooter
-        style={{ flexDirection: "row", justifyContent: "space-between" }}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingTop: 16,
+        }}
       >
         <View>
-          <Text>Plan your Next Adventure</Text>
-          <Text>The world awaits you!</Text>
+          <Text style={styles.header}>Plan your Next Adventure</Text>
+          <Text style={styles.subHeader}>The world awaits you!</Text>
         </View>
         <Button>Shop</Button>
       </CardFooter>
@@ -72,11 +76,6 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     gap: 12,
-    // flexDirection: "row",
-    // justifyContent: "space-between",
-    // alignItems: "center",
-    // marginTop: 20,
-    // gap: 12,
   },
   flagContainer: {
     flexDirection: "row",
@@ -84,6 +83,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: "auto",
+  },
+  header: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  subHeader: {
+    fontSize: 10,
+    fontWeight: "300",
   },
 });
 
