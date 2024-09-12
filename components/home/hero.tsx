@@ -8,57 +8,62 @@ import Button from "../ui/Button";
 
 const Hero = () => {
   return (
-    <ThemedView>
-      <Card style={styles.card}>
-        <ImageBackground
-          source={require("@/assets/images/hero-background.png")}
-          resizeMode="cover"
-          style={styles.backgroundImageContainer}
-          imageStyle={styles.backgroundImage}
-        >
-          <CardContent>
-            <View style={styles.cardContent}>
-              <View style={styles.flagContainer}>
-                <CountryFlag style={styles.flag} isoCode={"CA"} size={20} />
-                <CountryFlag style={styles.flag} isoCode={"US"} size={20} />
-                <CountryFlag style={styles.flag} isoCode={"FR"} size={20} />
-              </View>
-              <View style={styles.flagContainer}>
-                <CountryFlag style={styles.flag} isoCode={"DE"} size={20} />
-                <CountryFlag style={styles.flag} isoCode={"SG"} size={20} />
-                <CountryFlag style={styles.flag} isoCode={"GB"} size={20} />
-                <CountryFlag style={styles.flag} isoCode={"CR"} size={20} />
-              </View>
+    // <ThemedView>
+    <Card style={styles.card}>
+      <ImageBackground
+        source={require("@/assets/images/hero-background.png")}
+        resizeMode="cover"
+        style={styles.backgroundImageContainer}
+        imageStyle={styles.backgroundImage}
+      >
+        <CardContent>
+          <View style={styles.cardContent}>
+            <View style={styles.flagContainer}>
+              <CountryFlag style={styles.flag} isoCode={"CA"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"US"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"FR"} size={20} />
             </View>
-          </CardContent>
-        </ImageBackground>
-        <CardFooter
-          style={{ flexDirection: "row", justifyContent: "space-between" }}
-        >
-          <View>
-            <Text>Plan your Next Adventure</Text>
-            <Text>The world awaits you!</Text>
+            <View style={styles.flagContainer}>
+              <CountryFlag style={styles.flag} isoCode={"DE"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"SG"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"GB"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"CR"} size={20} />
+            </View>
           </View>
-          <Button>Shop</Button>
-        </CardFooter>
-      </Card>
-    </ThemedView>
+        </CardContent>
+      </ImageBackground>
+      <CardFooter
+        style={{ flexDirection: "row", justifyContent: "space-between" }}
+      >
+        <View>
+          <Text>Plan your Next Adventure</Text>
+          <Text>The world awaits you!</Text>
+        </View>
+        <Button>Shop</Button>
+      </CardFooter>
+    </Card>
+    // </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
     width: "100%",
-    alignSelf: "center",
-  },
-  backgroundImageContainer: {
-    flex: 1,
     overflow: "hidden",
   },
+  backgroundImageContainer: {
+    overflow: "hidden",
+    width: "100%",
+    position: "relative",
+    padding: 0,
+  },
   backgroundImage: {
+    position: "absolute",
     opacity: 0.5,
-    width: 400,
-    height: 400,
+    top: -150,
+    right: 0,
+    width: "100%",
+    height: 600,
   },
   flag: {
     width: 130,
@@ -79,7 +84,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: "auto",
-    overflow: "hidden",
   },
 });
 
