@@ -1,14 +1,20 @@
 import React from "react";
-import { View, Text, StyleSheet, ImageBackground } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  TouchableOpacity,
+} from "react-native";
 import CountryFlag from "react-native-country-flag";
 import { ThemedView } from "../ThemedView";
 import { Card, CardContent, CardFooter } from "../ui/Card";
 import { ThemedText } from "../ThemedText";
 import Button from "../ui/Button";
+import { Theme } from "@/constants/Colors";
 
 const Hero = () => {
   return (
-    // <ThemedView>
     <Card style={styles.card}>
       <ImageBackground
         source={require("@/assets/images/hero-background.png")}
@@ -24,7 +30,7 @@ const Hero = () => {
               <CountryFlag style={styles.flag} isoCode={"FR"} size={20} />
             </View>
             <View style={styles.flagContainer}>
-              <CountryFlag style={styles.flag} isoCode={"DE"} size={20} />
+              <CountryFlag style={styles.flag} isoCode={"YE"} size={20} />
               <CountryFlag style={styles.flag} isoCode={"SG"} size={20} />
               <CountryFlag style={styles.flag} isoCode={"GB"} size={20} />
               <CountryFlag style={styles.flag} isoCode={"CR"} size={20} />
@@ -32,29 +38,23 @@ const Hero = () => {
           </View>
         </CardContent>
       </ImageBackground>
-      <CardFooter
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingTop: 16,
-        }}
-      >
+      <CardFooter style={styles.cardFooter}>
         <View>
           <Text style={styles.header}>Plan your Next Adventure</Text>
           <Text style={styles.subHeader}>The world awaits you!</Text>
         </View>
-        <Button>Shop</Button>
+        <TouchableOpacity
+          style={styles.heroButton}
+          onPress={() => console.log("Shop")}
+        >
+          <Text style={styles.heroButtonText}>Shop</Text>
+        </TouchableOpacity>
       </CardFooter>
     </Card>
-    // </ThemedView>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    width: "100%",
-    overflow: "hidden",
-  },
   backgroundImageContainer: {
     overflow: "hidden",
     width: "100%",
@@ -69,13 +69,23 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 600,
   },
+  card: {
+    width: "100%",
+    overflow: "hidden",
+  },
+  cardContent: {
+    gap: 12,
+  },
+  cardFooter: {
+    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 16,
+  },
   flag: {
     width: 130,
     height: 75,
     borderRadius: 16,
-  },
-  cardContent: {
-    gap: 12,
   },
   flagContainer: {
     flexDirection: "row",
@@ -91,6 +101,18 @@ const styles = StyleSheet.create({
   subHeader: {
     fontSize: 10,
     fontWeight: "300",
+  },
+  heroButton: {
+    backgroundColor: Theme.colors.text,
+    borderRadius: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 5,
+  },
+  heroButtonText: {
+    color: Theme.colors.background,
+    fontSize: 16,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
 
