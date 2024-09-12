@@ -9,7 +9,7 @@ import Button from "../ui/Button";
 const Hero = () => {
   return (
     <ThemedView>
-      <Card>
+      <Card style={styles.card}>
         <ImageBackground
           source={require("@/assets/images/hero-background.png")}
           resizeMode="cover"
@@ -17,10 +17,18 @@ const Hero = () => {
           imageStyle={styles.backgroundImage}
         >
           <CardContent>
-            <View style={styles.flagContainerTop}>
-              <CountryFlag style={styles.flag} isoCode={"CA"} size={25} />
-              <CountryFlag style={styles.flag} isoCode={"US"} size={25} />
-              <CountryFlag style={styles.flag} isoCode={"FR"} size={25} />
+            <View style={styles.cardContent}>
+              <View style={styles.flagContainer}>
+                <CountryFlag style={styles.flag} isoCode={"CA"} size={20} />
+                <CountryFlag style={styles.flag} isoCode={"US"} size={20} />
+                <CountryFlag style={styles.flag} isoCode={"FR"} size={20} />
+              </View>
+              <View style={styles.flagContainer}>
+                <CountryFlag style={styles.flag} isoCode={"DE"} size={20} />
+                <CountryFlag style={styles.flag} isoCode={"SG"} size={20} />
+                <CountryFlag style={styles.flag} isoCode={"GB"} size={20} />
+                <CountryFlag style={styles.flag} isoCode={"CR"} size={20} />
+              </View>
             </View>
           </CardContent>
         </ImageBackground>
@@ -40,7 +48,8 @@ const Hero = () => {
 
 const styles = StyleSheet.create({
   card: {
-    overflow: "hidden",
+    width: "100%",
+    alignSelf: "center",
   },
   backgroundImageContainer: {
     flex: 1,
@@ -52,16 +61,25 @@ const styles = StyleSheet.create({
     height: 400,
   },
   flag: {
-    width: 140,
-    height: 80,
+    width: 130,
+    height: 75,
     borderRadius: 16,
   },
-  flagContainerTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
+  cardContent: {
     gap: 12,
+    // flexDirection: "row",
+    // justifyContent: "space-between",
+    // alignItems: "center",
+    // marginTop: 20,
+    // gap: 12,
+  },
+  flagContainer: {
+    flexDirection: "row",
+    gap: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    height: "auto",
+    overflow: "hidden",
   },
 });
 
