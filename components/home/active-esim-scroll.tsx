@@ -1,49 +1,7 @@
 import React from "react";
-import { Ionicons } from "@expo/vector-icons";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-import { Theme } from "@/constants/Colors";
-import CountryFlag from "react-native-country-flag";
 
-interface Esim {
-  id: string;
-  country: string;
-  isoCode: string;
-  duration: number;
-  data: number;
-  minutes: number;
-  sms: number;
-  flagColor: string;
-}
-
-const ActiveESIMItem = ({ item }: { item: Esim }) => (
-  <View style={styles.esimItemContainer}>
-    <View style={styles.flagContainer}>
-      {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
-      <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
-    </View>
-    <View style={styles.esimItem}>
-      <Text style={styles.country}>{item.country}</Text>
-      <View style={styles.detailsContainer}>
-        <View style={styles.detailItem}>
-          <Ionicons name="calendar-outline" size={20} />
-          <Text style={styles.details}>{item.duration} Days</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="cellular-outline" size={20} />
-          <Text style={styles.details}>{item.data}GB</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="call-outline" size={20} />
-          <Text style={styles.details}>{item.minutes} Mins</Text>
-        </View>
-        <View style={styles.detailItem}>
-          <Ionicons name="chatbox-outline" size={20} />
-          <Text style={styles.details}>{item.sms} SMS</Text>
-        </View>
-      </View>
-    </View>
-  </View>
-);
+import ESIMItem, { Esim } from "../ESIMItem";
 
 const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
   return (
@@ -51,7 +9,7 @@ const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
       <Text style={styles.title}>Active eSIMs</Text>
       <FlatList
         data={esims}
-        renderItem={({ item }) => <ActiveESIMItem item={item} />}
+        renderItem={({ item }) => <ESIMItem item={item} />}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
