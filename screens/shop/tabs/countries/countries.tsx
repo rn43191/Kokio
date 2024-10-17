@@ -1,4 +1,14 @@
-import { StyleSheet, Image, Platform, View, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  Image,
+  Platform,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { Link, router } from "expo-router";
+
 import _map from "lodash/map";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -7,7 +17,7 @@ import { Colors, Theme } from "@/constants/Colors";
 
 export default function Countries({
   list = [
-    { isoCode: "SG", label: "India" },
+    { isoCode: "SG", label: "India", name: "INDIA" },
     { isoCode: "GB" },
     { isoCode: "YE" },
     { isoCode: "CR" },
@@ -25,23 +35,25 @@ export default function Countries({
     { isoCode: "CR" },
   ],
 }) {
+  const navigateToESIMsByCountry = (country: any) => () => {
+    router.push(`/${country}`);
+  };
+
+  const renderItem = ({ item, index }) => (
+    <TouchableOpacity onPress={navigateToESIMsByCountry(item?.label)}>
+      <View key={item?.isoCode || index} style={styles.country}>
+        <CountryFlag style={styles.flag} isoCode={item?.isoCode} size={60} />
+        <ThemedText style={styles.countryLabel}>{item?.label || ""}</ThemedText>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <ScrollView>
       <View style={styles.tabWrapper}>
         <ThemedText style={styles.tabTitle}>{"Popular Countries"}</ThemedText>
         <View style={styles.countriesWrapper}>
-          {_map(list, (country: any, index: any) => (
-            <View key={country?.isoCode || index} style={styles.country}>
-              <CountryFlag
-                style={styles.flag}
-                isoCode={country?.isoCode}
-                size={60}
-              />
-              <ThemedText style={styles.countryLabel}>
-                {country?.label || ""}
-              </ThemedText>
-            </View>
-          ))}
+          <FlatList data={list} numColumns={2} renderItem={renderItem} columnWrapperStyle={styles.columnWrapperStyle} />
         </View>
       </View>
     </ScrollView>
@@ -60,11 +72,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   countriesWrapper: {
-    display: "flex",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "center",
+    width:'100%',
   },
   country: {
     width: "50%",
@@ -80,4 +88,10 @@ const styles = StyleSheet.create({
   flag: {
     borderRadius: Theme.borderRadius.medium,
   },
+  columnWrapperStyle: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-evenly",
+    alignItems: "center",
+  }
 });

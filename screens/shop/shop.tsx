@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -41,23 +40,21 @@ export default function TabTwoScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ThemedView style={styles.shopContainer}>
-        <TabView
-          navigationState={{ index, routes }}
-          renderScene={renderScene}
-          onIndexChange={setIndex}
-          renderTabBar={(args) => (
-            <TabBar
-              {...args}
-              style={styles.tabBarStyle}
-              renderLabel={TabBarLabel}
-              indicatorStyle={styles.indicatorStyle}
-            />
-          )}
-        />
-      </ThemedView>
-    </SafeAreaView>
+    <ThemedView style={styles.shopContainer}>
+      <TabView
+        navigationState={{ index, routes }}
+        renderScene={renderScene}
+        onIndexChange={setIndex}
+        renderTabBar={(args) => (
+          <TabBar
+            {...args}
+            style={styles.tabBarStyle}
+            renderLabel={TabBarLabel}
+            indicatorStyle={styles.indicatorStyle}
+          />
+        )}
+      />
+    </ThemedView>
   );
 }
 

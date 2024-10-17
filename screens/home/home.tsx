@@ -1,5 +1,4 @@
 import { ScrollView } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
@@ -41,12 +40,12 @@ const mockEsims = [
 
 export default function HomeScreen() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView>
-        <Hero />
-        <ActiveESIMsScroll esims={mockEsims} />
-        <Wallet />
-      </ScrollView>
-    </SafeAreaView>
+    // <SafeAreaView style={{ flex: 1 }}>
+    <ScrollView>
+      <Hero />
+      <ActiveESIMsScroll esims={mockEsims} />
+      <Wallet />
+    </ScrollView>
+    // </SafeAreaView>
   );
 }
