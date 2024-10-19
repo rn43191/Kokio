@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  const colorScheme = 'dark' || useColorScheme();
+  const colorScheme = useColorScheme();
   const router = useRouter();
   const navigation = useNavigation();
 

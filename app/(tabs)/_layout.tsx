@@ -5,38 +5,32 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { StyleSheet } from "react-native";
 import { Theme, createStyles } from "@/constants/Colors";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
+import { ROUTE_NAMES } from "@/constants/route.constants";
+import { getRouteName, getIsTabBarVisible } from "@/helpers/navigator.helper";
 
 const styles = createStyles(StyleSheet);
-
-const Header = ({ options }: { options: { title: string } }) => (
-  <ThemedView
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingVertical: Theme.spacing.sm,
-    }}
-  >
-    <ThemedText type="subtitle">{options?.title}</ThemedText>
-  </ThemedView>
-);
 
 export default function TabLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Theme.colors.highlight,
-          tabBarInactiveTintColor: Theme.colors.inactive,
-          tabBarStyle: styles.tabBar,
-          tabBarShowLabel: false,
-          headerShown:false,
+        screenOptions={({ navigation, route }) => {
+          const navigationState = navigation.getState();
+          const routeName = getRouteName(navigationState);
+          const tabBarVisible = getIsTabBarVisible(routeName);
+          console.log({ tabBarVisible, navigationState, routeName, route });
+
+          return {
+            tabBarActiveTintColor: Theme.colors.highlight,
+            tabBarInactiveTintColor: Theme.colors.inactive,
+            tabBarStyle: tabBarVisible ? styles.tabBar : { display: "none" },
+            tabBarShowLabel: false,
+            headerShown: false,
+          };
         }}
       >
         <Tabs.Screen
-          name="index"
+          name={ROUTE_NAMES.HOME}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
@@ -49,7 +43,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="(shop)"
+          name={ROUTE_NAMES.SHOP}
           options={{
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
@@ -62,7 +56,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="wallet"
+          name={ROUTE_NAMES.WALLET}
           options={{
             title: "eSIM Wallet",
             tabBarIcon: ({ color, focused }) => (
@@ -75,7 +69,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="phone"
+          name={ROUTE_NAMES.PHONE}
           options={{
             title: "eSIMs",
             tabBarIcon: ({ color, focused }) => (
@@ -88,7 +82,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="settings"
+          name={ROUTE_NAMES.SETTINGS}
           options={{
             tabBarIcon: ({ color, focused }) => (
               <TabBarIcon

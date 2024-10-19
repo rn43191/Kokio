@@ -1,6 +1,6 @@
 import { Link, Stack, useLocalSearchParams } from "expo-router";
 import { StyleSheet } from "react-native";
-import {  router } from "expo-router";
+import { router } from "expo-router";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -101,17 +101,8 @@ const mockEsims = [
   // Add more eSIM objects as needed
 ];
 
-
-
 export default function EsimsByCountry() {
-    const { country = "" } = useLocalSearchParams();
-    
-  return (
-    <>
-      <Stack.Screen options={{ title: country }} />
-      <DataPackTabGroup esims={mockEsims} />
-    </>
-  );
+  return <DataPackTabGroup esims={mockEsims} />;
 }
 
 const styles = StyleSheet.create({

@@ -1,29 +1,36 @@
-import { Link, Stack, useLocalSearchParams } from "expo-router";
-import { StyleSheet } from "react-native";
+import { Stack } from "expo-router";
 
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
+import _isFunction from "lodash/isFunction";
 
-import { Theme, Colors, createStyles } from "@/constants/Colors";
-
-const Header = ({ options }: { options: { title: string } }) => (
-  <ThemedView
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      paddingVertical: Theme.spacing.sm,
-    }}
-  >
-    <ThemedText type="subtitle">Shop</ThemedText>
-  </ThemedView>
-);
+import Header from "@/components/Header";
+import { ROUTE_NAMES } from "@/constants/route.constants";
 
 export default function ShopStack() {
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ header: Header }} />
-      <Stack.Screen name="[country]"  />
+      <Stack.Screen
+        name={ROUTE_NAMES.HOME}
+        options={{
+          header: () => (
+            <Header title="Shop" style={{ justifyContent: "center" }} />
+          ),
+        }}
+      />
+      <Stack.Screen
+        name={ROUTE_NAMES.BY_COUNTRY}
+        options={({ route, navigation }: any) => {
+          const country = route?.params?.id;
+          return {
+            header: () => (
+              <Header
+                title={country}
+                hasBack
+                style={{ justifyContent: "center" }}
+              />
+            ),
+          };
+        }}
+      />
     </Stack>
   );
 }

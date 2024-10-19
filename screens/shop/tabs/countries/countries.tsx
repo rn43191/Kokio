@@ -13,6 +13,7 @@ import _map from "lodash/map";
 
 import { ThemedText } from "@/components/ThemedText";
 import CountryFlag from "@/components/ui/CountryFlag";
+import useHideTabBar from "@/hooks/useHideTabBar";
 import { Colors, Theme } from "@/constants/Colors";
 
 export default function Countries({
@@ -36,7 +37,7 @@ export default function Countries({
   ],
 }) {
   const navigateToESIMsByCountry = (country: any) => () => {
-    router.push(`/${country}`);
+    router.push(`country/${country}`);
   };
 
   const renderItem = ({ item, index }) => (
@@ -53,7 +54,12 @@ export default function Countries({
       <View style={styles.tabWrapper}>
         <ThemedText style={styles.tabTitle}>{"Popular Countries"}</ThemedText>
         <View style={styles.countriesWrapper}>
-          <FlatList data={list} numColumns={2} renderItem={renderItem} columnWrapperStyle={styles.columnWrapperStyle} />
+          <FlatList
+            data={list}
+            numColumns={2}
+            renderItem={renderItem}
+            columnWrapperStyle={styles.columnWrapperStyle}
+          />
         </View>
       </View>
     </ScrollView>
@@ -72,10 +78,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   countriesWrapper: {
-    width:'100%',
+    width: "100%",
   },
   country: {
-    width: "50%",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
@@ -93,5 +98,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-evenly",
     alignItems: "center",
-  }
+  },
 });
