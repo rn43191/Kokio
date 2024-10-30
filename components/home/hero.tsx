@@ -5,13 +5,12 @@ import {
   StyleSheet,
   ImageBackground,
   TouchableOpacity,
+  Image,
 } from "react-native";
-import CountryFlag from "react-native-country-flag";
-import { ThemedView } from "../ThemedView";
-import { Card, CardContent, CardFooter } from "../ui/Card";
-import { ThemedText } from "../ThemedText";
-import Button from "../ui/Button";
+
 import { Theme } from "@/constants/Colors";
+
+import { Card, CardFooter } from "../ui/Card";
 
 const Hero = () => {
   return (
@@ -22,25 +21,15 @@ const Hero = () => {
         style={styles.backgroundImageContainer}
         imageStyle={styles.backgroundImage}
       >
-        <CardContent>
-          <View style={styles.cardContent}>
-            <View style={styles.flagContainer}>
-              <CountryFlag style={styles.flag} isoCode={"CA"} size={20} />
-              <CountryFlag style={styles.flag} isoCode={"US"} size={20} />
-              <CountryFlag style={styles.flag} isoCode={"FR"} size={20} />
-            </View>
-            <View style={styles.flagContainer}>
-              <CountryFlag style={styles.flag} isoCode={"YE"} size={20} />
-              <CountryFlag style={styles.flag} isoCode={"SG"} size={20} />
-              <CountryFlag style={styles.flag} isoCode={"GB"} size={20} />
-              <CountryFlag style={styles.flag} isoCode={"CR"} size={20} />
-            </View>
-          </View>
-        </CardContent>
+        <Image
+          source={require("@/assets/images/flagsBanner.png")}
+          style={styles.flagsBanner}
+          resizeMode="cover"
+        />
       </ImageBackground>
       <CardFooter style={styles.cardFooter}>
         <View>
-          <Text style={styles.header}>Plan your Next Adventure</Text>
+          <Text style={styles.header}>Plan Your Next Adventure</Text>
           <Text style={styles.subHeader}>The world awaits you!</Text>
         </View>
         <TouchableOpacity
@@ -70,11 +59,13 @@ const styles = StyleSheet.create({
     height: 600,
   },
   card: {
-    width: "100%",
+    width: "auto",
     overflow: "hidden",
+    marginHorizontal: Theme.spacing.sm,
+    marginVertical: Theme.spacing.md,
   },
-  cardContent: {
-    gap: 12,
+  flagsBanner: {
+    width: "100%",
   },
   cardFooter: {
     justifyContent: "space-between",
@@ -82,25 +73,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 16,
   },
-  flag: {
-    width: 130,
-    height: 75,
-    borderRadius: 16,
-  },
-  flagContainer: {
-    flexDirection: "row",
-    gap: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    height: "auto",
-  },
   header: {
     fontSize: 18,
     fontWeight: "700",
   },
   subHeader: {
     fontSize: 10,
-    fontWeight: "300",
+    fontWeight: "400",
   },
   heroButton: {
     backgroundColor: Theme.colors.text,
