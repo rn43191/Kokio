@@ -2,6 +2,7 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import CountryFlag from "react-native-country-flag";
+import _get from "lodash/get";
 
 import { Colors, Theme } from "@/constants/Colors";
 
@@ -55,7 +56,7 @@ const ESIMItem = ({
           style={styles.buyButton}
           onPress={() => console.log("Buy", item)}
         >
-          <Text>{item?.price || 0}</Text>
+          <Text>{_get(item, "price", 0)}</Text>
           <View style={styles.buyButtonText}>
             <Ionicons name="cart-outline" size={20} />
             <Text style={styles.details}>Buy</Text>

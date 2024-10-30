@@ -37,10 +37,10 @@ export default function Countries({
   ],
 }) {
   const navigateToESIMsByCountry = (country: any) => () => {
-    router.push(`country/${country}`);
+    router.push(`/country/${country}`);
   };
 
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item, index }: any) => (
     <TouchableOpacity onPress={navigateToESIMsByCountry(item?.label)}>
       <View key={item?.isoCode || index} style={styles.country}>
         <CountryFlag style={styles.flag} isoCode={item?.isoCode} size={60} />

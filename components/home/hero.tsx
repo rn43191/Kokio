@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,17 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
+import { router } from "expo-router";
 
 import { Theme } from "@/constants/Colors";
 
 import { Card, CardFooter } from "../ui/Card";
 
 const Hero = () => {
+  const handleShopCTAClick = useCallback(() => {
+    router.navigate("/(shop)");
+  }, []);
+
   return (
     <Card style={styles.card}>
       <ImageBackground
@@ -34,7 +39,7 @@ const Hero = () => {
         </View>
         <TouchableOpacity
           style={styles.heroButton}
-          onPress={() => console.log("Shop")}
+          onPress={handleShopCTAClick}
         >
           <Text style={styles.heroButtonText}>Shop</Text>
         </TouchableOpacity>
