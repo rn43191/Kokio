@@ -40,12 +40,10 @@ const mockEsims = [
 
 export default function HomeScreen() {
   return (
-    // <SafeAreaView style={{ flex: 1 }}>
     <ScrollView>
       <Hero />
       <ActiveESIMsScroll esims={mockEsims} />
       <Wallet />
     </ScrollView>
-    // </SafeAreaView>
   );
 }

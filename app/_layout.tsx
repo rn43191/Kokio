@@ -5,13 +5,11 @@ import {
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
-import { Stack, useRouter, useNavigation } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { StyleSheet } from "react-native";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { ThemedText } from "@/components/ThemedText";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -26,8 +24,6 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const router = useRouter();
-  const navigation = useNavigation();
 
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
@@ -54,21 +50,3 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
-
-const HeaderTitle = ({ title }: { title: string }) => (
-  <ThemedText style={styles.headerTitle}>{title}</ThemedText>
-);
-
-const styles = StyleSheet.create({
-  header: {
-    backgroundColor: "black",
-  },
-  headerTitle: {
-    color: "white",
-    fontSize: 17,
-    fontWeight: "600",
-  },
-  backButton: {
-    marginLeft: 10,
-  },
-});

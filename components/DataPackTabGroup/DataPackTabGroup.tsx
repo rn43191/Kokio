@@ -23,7 +23,9 @@ const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
   return (
     <FlatList
       data={esims}
-      renderItem={({ item }) => <ESIMItem item={item} showBuyButton />}
+      renderItem={({ item }) => (
+        <ESIMItem item={item} showBuyButton hasPadding />
+      )}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.flatListContainer}
     />
