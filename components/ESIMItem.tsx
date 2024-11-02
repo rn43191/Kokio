@@ -2,6 +2,7 @@ import React from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import CountryFlag from "react-native-country-flag";
+import _get from "lodash/get";
 
 import { Colors, Theme } from "@/constants/Colors";
 
@@ -16,25 +17,25 @@ export interface Esim {
   flagColor: string;
 }
 
-const DetailItem = ({ iconName, text }: any) => (
+const DetailItem = ({ iconName, prefix, value, suffix }: any) => (
   <View style={styles.detailItem}>
-    <Ionicons name={iconName} size={20} />
-    <Text style={styles.details}>{text}</Text>
+    {iconName && <Ionicons name={iconName} size={20} />}
+    <Text>{prefix}</Text>
+    <Text style={styles.details}>{value}</Text>
+    <Text>{suffix}</Text>
   </View>
 );
 
 const ESIMItem = ({
   item,
   showBuyButton,
-  hasPadding = false,
+  containerStyle = {},
 }: {
   item: Esim;
   showBuyButton: Boolean;
-  hasPadding: Boolean;
+  containerStyle?: Object;
 }) => (
-  <View
-    style={[styles.esimItemContainer, hasPadding && styles.horizontalPadding]}
-  >
+  <View style={[styles.esimItemContainer, containerStyle]}>
     <View style={styles.flagContainer}>
       {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
       <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
@@ -44,18 +45,23 @@ const ESIMItem = ({
       <View style={styles.detailsContainer}>
         <DetailItem
           iconName="calendar-outline"
-          text={`${item.duration} Days`}
+          value={item.duration}
+          suffix="Days"
         />
-        <DetailItem iconName="cellular-outline" text={`${item.data}GB`} />
-        <DetailItem iconName="call-outline" text={`${item.minutes} Mins`} />
-        <DetailItem iconName="chatbox-outline" text={`${item.sms} SMS`} />
+        <DetailItem iconName="cellular-outline" value={item.data} suffix="GB" />
+        <DetailItem
+          iconName="call-outline"
+          value={item.minutes}
+          suffix="Mins"
+        />
+        <DetailItem iconName="chatbox-outline" value={item.sms} suffix="SMS" />
       </View>
       {showBuyButton && (
         <TouchableOpacity
           style={styles.buyButton}
           onPress={() => console.log("Buy", item)}
         >
-          <Text>{item?.price || 0}</Text>
+          <DetailItem prefix="$" value={_get(item, "price", 0)} />
           <View style={styles.buyButtonText}>
             <Ionicons name="cart-outline" size={20} />
             <Text style={styles.details}>Buy</Text>
@@ -103,7 +109,7 @@ const styles = StyleSheet.create({
   },
   details: {
     fontSize: 14,
-    marginBottom: 2,
+    fontWeight: "800",
   },
   detailItem: {
     flexDirection: "row",
@@ -111,7 +117,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   buyButton: {
-    backgroundColor: Colors.dark.accentForeground,
+    backgroundColor: Colors.dark.goldenYellow,
     display: "flex",
     flexDirection: "row",
     justifyContent: "center",

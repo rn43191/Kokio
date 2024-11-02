@@ -92,6 +92,7 @@ const styles = StyleSheet.create({
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,
     marginLeft: 70,
+    width: "auto",
   },
   headerWithLogo: {
     flexDirection: "row",

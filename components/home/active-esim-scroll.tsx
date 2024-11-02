@@ -17,7 +17,7 @@ const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
         data={esims}
         renderItem={({ item }) => (
           <View style={styles.itemWrapper}>
-            <ESIMItem item={item} showBuyButton={false} hasPadding={false} />
+            <ESIMItem item={item} showBuyButton={false} />
           </View>
         )}
         keyExtractor={(item) => item.id}

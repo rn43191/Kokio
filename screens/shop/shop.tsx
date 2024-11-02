@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
+import _get from "lodash/get";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -10,11 +11,17 @@ import Countries from "./tabs/countries";
 import Global from "./tabs/global";
 import Regions from "./tabs/regions";
 
-// Define the types for routes
-type Route = {
-  key: string;
-  title: string;
-};
+const ROUTES = [
+  { key: "Countries", title: "Countries" },
+  { key: "Regions", title: "Regions" },
+  { key: "Global", title: "Global" },
+];
+
+const TabBarLabel = ({ route: tabRoute, focused }: any) => (
+  <ThemedText style={[styles.tabBarText, !focused && styles.inactiveTab]}>
+    {_get(tabRoute, "title", "")}
+  </ThemedText>
+);
 
 export default function TabTwoScreen() {
   const renderScene = SceneMap({
@@ -24,25 +31,11 @@ export default function TabTwoScreen() {
   });
 
   const [index, setIndex] = useState<number>(0);
-  const [routes] = useState<Route[]>([
-    { key: "Countries", title: "Countries" },
-    { key: "Regions", title: "Regions" },
-    { key: "Global", title: "Global" },
-  ]);
-
-  const TabBarLabel = ({ route: tabRoute, focused }) => {
-    const { title = "" } = tabRoute || {};
-    return (
-      <View style={focused ? styles.focusedTab : {}}>
-        <ThemedText style={styles.tabBarText}>{title}</ThemedText>
-      </View>
-    );
-  };
 
   return (
     <ThemedView style={styles.shopContainer}>
       <TabView
-        navigationState={{ index, routes }}
+        navigationState={{ index, routes: ROUTES }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         renderTabBar={(args) => (
@@ -51,6 +44,7 @@ export default function TabTwoScreen() {
             style={styles.tabBarStyle}
             renderLabel={TabBarLabel}
             indicatorStyle={styles.indicatorStyle}
+            tabStyle={styles.tabStyle}
           />
         )}
       />
@@ -61,10 +55,14 @@ export default function TabTwoScreen() {
 const styles = StyleSheet.create({
   tabBarStyle: {
     backgroundColor: Colors.dark.secondaryBackground,
-    borderRadius: Theme.borderRadius.small,
+    borderRadius: Theme.borderRadius.medium,
   },
-  focusedTab: {
-    backgroundColor: Colors.dark.inactive,
+  tabStyle: {
+    padding: 0,
+    minHeight: 30,
+  },
+  inactiveTab: {
+    color: Colors.dark.inactive,
   },
   tabBarText: {
     color: Colors.dark.text,

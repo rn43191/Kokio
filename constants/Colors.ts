@@ -61,6 +61,8 @@ export const Colors = {
     card: "#FFD60A",
     cardForeground: "#000000",
 
+    goldenYellow: "#FFAF01",
+
     popover: "#242427",
     popoverForeground: "#E5E5EA",
 

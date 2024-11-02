@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { StyleSheet, View, FlatList } from "react-native";
-import { TabView, SceneMap, TabBar } from "react-native-tab-view";
+import { StyleSheet, FlatList } from "react-native";
+import { TabView, TabBar } from "react-native-tab-view";
+import _get from "lodash/get";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -13,18 +14,21 @@ const TAB_KEYS = {
   DATA_CALLS_SMS: "DATA_CALLS_SMS",
 };
 
-// Define the types for routes
-type Route = {
-  key: string;
-  title: string;
-};
+const ROUTES = [
+  { key: TAB_KEYS.DATA, title: "Data" },
+  { key: TAB_KEYS.DATA_CALLS_SMS, title: "Data+Calls+SMS" },
+];
 
 const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
   return (
     <FlatList
       data={esims}
       renderItem={({ item }) => (
-        <ESIMItem item={item} showBuyButton hasPadding />
+        <ESIMItem
+          item={item}
+          showBuyButton
+          containerStyle={styles.eSimItemContainer}
+        />
       )}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.flatListContainer}
@@ -32,31 +36,36 @@ const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
   );
 };
 
-export default function DataPackTabGroup({ esims }) {
-  const renderScene = SceneMap({
-    [TAB_KEYS.DATA]: () => <ESIMsFlatList esims={esims} />,
-    [TAB_KEYS.DATA_CALLS_SMS]: () => <ESIMsFlatList esims={esims} />,
-  });
+const TabBarLabel = ({ route: tabRoute, focused }: any) => (
+  <ThemedText style={[styles.tabBarText, !focused && styles.inactiveTab]}>
+    {_get(tabRoute, "title", "")}
+  </ThemedText>
+);
 
+export default function DataPackTabGroup({
+  esims,
+  containerStyle,
+}: {
+  esims: Esim[];
+  containerStyle?: any;
+}) {
   const [index, setIndex] = useState<number>(0);
-  const [routes] = useState<Route[]>([
-    { key: TAB_KEYS.DATA, title: "Data" },
-    { key: TAB_KEYS.DATA_CALLS_SMS, title: "Data+Calls+SMS" },
-  ]);
 
-  const TabBarLabel = ({ route: tabRoute, focused }) => {
-    const { title = "" } = tabRoute || {};
-    return (
-      <View style={focused ? styles.focusedTab : {}}>
-        <ThemedText style={styles.tabBarText}>{title}</ThemedText>
-      </View>
-    );
+  const renderScene = ({ route }: any) => {
+    switch (route.key) {
+      case TAB_KEYS.DATA:
+        return <ESIMsFlatList esims={esims} />;
+      case TAB_KEYS.DATA_CALLS_SMS:
+        return <ESIMsFlatList esims={esims} />;
+      default:
+        return null;
+    }
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView style={[styles.container, containerStyle]}>
       <TabView
-        navigationState={{ index, routes }}
+        navigationState={{ index, routes: ROUTES }}
         renderScene={renderScene}
         onIndexChange={setIndex}
         renderTabBar={(args) => (
@@ -65,6 +74,7 @@ export default function DataPackTabGroup({ esims }) {
             style={styles.tabBarStyle}
             renderLabel={TabBarLabel}
             indicatorStyle={styles.indicatorStyle}
+            tabStyle={styles.tabStyle}
           />
         )}
       />
@@ -75,10 +85,14 @@ export default function DataPackTabGroup({ esims }) {
 const styles = StyleSheet.create({
   tabBarStyle: {
     backgroundColor: Colors.dark.secondaryBackground,
-    borderRadius: Theme.borderRadius.small,
+    borderRadius: Theme.borderRadius.medium,
   },
-  focusedTab: {
-    backgroundColor: Colors.dark.inactive,
+  tabStyle: {
+    padding: 0,
+    minHeight: 30,
+  },
+  inactiveTab: {
+    color: Colors.dark.inactive,
   },
   tabBarText: {
     color: Colors.dark.text,
@@ -97,5 +111,8 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     gap: Theme.spacing.sm,
+  },
+  eSimItemContainer: {
+    paddingHorizontal: 8,
   },
 });
