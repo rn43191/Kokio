@@ -4,6 +4,7 @@ import _isFunction from "lodash/isFunction";
 
 import Header from "@/components/Header";
 import { ROUTE_NAMES } from "@/constants/route.constants";
+import CheckoutHeader from "@/components/checkoutHeader";
 
 export default function ShopStack() {
   return (
@@ -28,6 +29,15 @@ export default function ShopStack() {
                 style={{ justifyContent: "center" }}
               />
             ),
+          };
+        }}
+      />
+      <Stack.Screen
+        name={ROUTE_NAMES.CHECKOUT}
+        options={({ route }: any) => {
+          const id = route?.params?.id;
+          return {
+            header: () => <CheckoutHeader id={id} />,
           };
         }}
       />
