@@ -1,6 +1,7 @@
 export const ROUTE_NAMES = {
   HOME: "index",
   SHOP: "(shop)",
+  CHECKOUT: "checkout/[id]",
   WALLET: "wallet",
   PHONE: "phone",
   SETTINGS: "settings",

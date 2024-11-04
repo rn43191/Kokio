@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useCallback } from "react";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import CountryFlag from "react-native-country-flag";
 import _get from "lodash/get";
 
 import { Colors, Theme } from "@/constants/Colors";
+import DetailItem from "./ui/DetailItem";
 
 export interface Esim {
   id: string;
@@ -17,15 +19,6 @@ export interface Esim {
   flagColor: string;
 }
 
-const DetailItem = ({ iconName, prefix, value, suffix }: any) => (
-  <View style={styles.detailItem}>
-    {iconName && <Ionicons name={iconName} size={20} />}
-    <Text>{prefix}</Text>
-    <Text style={styles.details}>{value}</Text>
-    <Text>{suffix}</Text>
-  </View>
-);
-
 const ESIMItem = ({
   item,
   showBuyButton,
@@ -34,43 +27,60 @@ const ESIMItem = ({
   item: Esim;
   showBuyButton: Boolean;
   containerStyle?: Object;
-}) => (
-  <View style={[styles.esimItemContainer, containerStyle]}>
-    <View style={styles.flagContainer}>
-      {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
-      <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
-    </View>
-    <View style={styles.esimItem}>
-      <Text style={styles.country}>{item.country}</Text>
-      <View style={styles.detailsContainer}>
-        <DetailItem
-          iconName="calendar-outline"
-          value={item.duration}
-          suffix="Days"
-        />
-        <DetailItem iconName="cellular-outline" value={item.data} suffix="GB" />
-        <DetailItem
-          iconName="call-outline"
-          value={item.minutes}
-          suffix="Mins"
-        />
-        <DetailItem iconName="chatbox-outline" value={item.sms} suffix="SMS" />
+}) => {
+  const handleBuyCTAClick = useCallback(
+    (id: String) => () => {
+      router.navigate(`/checkout/${id}`);
+    },
+    []
+  );
+
+  return (
+    <View style={[styles.esimItemContainer, containerStyle]}>
+      <View style={styles.flagContainer}>
+        {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
+        <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
       </View>
-      {showBuyButton && (
-        <TouchableOpacity
-          style={styles.buyButton}
-          onPress={() => console.log("Buy", item)}
-        >
-          <DetailItem prefix="$" value={_get(item, "price", 0)} />
-          <View style={styles.buyButtonText}>
-            <Ionicons name="cart-outline" size={20} />
-            <Text style={styles.details}>Buy</Text>
-          </View>
-        </TouchableOpacity>
-      )}
+      <View style={styles.esimItem}>
+        <Text style={styles.country}>{item.country}</Text>
+        <View style={styles.detailsContainer}>
+          <DetailItem
+            iconName="calendar-outline"
+            value={item.duration}
+            suffix="Days"
+          />
+          <DetailItem
+            iconName="cellular-outline"
+            value={item.data}
+            suffix="GB"
+          />
+          <DetailItem
+            iconName="call-outline"
+            value={item.minutes}
+            suffix="Mins"
+          />
+          <DetailItem
+            iconName="chatbox-outline"
+            value={item.sms}
+            suffix="SMS"
+          />
+        </View>
+        {showBuyButton && (
+          <TouchableOpacity
+            style={styles.buyButton}
+            onPress={handleBuyCTAClick(item.id)}
+          >
+            <DetailItem prefix="$" value={_get(item, "price", 0)} />
+            <View style={styles.buyButtonText}>
+              <Ionicons name="cart-outline" size={20} />
+              <Text style={styles.details}>Buy</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   esimItemContainer: {
