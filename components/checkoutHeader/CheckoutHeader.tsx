@@ -152,7 +152,7 @@ const CheckoutHeader = ({ details = MOCK_ESIM_DATA }: any) => {
       style={[styles.header, { height: animation }]}
       {...panResponder.panHandlers}
     >
-      <View style={{ marginBottom: 12 }}>
+      <View style={{ marginBottom: 18 }}>
         {countryAndFlagWithGoBack}
         {detailItems}
       </View>
@@ -182,6 +182,7 @@ const CheckoutHeader = ({ details = MOCK_ESIM_DATA }: any) => {
             }),
           },
         ]}
+        pointerEvents="none"
       >
         <View onLayout={onContentLayout}>
           <ExpandableContent />

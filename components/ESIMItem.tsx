@@ -70,7 +70,7 @@ const ESIMItem = ({
             style={styles.buyButton}
             onPress={handleBuyCTAClick(item.id)}
           >
-            <DetailItem prefix="$" value={_get(item, "price", 0)} />
+            <DetailItem prefix="$" value={_get(item, "price", 0).toFixed(2)} />
             <View style={styles.buyButtonText}>
               <Ionicons name="cart-outline" size={20} />
               <Text style={styles.details}>Buy</Text>
