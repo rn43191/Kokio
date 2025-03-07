@@ -1,6 +1,6 @@
 {
   "cli": {
-    "requireCommit": true
+    "requireCommit": false
   },
   "build": {
     "development-simulator": {
@@ -8,11 +8,18 @@
       "distribution": "internal",
       "ios": {
         "simulator": true
+      },
+      "android": {
+        "credentialsSource": "local"
       }
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "local"
+      }
     },
     "preview": {
       "distribution": "internal",

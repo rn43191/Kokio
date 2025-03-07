@@ -5,7 +5,6 @@
     "slug": "Kokio",
     "version": "1.0.0",
     "orientation": "portrait",
-    "logo": "./assets/images/logo.png",
     "icon": "./assets/images/icon.png",
     "scheme": "kokio",
     "userInterfaceStyle": "automatic",

@@ -49,6 +49,7 @@ export const AlchemyAuthSessionProvider = ({
     }
 
     // IF User is available, we can create a light account client
+    // here we can change to a different chain if needed and  other client configurations
     if (!lightAccountClient && user) {
       createLightAccountAlchemyClient({
         signer,

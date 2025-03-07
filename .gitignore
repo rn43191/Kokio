@@ -10,8 +10,12 @@ npm-debug.*
 *.orig.*
 web-build/
 .env
+android/
+ios/
 credentials.json
 *.keystore
+*.apk
+*.aab
 
 # macOS
 .DS_Store
