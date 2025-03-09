@@ -16,7 +16,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.kokio",
-      "associatedDomains": ["webcredentials:kokio.app"]
+      "associatedDomains": [
+        "webcredentials:kokio.app"
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -50,7 +52,8 @@
           "configureAndroidBackup": true,
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

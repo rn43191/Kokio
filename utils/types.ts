@@ -2,7 +2,6 @@ import { PasskeyCreateResult } from "react-native-passkey";
 
 export type TPasskeyRegistrationConfig = {
   // The RPID ("Relying Party ID") for your app.
-  // See https://github.com/f-23/react-native-passkey?tab=readme-ov-file#configuration to set this up.
   rp: {
     id: string;
     name: string;
@@ -14,10 +13,6 @@ export type TPasskeyRegistrationConfig = {
     name: string;
     displayName: string;
   };
-
-  // Name of the authenticator (affects Turnkey only, won't be shown on passkey prompts)
-  // TODO: document restrictions on character sets
-  authenticatorName: string;
 
   // Optional challenge. If not provided, a new random challenge will be generated
   challenge?: string;
@@ -50,6 +45,18 @@ export type TPasskeyRegistrationConfig = {
 
   // Optional extensions. Defaults to empty.
   extensions?: Record<string, unknown>;
+};
+
+export type TPasskeyAuthenticationConfig = {
+  // The RPID ("Relying Party ID") for your app.
+  rp: {
+    id: string;
+    name: string;
+  };
+  // The challenge string
+  challenge: string;
+  // The credential ID
+  credentialId: string;
 };
 
 export type BrokenPasskeyCreateResult = PasskeyCreateResult | string;
