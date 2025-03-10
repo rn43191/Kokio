@@ -19,6 +19,7 @@ import React from "react";
 import { PublicKeyCredentialUserEntityJSON } from "@simplewebauthn/typescript-types";
 import { toHex } from "viem";
 import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
+import { Buffer } from "buffer";
 import {
   base64UrlToString,
   bufferToBase64URLString,
