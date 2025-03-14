@@ -15,12 +15,13 @@ import {
   PasskeyCreateResult,
   PasskeyGetRequest,
 } from "react-native-passkey";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { PublicKeyCredentialUserEntityJSON } from "@simplewebauthn/typescript-types";
 import { toHex } from "viem";
 import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
 import { Buffer } from "buffer";
 import {
+  base64URLStringToBuffer,
   base64UrlToString,
   bufferToBase64URLString,
   getRandomChallenge,
@@ -28,6 +29,11 @@ import {
 } from "@/helpers/converters";
 import { PASSKEY_CONFIG } from "@/constants/passkey.constants";
 import { decode } from "cbor";
+import { useRouter } from "expo-router";
+import { AuthenticatingState } from "@/context/types";
+import { useAlchemyAuthSession } from "@/context/AlchemyAuthSessionProvider";
+import { TextInput } from "react-native-gesture-handler";
+import { signer } from "../../utils/signer";
 
 const now = new Date();
 const humanReadableDateTime = `${now.getFullYear()}-${now.getMonth()}-${now.getDay()}@${now.getHours()}h${now.getMinutes()}min`;
@@ -54,14 +60,14 @@ const authenticatorSelection = {
 
 export default function TestScreen() {
   const insets = useSafeAreaInsets();
-  const [pubKeyData, setPubKeyData] = React.useState<{
+  const [pubKeyData, setPubKeyData] = useState<{
     x: any;
     y: any;
   }>();
-  const [creationResponse, setCreationResponse] = React.useState<
+  const [creationResponse, setCreationResponse] = useState<
     NonNullable<Awaited<ReturnType<typeof passkey.create>>>["response"] | null
   >(null);
-  const [credentialId, setCredentialId] = React.useState("");
+  const [credentialId, setCredentialId] = useState("");
 
   const createPasskey = async () => {
     try {
@@ -129,6 +135,45 @@ export default function TestScreen() {
     console.log("authentication json -", json);
   };
 
+  const router = useRouter();
+  const [email, setEmail] = useState("pernjek@gmail.com");
+  const {
+    signInWithOTP,
+    signOutUser,
+    signInWithPasskey,
+    authState,
+    lightAccountClient,
+    user: alchemyUser,
+  } = useAlchemyAuthSession();
+
+  const onSignIn = useCallback(async () => {
+    try {
+      console.log("signing in with email: ", email);
+      await signInWithOTP(email);
+    } catch (e) {
+      console.error(
+        "Unable to send OTP to user. Ensure your credentials are properly set: ",
+        e
+      );
+    }
+  }, [email]);
+
+  useEffect(() => {
+    if (authState === AuthenticatingState.AWAITING_OTP) {
+      router.navigate("/otp-modal");
+    }
+  }, [authState]);
+
+  const signInDisabled = email.length < 1;
+
+  const account = lightAccountClient?.account;
+
+  const signerSubscription = async () => {
+    console.log("Signer Subscription", email);
+    const result = await signer.addPasskey();
+    console.log("Signer Subscription Result: ", result);
+  };
+
   // const writeBlob = async () => {
   //   console.log("user credential id -", credentialId);
   //   if (!credentialId) {
@@ -186,7 +231,68 @@ export default function TestScreen() {
       }}
       contentContainerStyle={styles.scrollContainer}
     >
-      <Text style={styles.title}>Testing Passkeys</Text>
+      <Text style={styles.title}>Testing Passkeys and Alchemy</Text>
+      {!alchemyUser && (
+        <View style={styles.textInputContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={email}
+            onChangeText={(val) => setEmail(val.toLowerCase())}
+            placeholder="john@doe.com"
+          />
+          <Pressable onPress={onSignIn} disabled={signInDisabled}>
+            {({ pressed }) => (
+              <View
+                style={[
+                  styles.signInButton,
+                  {
+                    opacity: pressed || signInDisabled ? 0.5 : 1,
+                    transform: [
+                      {
+                        scale: pressed ? 0.98 : 1,
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={[styles.signInText]}>Sign In with OTP</Text>
+              </View>
+            )}
+          </Pressable>
+          <Pressable onPress={() => signInWithPasskey(email)}>
+            {({ pressed }) => (
+              <View
+                style={[
+                  styles.signInButton,
+                  {
+                    opacity: pressed || signInDisabled ? 0.5 : 1,
+                    transform: [
+                      {
+                        scale: pressed ? 0.98 : 1,
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={[styles.signInText]}>Sign In with Passkey</Text>
+              </View>
+            )}
+          </Pressable>
+        </View>
+      )}
+
+      {pubKeyData && (
+        <Pressable style={styles.button} onPress={signerSubscription}>
+          <Text>Add Passkey</Text>
+        </Pressable>
+      )}
+
+      {alchemyUser && (
+        <Pressable style={styles.button} onPress={() => signOutUser()}>
+          <Text>Logout</Text>
+        </Pressable>
+      )}
+
       <Text>Application ID: {Application.applicationId}</Text>
       <Text>
         Passkeys are {passkey.isSupported() ? "Supported" : "Not Supported"}
@@ -220,18 +326,27 @@ export default function TestScreen() {
         <Text style={styles.resultText}>
           RP ID: {rp.id}
           {`\n`}
-          User ID: {user.id}
-          {`\n`}
-          User Name: {user.name}
-          {`\n`}
-          User Display Name: {user.displayName}
-          {`\n`}
           challenge: {challenge}
           {`\n`}
           X: {pubKeyData.x}
           {`\n`}
           Y: {pubKeyData.y}
         </Text>
+      )}
+
+      {alchemyUser && (
+        <>
+          <Text style={styles.userText}>{alchemyUser.email}</Text>
+          <View style={styles.separator} />
+
+          <View>
+            <Text style={styles.userText}>OrgId: {alchemyUser.orgId}</Text>
+            <Text style={styles.userText}>Address: {alchemyUser.address}</Text>
+            <Text style={styles.userText}>
+              Light Account Address: {account?.address}
+            </Text>
+          </View>
+        </>
       )}
     </ScrollView>
   );
@@ -250,7 +365,6 @@ const styles = StyleSheet.create({
   },
   resultText: {
     maxWidth: "80%",
-    flexGrow: 1,
   },
   buttonContainer: {
     padding: 24,
@@ -269,5 +383,46 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     textAlign: "center",
+  },
+  separator: {
+    marginVertical: 20,
+    height: 1,
+    width: "80%",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "black",
+  },
+  userText: {
+    marginBottom: 10,
+    fontSize: 12,
+    fontFamily: "SpaceMono",
+  },
+  textInputContainer: {
+    marginTop: 10,
+    width: "100%",
+  },
+
+  textInput: {
+    width: "100%",
+    height: 40,
+    borderColor: "rgba(0,0,0,0.095)",
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    backgroundColor: "rgba(0,0,0,0.025)",
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+
+  signInButton: {
+    width: "100%",
+    padding: 10,
+    marginVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "rgb(0, 0, 0)",
+  },
+  signInText: {
+    color: "white",
+    fontFamily: "SpaceMono",
   },
 });

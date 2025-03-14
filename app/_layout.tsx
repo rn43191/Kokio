@@ -19,6 +19,8 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 
 import { Platform } from "react-native";
 import { AlchemyAuthSessionProvider } from "@/context/AlchemyAuthSessionProvider";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+// import { AlchemyAccountProvider } from "@account-kit/react-native";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -52,10 +54,24 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <QueryClientProvider client={queryClient}>
         <AlchemyAuthSessionProvider>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
+          <GestureHandlerRootView>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen
+                name="otp-modal"
+                options={{
+                  headerShown: false,
+                  presentation:
+                    Platform.OS === "ios"
+                      ? "formSheet"
+                      : "containedTransparentModal",
+                  animation:
+                    Platform.OS === "android" ? "slide_from_bottom" : "default",
+                }}
+              />
+            </Stack>
+          </GestureHandlerRootView>
         </AlchemyAuthSessionProvider>
       </QueryClientProvider>
     </ThemeProvider>

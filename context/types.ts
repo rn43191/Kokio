@@ -13,6 +13,7 @@ export interface AlchemyAuthSessionContextType {
 	loading: boolean;
 	lightAccountClient: AlchemySmartAccountClient | null;
 	signInWithOTP: (email: string) => void;
+	signInWithPasskey: (email: string) => void;
 	verifyUserOTP: (otp: string) => void;
 	signOutUser: () => void;
 }

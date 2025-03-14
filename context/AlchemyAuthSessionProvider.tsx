@@ -101,6 +101,19 @@ export const AlchemyAuthSessionProvider = ({
       });
   }, []);
 
+  const signInWithPasskey = useCallback((email: string) => {
+    console.log("Signing in with passkey");
+    return signer
+      .authenticate({
+        type: "passkey",
+        createNew: false,
+      })
+      .catch((e: any) => {
+        setAuthState(AuthenticatingState.UNAUTHENTICATED);
+        throw new Error(e);
+      });
+  }, []);
+
   const signOutUser = useCallback(async () => {
     await signer.disconnect();
     setUser(null);
@@ -114,6 +127,7 @@ export const AlchemyAuthSessionProvider = ({
         authState,
         signOutUser,
         signInWithOTP,
+        signInWithPasskey,
         verifyUserOTP,
         lightAccountClient,
         loading: isAuthDetailsLoading,
@@ -125,7 +139,6 @@ export const AlchemyAuthSessionProvider = ({
 };
 
 export const useAlchemyAuthSession = () => {
-    
   const val = useContext(AlchemyAuthSessionContext);
 
   if (!val) {
@@ -135,4 +148,4 @@ export const useAlchemyAuthSession = () => {
   }
 
   return val;
-}
+};
