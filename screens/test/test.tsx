@@ -136,7 +136,7 @@ export default function TestScreen() {
   };
 
   const router = useRouter();
-  const [email, setEmail] = useState("pernjek@gmail.com");
+  const [email, setEmail] = useState("");
   const {
     signInWithOTP,
     signOutUser,
@@ -281,11 +281,9 @@ export default function TestScreen() {
         </View>
       )}
 
-      {pubKeyData && (
-        <Pressable style={styles.button} onPress={signerSubscription}>
-          <Text>Add Passkey</Text>
-        </Pressable>
-      )}
+      <Pressable style={styles.button} onPress={signerSubscription}>
+        <Text>Add Passkey</Text>
+      </Pressable>
 
       {alchemyUser && (
         <Pressable style={styles.button} onPress={() => signOutUser()}>
