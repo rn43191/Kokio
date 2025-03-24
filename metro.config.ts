@@ -11,6 +11,7 @@ config.resolver = {
     ...config.resolver.extraNodeModules,
     ...require("node-libs-expo"),
     crypto: require.resolve("crypto-browserify"),
+    "node:crypto": require.resolve("crypto-browserify"),
     stream: require.resolve("stream-browserify"),
   },
   sourceExts: ["jsx", "js", "ts", "tsx", "cjs", "mjs", "json"], //add here
@@ -20,7 +21,7 @@ config.transformer = {
   getTransformOptions: async () => ({
     transform: {
       experimentalImportSupport: false,
-      inlineRequires: true,
+      inlineRequires: false,
     },
   }),
 };

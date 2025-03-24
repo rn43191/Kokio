@@ -9,16 +9,17 @@ import {
   Pressable,
 } from "react-native";
 import {
-  useAuthenticate,
+  // useAuthenticate,
   useUser,
   useSigner,
   useLogout,
   useSmartAccountClient,
 } from "@account-kit/react-native";
+import { useAuthenticate } from "@account-kit/react";
 import { watchSignerStatus } from "@account-kit/core";
 import { alchemyConfig } from "@/utils/signer";
 
-export default function TestScreen() {
+export default function SettingsScreen() {
   const [email, setEmail] = useState<string>("");
   const user = useUser();
   const { authenticate } = useAuthenticate();
@@ -56,9 +57,11 @@ export default function TestScreen() {
     console.log("Signer status", status);
   });
 
-  const signerSubscription = async () => {
-    const subscription = await signer?.addPasskey();
-    console.log("add passkey", subscription);
+  const signerSubscription = async ({ email }: { email: string }) => {
+    authenticate({
+      type: "passkey",
+      email,
+    });
   };
 
   return (
@@ -122,7 +125,7 @@ export default function TestScreen() {
           {signerAddress && (
             <TouchableOpacity
               style={styles.button}
-              onPress={signerSubscription}
+              onPress={() => signerSubscription({ email })}
             >
               <Text style={styles.buttonText}>Add Passkey</Text>
             </TouchableOpacity>
