@@ -1,10 +1,8 @@
 // Add global shims
-// import "@flyskywhy/react-native-browser-polyfill";
 import "node-libs-expo/globals";
-import "@ethersproject/shims";
 import "react-native-get-random-values";
+import "@ethersproject/shims";
 import "cbor-rn-prereqs";
-import "@/polyfills/window";
 
 import "react-native-reanimated";
 import {
@@ -20,8 +18,8 @@ import { useEffect } from "react";
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 import { Platform } from "react-native";
-import { AlchemyAuthSessionProvider } from "@/context/AlchemyAuthSessionProvider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { AlchemyAuthSessionProvider } from "@/context/AlchemyAuthSessionProvider";
 import { AlchemyAccountProvider } from "@account-kit/react-native";
 import { alchemyConfig } from "@/utils/signer";
 
@@ -37,6 +35,7 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  console.log("RootLayout", process.env);
   const colorScheme = useColorScheme();
 
   const [loaded] = useFonts({

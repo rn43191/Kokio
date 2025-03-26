@@ -8,7 +8,6 @@ module.exports = function (api) {
         {
           alias: {
             crypto: "crypto-browserify",
-            "node:crypto": "crypto-browserify",
             stream: "stream-browserify",
           },
         },
