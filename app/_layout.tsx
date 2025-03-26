@@ -1,5 +1,5 @@
 // Add global shims
-import "node-libs-expo/globals";
+import "node-libs-react-native/globals.js";
 import "react-native-get-random-values";
 import "@ethersproject/shims";
 import "cbor-rn-prereqs";
@@ -35,7 +35,6 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
-  console.log("RootLayout", process.env);
   const colorScheme = useColorScheme();
 
   const [loaded] = useFonts({
@@ -54,30 +53,30 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      {/* <QueryClientProvider client={queryClient}>
-        <AlchemyAuthSessionProvider> */}
-      <AlchemyAccountProvider config={alchemyConfig} queryClient={queryClient}>
-        <GestureHandlerRootView>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen
-              name="otp-modal"
-              options={{
-                headerShown: false,
-                presentation:
-                  Platform.OS === "ios"
-                    ? "formSheet"
-                    : "containedTransparentModal",
-                animation:
-                  Platform.OS === "android" ? "slide_from_bottom" : "default",
-              }}
-            />
-          </Stack>
-        </GestureHandlerRootView>
-      </AlchemyAccountProvider>
-      {/* </AlchemyAuthSessionProvider>
-      </QueryClientProvider> */}
+      {/* <QueryClientProvider client={queryClient}> */}
+        {/* <AlchemyAuthSessionProvider> */}
+          <AlchemyAccountProvider config={alchemyConfig} queryClient={queryClient}>
+          <GestureHandlerRootView>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen
+                name="otp-modal"
+                options={{
+                  headerShown: false,
+                  presentation:
+                    Platform.OS === "ios"
+                      ? "formSheet"
+                      : "containedTransparentModal",
+                  animation:
+                    Platform.OS === "android" ? "slide_from_bottom" : "default",
+                }}
+              />
+            </Stack>
+          </GestureHandlerRootView>
+          </AlchemyAccountProvider>
+        {/* </AlchemyAuthSessionProvider> */}
+      {/* </QueryClientProvider> */}
     </ThemeProvider>
   );
 }

@@ -19,7 +19,7 @@ const config = getDefaultConfig(__dirname);
 // shims for crypto built into our project
 config.resolver.extraNodeModules = {
   ...config.resolver.extraNodeModules,
-  ...require("node-libs-expo"),
+  ...require("node-libs-react-native"),
   crypto: require.resolve("crypto-browserify"),
   stream: require.resolve("stream-browserify"),
 };
@@ -42,5 +42,12 @@ config.resolver.unstable_conditionNames = [
   "require",
   "react-native",
 ];
+
+config.transformer.getTransformOptions = async () => ({
+  transform: {
+    experimentalImportSupport: true,
+    inlineRequires: true,
+  },
+});
 
 module.exports = config;

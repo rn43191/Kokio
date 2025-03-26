@@ -19,7 +19,6 @@ import { watchSignerStatus } from "@account-kit/core";
 import { alchemyConfig } from "@/utils/signer";
 
 export default function SettingsScreen() {
-  console.log("SettingsScreen", process.env.EXPO_PUBLIC_ALCHEMY_API_KEY);
   const [email, setEmail] = useState<string>("");
   const user = useUser();
   const { authenticate } = useAuthenticate();
