@@ -10,10 +10,8 @@ import {
 } from "react-native";
 // import { isSupported } from "@turnkey/react-native-passkey-stamper";
 
-
+// testing with TurnkeyProvider
 export default function TestScreen() {
-
-
   return (
     <View style={styles.container}>
       {/* {isSupported() ? (

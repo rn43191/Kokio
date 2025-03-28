@@ -18,7 +18,8 @@ import {
 import { watchSignerStatus } from "@account-kit/core";
 import { alchemyConfig } from "@/utils/signer";
 
-export default function SettingsScreen() {
+// testing with AlchemyAccountProvider from "@account-kit/react-native" in app/layout.tsx
+export default function TestScreen() {
   const [email, setEmail] = useState<string>("");
   const user = useUser();
   const { authenticate } = useAuthenticate();

@@ -20,7 +20,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AlchemyAuthSessionProvider } from "@/context/AlchemyAuthSessionProvider";
-import { AlchemyAccountProvider } from "@account-kit/react-native";
+// import { AlchemyAccountProvider } from "@account-kit/react-native";
 import { alchemyConfig } from "@/utils/signer";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -53,9 +53,12 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      {/* <QueryClientProvider client={queryClient}> */}
-        {/* <AlchemyAuthSessionProvider> */}
-          <AlchemyAccountProvider config={alchemyConfig} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <AlchemyAuthSessionProvider>
+          {/* <AlchemyAccountProvider
+            config={alchemyConfig}
+            queryClient={queryClient}
+          > */}
           <GestureHandlerRootView>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -74,9 +77,9 @@ export default function RootLayout() {
               />
             </Stack>
           </GestureHandlerRootView>
-          </AlchemyAccountProvider>
-        {/* </AlchemyAuthSessionProvider> */}
-      {/* </QueryClientProvider> */}
+          {/* </AlchemyAccountProvider> */}
+        </AlchemyAuthSessionProvider>
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

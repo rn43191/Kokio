@@ -58,6 +58,7 @@ const authenticatorSelection = {
   residentKey: "required",
 } satisfies AuthenticatorSelectionCriteria;
 
+// testing with AlchemyAuthSessionProvider from "@/context/AlchemyAuthSessionProvider.tsx" in app/layout.tsx
 export default function TestScreen() {
   const insets = useSafeAreaInsets();
   const [pubKeyData, setPubKeyData] = useState<{
