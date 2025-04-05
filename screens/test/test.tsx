@@ -1,226 +1,67 @@
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Alert,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as Application from "expo-application";
-import {
-  Passkey as passkey,
-  PasskeyCreateRequest,
-  PasskeyCreateResult,
-  PasskeyGetRequest,
-} from "react-native-passkey";
-import React, { useCallback, useEffect, useState } from "react";
-import { PublicKeyCredentialUserEntityJSON } from "@simplewebauthn/typescript-types";
-import { toHex } from "viem";
-import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
-import { Buffer } from "buffer";
-import {
-  base64URLStringToBuffer,
-  base64UrlToString,
-  bufferToBase64URLString,
-  getRandomChallenge,
-  utf8StringToBuffer,
-} from "@/helpers/converters";
-import { PASSKEY_CONFIG } from "@/constants/passkey.constants";
-import { decode } from "cbor";
-import { useRouter } from "expo-router";
-import { AuthenticatingState } from "@/context/types";
-import { useAlchemyAuthSession } from "@/context/AlchemyAuthSessionProvider";
+import React, { useCallback, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
-import { signer } from "../../utils/signer";
+import { useTurnkey } from "@turnkey/sdk-react-native";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import {
+  deleteSubOrganization,
+  returnTurnkeyAlchemyLightAccountClient,
+  stampGetWhoami,
+} from "@/utils/passkey";
+import { keccak256, toBytes } from "viem";
+import { HashFunction, PayloadEncoding } from "@/utils/types";
 
-const now = new Date();
-const humanReadableDateTime = `${now.getFullYear()}-${now.getMonth()}-${now.getDay()}@${now.getHours()}h${now.getMinutes()}min`;
-console.log(
-  "creating passkey with the following datetime: ",
-  humanReadableDateTime
-);
-const rp = {
-  id: PASSKEY_CONFIG.RP_ID,
-  name: PASSKEY_CONFIG.RP_NAME,
-} satisfies PublicKeyCredentialRpEntity;
-const challenge = getRandomChallenge();
-const user = {
-  id: Buffer.from(String(Date.now())).toString("base64"),
-  // We insert a human-readable date time for ease of use
-  name: `Key @ ${humanReadableDateTime}`,
-  displayName: `Key @ ${humanReadableDateTime}`,
-} satisfies PublicKeyCredentialUserEntityJSON;
+const isValidEmail = (email: string | undefined) => {
+  if (!email) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
-const authenticatorSelection = {
-  userVerification: "required",
-  residentKey: "required",
-} satisfies AuthenticatorSelectionCriteria;
-
-// testing with AlchemyAuthSessionProvider from "@/context/AlchemyAuthSessionProvider.tsx" in app/layout.tsx
 export default function TestScreen() {
+  const { signUpWithPasskey, loginWithPasskey, initEmailLogin } =
+    useAuthRelay();
+  const { user, session, clearSession, signRawPayload, exportWallet } =
+    useTurnkey();
   const insets = useSafeAreaInsets();
-  const [pubKeyData, setPubKeyData] = useState<{
-    x: any;
-    y: any;
-  }>();
-  const [creationResponse, setCreationResponse] = useState<
-    NonNullable<Awaited<ReturnType<typeof passkey.create>>>["response"] | null
-  >(null);
-  const [credentialId, setCredentialId] = useState("");
-
-  const createPasskey = async () => {
-    try {
-      const json: PasskeyCreateResult = await passkey.create({
-        challenge,
-        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-        rp,
-        user,
-        authenticatorSelection,
-        ...(Platform.OS !== "android" && {
-          extensions: { largeBlob: { support: "required" } },
-        }),
-        attestation: "direct",
-      } as PasskeyCreateRequest);
-
-      console.log("creation json -", json);
-
-      // // https://github.com/passkeys-4337/smart-wallet/blob/main/front/src/libs/web-authn/service/web-authn.ts#L97
-      let cred = json as unknown as {
-        rawId: ArrayBuffer;
-        response: {
-          publicKey: string;
-          attestationObject: string;
-        };
-      };
-
-      if (json?.rawId) setCredentialId(json.rawId);
-      if (json?.response) setCreationResponse(json.response);
-      const attestationObject = Buffer.from(
-        cred.response.attestationObject,
-        "base64"
-      );
-      const decodedAttestationObj = decode(attestationObject);
-      let authDataBuffer = decodedAttestationObj.authData;
-      if (Buffer.isBuffer(authDataBuffer)) {
-        authDataBuffer = authDataBuffer.buffer.slice(
-          authDataBuffer.byteOffset,
-          authDataBuffer.byteOffset + authDataBuffer.byteLength
-        );
-      }
-      const authDataUint8Array = new Uint8Array(decodedAttestationObj.authData); // Safe conversion
-      const authData = parseAuthenticatorData(authDataUint8Array);
-      const publicKey = decode(
-        Buffer.from(authData.credentialPublicKey!.buffer)
-      );
-      const x = toHex(publicKey.get(-2));
-      const y = toHex(publicKey.get(-3));
-      console.log("Public Key X from attestationObject:", x);
-      console.log("Public Key Y from attestationObject:", y);
-      setPubKeyData({ x, y });
-    } catch (e) {
-      console.error("create error", e);
-    }
-  };
-
-  const authenticatePasskey = async () => {
-    const json = await passkey.get({
-      rpId: rp.id as string,
-      challenge,
-      ...(credentialId && {
-        allowCredentials: [{ id: credentialId, type: "public-key" }],
-      }),
-    });
-
-    console.log("authentication json -", json);
-  };
-
-  const router = useRouter();
   const [email, setEmail] = useState("");
-  const {
-    signInWithOTP,
-    signOutUser,
-    signInWithPasskey,
-    authState,
-    lightAccountClient,
-    user: alchemyUser,
-  } = useAlchemyAuthSession();
+  const [username, setUsername] = useState("");
+  const [smartAccountAddress, setSmartAccountAddress] = useState("");
+
+  const signUpDisabled = email.length < 1 || username.length < 1;
 
   const onSignIn = useCallback(async () => {
     try {
-      console.log("signing in with email: ", email);
-      await signInWithOTP(email);
+      const response = await loginWithPasskey();
+      return response;
     } catch (e) {
-      console.error(
-        "Unable to send OTP to user. Ensure your credentials are properly set: ",
-        e
-      );
+      console.error("Error signing in", e);
     }
-  }, [email]);
+  }, [email, username]);
 
-  useEffect(() => {
-    if (authState === AuthenticatingState.AWAITING_OTP) {
-      router.navigate("/otp-modal");
+  const onSignInEmail = useCallback(async () => {
+    try {
+      if (!isValidEmail(email) || email.length < 1)
+        return alert("Invalid email address");
+      const response = await initEmailLogin(email);
+      return response;
+    } catch (e) {
+      console.error("Error signing in", e);
     }
-  }, [authState]);
+  }, [email, username]);
 
-  const signInDisabled = email.length < 1;
+  const onSignUp = useCallback(async () => {
+    if (signUpDisabled) return alert("Please fill in all fields");
+    if (!isValidEmail(email)) return alert("Invalid email address");
 
-  const account = lightAccountClient?.account;
-
-  const signerSubscription = async () => {
-    console.log("Signer Subscription", email);
-    const result = await signer.addPasskey();
-    console.log("Signer Subscription Result: ", result);
-  };
-
-  // const writeBlob = async () => {
-  //   console.log("user credential id -", credentialId);
-  //   if (!credentialId) {
-  //     alert(
-  //       "No user credential id found - large blob requires a selected credential"
-  //     );
-  //     return;
-  //   }
-
-  //   const json = await passkey.get({
-  //     rpId: rp.id as string,
-  //     challenge,
-  //     extensions: {
-  //       largeBlob: {
-  //         write: bufferToBase64URLString(
-  //           utf8StringToBuffer("Hey its a private key!")
-  //         ),
-  //       },
-  //     },
-  //     ...(credentialId && {
-  //       allowCredentials: [{ id: credentialId, type: "public-key" }],
-  //     }),
-  //   } as PasskeyGetRequest);
-
-  //   console.log("add blob json -", json);
-
-  //   const written = json?.clientExtensionResults?.largeBlob?.written;
-  //   if (written) Alert.alert("This blob was written to the passkey");
-  // };
-
-  // const readBlob = async () => {
-  //   const json = await passkey.get({
-  //     rpId: rp.id as string,
-  //     challenge,
-  //     extensions: { largeBlob: { read: true } },
-  //     ...(credentialId && {
-  //       allowCredentials: [{ id: credentialId, type: "public-key" }],
-  //     }),
-  //   } as PasskeyGetRequest);
-
-  //   console.log("read blob json -", json);
-
-  //   const blob = json?.clientExtensionResults?.largeBlob?.blob;
-  //   if (blob)
-  //     Alert.alert("This passkey has blob", base64UrlToString(blob as any));
-  // };
+    try {
+      const response = await signUpWithPasskey({ username, email });
+      console.log("response", response);
+      return response;
+    } catch (e) {
+      console.error("Error signing up", e);
+    }
+  }, [email, username]);
 
   return (
     <ScrollView
@@ -232,22 +73,28 @@ export default function TestScreen() {
       }}
       contentContainerStyle={styles.scrollContainer}
     >
-      <Text style={styles.title}>Testing Passkeys and Alchemy</Text>
-      {!alchemyUser && (
+      <Text style={styles.title}>Testing Passkeys and Smart Accounts</Text>
+      {!user && (
         <View style={styles.textInputContainer}>
+          <TextInput
+            style={styles.textInput}
+            value={username}
+            onChangeText={(val) => setUsername(val)}
+            placeholder="John Doe"
+          />
           <TextInput
             style={styles.textInput}
             value={email}
             onChangeText={(val) => setEmail(val.toLowerCase())}
             placeholder="john@doe.com"
           />
-          <Pressable onPress={onSignIn} disabled={signInDisabled}>
+          <Pressable onPress={onSignUp}>
             {({ pressed }) => (
               <View
                 style={[
                   styles.signInButton,
                   {
-                    opacity: pressed || signInDisabled ? 0.5 : 1,
+                    opacity: pressed || signUpDisabled ? 0.5 : 1,
                     transform: [
                       {
                         scale: pressed ? 0.98 : 1,
@@ -256,17 +103,19 @@ export default function TestScreen() {
                   },
                 ]}
               >
-                <Text style={[styles.signInText]}>Sign In with OTP</Text>
+                <Text style={[styles.signInText]}>
+                  Sign Up with Passkey & Email
+                </Text>
               </View>
             )}
           </Pressable>
-          <Pressable onPress={() => signInWithPasskey(email)}>
+
+          <Pressable onPress={onSignIn}>
             {({ pressed }) => (
               <View
                 style={[
                   styles.signInButton,
                   {
-                    opacity: pressed || signInDisabled ? 0.5 : 1,
                     transform: [
                       {
                         scale: pressed ? 0.98 : 1,
@@ -279,71 +128,135 @@ export default function TestScreen() {
               </View>
             )}
           </Pressable>
+
+          <Pressable onPress={onSignInEmail}>
+            {({ pressed }) => (
+              <View
+                style={[
+                  styles.signInButton,
+                  {
+                    transform: [
+                      {
+                        scale: pressed ? 0.98 : 1,
+                      },
+                    ],
+                  },
+                ]}
+              >
+                <Text style={[styles.signInText]}>Sign In with Email</Text>
+              </View>
+            )}
+          </Pressable>
         </View>
       )}
 
-      <Pressable style={styles.button} onPress={signerSubscription}>
-        <Text>Add Passkey</Text>
-      </Pressable>
-
-      {alchemyUser && (
-        <Pressable style={styles.button} onPress={() => signOutUser()}>
+      {session && (
+        <Pressable
+          style={styles.button}
+          onPress={() => {
+            clearSession();
+            setSmartAccountAddress("");
+          }}
+        >
           <Text>Logout</Text>
         </Pressable>
       )}
 
-      <Text>Application ID: {Application.applicationId}</Text>
-      <Text>
-        Passkeys are {passkey.isSupported() ? "Supported" : "Not Supported"}
-      </Text>
-      {credentialId && <Text>User Credential ID: {credentialId}</Text>}
-      <View style={styles.buttonContainer}>
-        <Pressable style={styles.button} onPress={createPasskey}>
-          <Text>Create</Text>
+      {session && user && (
+        <Pressable
+          style={styles.button}
+          onPress={async () => {
+            const data = await returnTurnkeyAlchemyLightAccountClient(user);
+            setSmartAccountAddress(data.accountClient.account?.address!);
+          }}
+        >
+          <Text>Get Account Address</Text>
         </Pressable>
-        <Pressable style={styles.button} onPress={authenticatePasskey}>
-          <Text>Authenticate</Text>
-        </Pressable>
-        {/* <Pressable style={styles.button} onPress={writeBlob}>
-          <Text>Add Blob</Text>
-        </Pressable>
-        <Pressable style={styles.button} onPress={readBlob}>
-          <Text>Read Blob</Text>
-        </Pressable> */}
-        {creationResponse && (
-          <Pressable
-            style={styles.button}
-            onPress={() => {
-              Alert.alert("Public Key", JSON.stringify(creationResponse));
-            }}
-          >
-            <Text>Get PublicKey</Text>
-          </Pressable>
-        )}
-      </View>
-      {pubKeyData && (
-        <Text style={styles.resultText}>
-          RP ID: {rp.id}
-          {`\n`}
-          challenge: {challenge}
-          {`\n`}
-          X: {pubKeyData.x}
-          {`\n`}
-          Y: {pubKeyData.y}
-        </Text>
       )}
 
-      {alchemyUser && (
+      {session && user && (
+        <Pressable
+          style={styles.button}
+          onPress={() => stampGetWhoami(user.organizationId)}
+        >
+          <Text>Get stamped Who Am I</Text>
+        </Pressable>
+      )}
+
+      {session && user && (
+        <Pressable
+          style={styles.button}
+          onPress={async () => {
+            try {
+              const hashedMessage = keccak256(toBytes("Hello World"));
+
+              const response = await signRawPayload({
+                signWith: user.wallets[0].accounts[0].address as string,
+                payload: hashedMessage,
+                encoding: PayloadEncoding.Hexadecimal,
+                hashFunction: HashFunction.NoOp,
+              });
+              console.log("response of raw signed message", response);
+            } catch (error) {
+              alert("Error signing message.");
+              console.error("Error signing message:", error);
+            }
+          }}
+        >
+          <Text>Sign message</Text>
+        </Pressable>
+      )}
+
+      {session && user && (
+        <Pressable
+          style={styles.button}
+          onPress={async () => {
+            try {
+              const mnem = await exportWallet({
+                walletId: session?.user?.wallets[0].id!,
+              });
+              console.log(mnem);
+            } catch (error) {
+              console.error("Error exporting wallet:", error);
+            }
+          }}
+        >
+          <Text>Export User Wallet</Text>
+        </Pressable>
+      )}
+
+      {/* this comes from storage somewhere after creating the user for the first time with passkey create from turnkey */}
+      {/* {data && (
+        <Text style={styles.resultText}>
+          {`\n`}
+        challenge: {challenge}
+        {`\n`}
+        X: {pubKeyData.x}
+        {`\n`}
+        Y: {pubKeyData.y}
+        </Text>
+      )} */}
+
+      {user && (
         <>
-          <Text style={styles.userText}>{alchemyUser.email}</Text>
+          <View style={styles.separator} />
+          <Text style={styles.userText}>{user.userName}</Text>
+          <Text style={styles.userText}>{user.email}</Text>
           <View style={styles.separator} />
 
           <View>
-            <Text style={styles.userText}>OrgId: {alchemyUser.orgId}</Text>
-            <Text style={styles.userText}>Address: {alchemyUser.address}</Text>
+            <Text style={styles.userText}>SubOrgId: {user.organizationId}</Text>
             <Text style={styles.userText}>
-              Light Account Address: {account?.address}
+              Turnkey User Wallet Id: {user?.wallets[0].id}
             </Text>
+            <Text style={styles.userText}>
+              Turnkey User Wallet Address: {user.wallets[0].accounts[0].address}
+            </Text>
+            {smartAccountAddress && (
+              <Text style={styles.userText}>
+                Smart Account Address: {smartAccountAddress}
+              </Text>
+            )}
           </View>
         </>
       )}
@@ -354,6 +267,7 @@ export default function TestScreen() {
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
+    marginHorizontal: "5%",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -375,6 +289,7 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#fff",
+    margin: 2,
     padding: 10,
     borderWidth: 1,
     borderRadius: 5,

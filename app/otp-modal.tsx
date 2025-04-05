@@ -9,17 +9,30 @@ import {
 } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useAlchemyAuthSession } from "@/context/AlchemyAuthSessionProvider";
+import { useLocalSearchParams } from "expo-router";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import { TURNKEY_PARENT_ORG_ID } from "@/constants/passkey.constants";
+import { useTurnkey } from "@turnkey/sdk-react-native";
 
 const windowHeight = Dimensions.get("window").height;
 
 export default function ModalScreen() {
+  const { user } = useTurnkey();
   const [otpCode, setOtpCode] = useState<string>("");
-  const { verifyUserOTP } = useAlchemyAuthSession();
+  const { completeEmailAuth } = useAuthRelay();
+
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    otpId: string;
+    organizationId: string;
+  }>();
 
   const handleUserOtp = useCallback(async () => {
-    await verifyUserOTP(otpCode);
+    await completeEmailAuth({
+      otpCode,
+      otpId: params.otpId,
+      organizationId: params.organizationId,
+    });
     router.back();
   }, [otpCode]);
 

@@ -1,398 +1,294 @@
-// import { ReactNode, createContext, useReducer } from "react";
-// import { TurnkeyClient } from "@turnkey/http";
-// import * as turnkeyRPC from "~/lib/turnkey-rpc";
-// import {
-//   createPasskey,
-//   isSupported,
-//   PasskeyStamper,
-// } from "@turnkey/react-native-passkey-stamper";
-// import { useRouter } from "expo-router";
-// import { Email, LoginMethod, User } from "~/lib/types";
-// import { getAddress } from "viem";
-// import {
-//   PASSKEY_APP_NAME,
-//   TURNKEY_API_URL,
-//   TURNKEY_PARENT_ORG_ID,
-//   TURNKEY_RP_ID,
-// } from "~/lib/constants";
-// import { useTurnkey } from "@turnkey/sdk-react-native";
+import { ReactNode, createContext, useReducer } from "react";
+import { TurnkeyClient } from "@turnkey/http";
+import {
+  isSupported,
+  PasskeyStamper,
+} from "@turnkey/react-native-passkey-stamper";
+import { Email, LoginMethod, User } from "@/utils/types";
+import {
+  PASSKEY_CONFIG,
+  TURNKEY_API_URL,
+  TURNKEY_PARENT_ORG_ID,
+} from "@/constants/passkey.constants";
+import { useTurnkey } from "@turnkey/sdk-react-native";
+import { generateP256KeyPair } from "@turnkey/crypto";
+import {
+  handleInitOtpAuthClient,
+  handleOtpAuthClient,
+  onPasskeyCreate,
+} from "@/utils/passkey";
+import { useRouter } from "expo-router";
+import { handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
 
-// type AuthActionType =
-//   | { type: "PASSKEY"; payload: User }
-//   | { type: "INIT_EMAIL_AUTH" }
-//   | { type: "COMPLETE_EMAIL_AUTH"; payload: User }
-//   | { type: "INIT_PHONE_AUTH" }
-//   | { type: "COMPLETE_PHONE_AUTH"; payload: User }
-//   | { type: "EMAIL_RECOVERY"; payload: User }
-//   | { type: "WALLET_AUTH"; payload: User }
-//   | { type: "OAUTH"; payload: User }
-//   | { type: "LOADING"; payload: LoginMethod | null }
-//   | { type: "ERROR"; payload: string }
-//   | { type: "CLEAR_ERROR" };
-// interface AuthState {
-//   loading: LoginMethod | null;
-//   error: string;
-//   user: User | null;
-// }
+type AuthActionType =
+  | { type: "PASSKEY"; payload: User }
+  | { type: "INIT_EMAIL_AUTH" }
+  | { type: "COMPLETE_EMAIL_AUTH"; payload: User }
+  | { type: "LOADING"; payload: LoginMethod | null }
+  | { type: "ERROR"; payload: string }
+  | { type: "CLEAR_ERROR" };
+interface AuthState {
+  loading: LoginMethod | null;
+  error: string;
+  user: User | null;
+}
 
-// const initialState: AuthState = {
-//   loading: null,
-//   error: "",
-//   user: null,
-// };
+const initialState: AuthState = {
+  loading: null,
+  error: "",
+  user: null,
+};
 
-// function authReducer(state: AuthState, action: AuthActionType): AuthState {
-//   switch (action.type) {
-//     case "LOADING":
-//       return { ...state, loading: action.payload ? action.payload : null };
-//     case "ERROR":
-//       return { ...state, error: action.payload, loading: null };
-//     case "CLEAR_ERROR":
-//       return { ...state, error: "" };
-//     case "INIT_EMAIL_AUTH":
-//       return { ...state, loading: null, error: "" };
-//     case "COMPLETE_EMAIL_AUTH":
-//       return { ...state, user: action.payload, loading: null, error: "" };
-//     case "INIT_PHONE_AUTH":
-//       return { ...state, loading: null, error: "" };
-//     case "COMPLETE_PHONE_AUTH":
-//       return { ...state, user: action.payload, loading: null, error: "" };
-//     case "OAUTH":
-//     case "PASSKEY":
-//     case "EMAIL_RECOVERY":
-//     case "WALLET_AUTH":
-//     case "OAUTH":
-//       return { ...state, user: action.payload, loading: null, error: "" };
-//     default:
-//       return state;
-//   }
-// }
+function authReducer(state: AuthState, action: AuthActionType): AuthState {
+  switch (action.type) {
+    case "LOADING":
+      return { ...state, loading: action.payload ? action.payload : null };
+    case "ERROR":
+      return { ...state, error: action.payload, loading: null };
+    case "CLEAR_ERROR":
+      return { ...state, error: "" };
+    case "INIT_EMAIL_AUTH":
+      return { ...state, loading: null, error: "" };
+    case "COMPLETE_EMAIL_AUTH":
+      return { ...state, user: action.payload, loading: null, error: "" };
+    case "PASSKEY":
+    default:
+      return state;
+  }
+}
 
-// export interface AuthRelayProviderType {
-//   state: AuthState;
-//   initEmailLogin: (email: Email) => Promise<void>;
-//   completeEmailAuth: (params: {
-//     otpId: string;
-//     otpCode: string;
-//     organizationId: string;
-//   }) => Promise<void>;
-//   initPhoneLogin: (phone: string) => Promise<void>;
-//   completePhoneAuth: (params: {
-//     otpId: string;
-//     otpCode: string;
-//     organizationId: string;
-//   }) => Promise<void>;
-//   signUpWithPasskey: () => Promise<void>;
-//   loginWithPasskey: () => Promise<void>;
-//   loginWithOAuth: (params: {
-//     oidcToken: string;
-//     providerName: string;
-//     targetPublicKey: string;
-//     expirationSeconds: string;
-//   }) => Promise<void>;
-//   clearError: () => void;
-// }
+export interface AuthRelayProviderType {
+  state: AuthState;
+  initEmailLogin: (email: string) => Promise<void>;
+  completeEmailAuth: (params: {
+    otpId: string;
+    otpCode: string;
+    organizationId: string;
+  }) => Promise<void>;
+  signUpWithPasskey: (user: {
+    username: string;
+    email: string;
+  }) => Promise<void>;
+  loginWithPasskey: () => Promise<void>;
+  clearError: () => void;
+}
 
-// export const AuthRelayContext = createContext<AuthRelayProviderType>({
-//   state: initialState,
-//   initEmailLogin: async () => Promise.resolve(),
-//   completeEmailAuth: async () => Promise.resolve(),
-//   initPhoneLogin: async () => Promise.resolve(),
-//   completePhoneAuth: async () => Promise.resolve(),
-//   signUpWithPasskey: async () => Promise.resolve(),
-//   loginWithPasskey: async () => Promise.resolve(),
-//   loginWithOAuth: async () => Promise.resolve(),
-//   clearError: () => {},
-// });
+export const AuthRelayContext = createContext<AuthRelayProviderType>({
+  state: initialState,
+  initEmailLogin: async () => Promise.resolve(),
+  completeEmailAuth: async () => Promise.resolve(),
+  signUpWithPasskey: async () => Promise.resolve(),
+  loginWithPasskey: async () => Promise.resolve(),
+  clearError: () => {},
+});
 
-// interface AuthRelayProviderProps {
-//   children: ReactNode;
-// }
+interface AuthRelayProviderProps {
+  children: ReactNode;
+}
 
-// export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
-//   children,
-// }) => {
-//   const [state, dispatch] = useReducer(authReducer, initialState);
-//   const router = useRouter();
-//   const {
-//     client,
-//     user,
-//     refreshUser,
-//     createEmbeddedKey,
-//     createSession,
-//     clearSession,
-//   } = useTurnkey();
+export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
+  children,
+}) => {
+  const [state, dispatch] = useReducer(authReducer, initialState);
+  const { createEmbeddedKey, createSession } = useTurnkey();
+  const router = useRouter();
 
-//   const initEmailLogin = async (email: Email) => {
-//     dispatch({ type: "LOADING", payload: LoginMethod.Email });
-//     try {
-//       const response = await turnkeyRPC.initOTPAuth({
-//         otpType: "OTP_TYPE_EMAIL",
-//         contact: email,
-//       });
+  const initEmailLogin = async (email: string) => {
+    dispatch({ type: "LOADING", payload: LoginMethod.Email });
+    try {
+      const response = await handleInitOtpAuth({
+        email,
+      });
 
-//       if (response) {
-//         dispatch({ type: "INIT_EMAIL_AUTH" });
-//         router.push(
-//           `/otp-auth?otpId=${encodeURIComponent(
-//             response.otpId
-//           )}&organizationId=${encodeURIComponent(response.organizationId)}`
-//         );
-//       }
-//     } catch (error: any) {
-//       dispatch({ type: "ERROR", payload: error.message });
-//     } finally {
-//       dispatch({ type: "LOADING", payload: null });
-//     }
-//   };
+      console.log(await response?.result.otpId);
 
-//   const completeEmailAuth = async ({
-//     otpId,
-//     otpCode,
-//     organizationId,
-//   }: {
-//     otpId: string;
-//     otpCode: string;
-//     organizationId: string;
-//   }) => {
-//     if (otpCode) {
-//       dispatch({ type: "LOADING", payload: LoginMethod.Email });
-//       try {
-//         const targetPublicKey = await createEmbeddedKey();
+      if (response) {
+        dispatch({ type: "INIT_EMAIL_AUTH" });
+        router.setParams({
+          otpId: response.result.otpId,
+          organizationId: response.organizationId,
+        });
+        router.push({
+          pathname: "/otp-modal",
+          params: {
+            otpId: response.result.otpId,
+            organizationId: response.organizationId,
+          },
+        });
+      }
+    } catch (error: any) {
+      dispatch({ type: "ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "LOADING", payload: null });
+    }
+  };
 
-//         const response = await turnkeyRPC.otpAuth({
-//           otpId: otpId,
-//           otpCode: otpCode,
-//           organizationId: organizationId,
-//           targetPublicKey,
-//           invalidateExisting: false,
-//         });
+  const completeEmailAuth = async ({
+    otpId,
+    otpCode,
+    organizationId,
+  }: {
+    otpId: string;
+    otpCode: string;
+    organizationId: string;
+  }) => {
+    if (otpCode) {
+      dispatch({ type: "LOADING", payload: LoginMethod.Email });
+      try {
+        const targetPublicKey = await createEmbeddedKey();
 
-//         if (response.credentialBundle) {
-//           await createSession(response.credentialBundle);
-//         }
-//       } catch (error: any) {
-//         dispatch({ type: "ERROR", payload: error.message });
-//       } finally {
-//         dispatch({ type: "LOADING", payload: null });
-//       }
-//     }
-//   };
+        const response = await handleOtpAuth({
+          otpId: otpId,
+          otpCode: otpCode,
+          organizationId: organizationId,
+          targetPublicKey,
+          invalidateExisting: true,
+        });
 
-//   const initPhoneLogin = async (phone: string) => {
-//     dispatch({ type: "LOADING", payload: LoginMethod.Phone });
-//     try {
-//       const response = await turnkeyRPC.initOTPAuth({
-//         otpType: "OTP_TYPE_SMS",
-//         contact: phone,
-//       });
+        if (response?.activity.result.otpAuthResult?.credentialBundle) {
+          await createSession({
+            bundle: response?.activity.result.otpAuthResult?.credentialBundle,
+            expirationSeconds: 3600,
+          });
+        }
+      } catch (error: any) {
+        dispatch({ type: "ERROR", payload: error.message });
+      } finally {
+        dispatch({ type: "LOADING", payload: null });
+      }
+    }
+  };
 
-//       if (response) {
-//         dispatch({ type: "INIT_PHONE_AUTH" });
-//         router.push(
-//           `/otp-auth?otpId=${encodeURIComponent(
-//             response.otpId
-//           )}&organizationId=${encodeURIComponent(response.organizationId)}`
-//         );
-//       }
-//     } catch (error: any) {
-//       dispatch({ type: "ERROR", payload: error.message });
-//     } finally {
-//       dispatch({ type: "LOADING", payload: null });
-//     }
-//   };
+  // User will be prompted twice for passkey, once for account creation and once for login
+  const signUpWithPasskey = async (user: {
+    username: string;
+    email: string;
+  }) => {
+    if (!isSupported()) {
+      throw new Error("Passkeys are not supported on this device");
+    }
 
-//   const completePhoneAuth = async ({
-//     otpId,
-//     otpCode,
-//     organizationId,
-//   }: {
-//     otpId: string;
-//     otpCode: string;
-//     organizationId: string;
-//   }) => {
-//     if (otpCode) {
-//       dispatch({ type: "LOADING", payload: LoginMethod.Phone });
-//       try {
-//         const targetPublicKey = await createEmbeddedKey();
+    dispatch({ type: "LOADING", payload: LoginMethod.Passkey });
 
-//         const response = await turnkeyRPC.otpAuth({
-//           otpId: otpId,
-//           otpCode: otpCode,
-//           organizationId: organizationId,
-//           targetPublicKey,
-//           invalidateExisting: false,
-//         });
+    try {
+      const data = await onPasskeyCreate(user);
 
-//         if (response.credentialBundle) {
-//           await createSession(response.credentialBundle);
-//         }
-//       } catch (error: any) {
-//         dispatch({ type: "ERROR", payload: error.message });
-//       } finally {
-//         dispatch({ type: "LOADING", payload: null });
-//       }
-//     }
-//   };
+      if (!data) {
+        throw new Error("Failed to create passkey");
+      }
 
-//   // User will be prompted twice for passkey, once for account creation and once for login
-//   const signUpWithPasskey = async () => {
-//     if (!isSupported()) {
-//       throw new Error("Passkeys are not supported on this device");
-//     }
+      const passkey = {
+        challenge: data.authenticatorParams.challenge,
+        attestation: data.authenticatorParams.attestation,
+      };
 
-//     dispatch({ type: "LOADING", payload: LoginMethod.Passkey });
+      console.log("Passkey data", passkey);
 
-//     try {
-//       const authenticatorParams = await createPasskey({
-//         authenticatorName: "End-User Passkey",
-//         rp: {
-//           id: TURNKEY_RP_ID,
-//           name: PASSKEY_APP_NAME,
-//         },
-//         user: {
-//           id: String(Date.now()),
-//           // Name and displayName must match
-//           // This name is visible to the user. This is what's shown in the passkey prompt
-//           name: "Anonymous User",
-//           displayName: "Anonymous User",
-//         },
-//       });
+      if (data.subOrgCreationResponse) {
+        // Successfully created sub-organization, proceed with the login flow
+        const stamper = await new PasskeyStamper({
+          rpId: PASSKEY_CONFIG.RP_ID,
+        });
 
-//       const response = await turnkeyRPC.createSubOrg({
-//         passkey: {
-//           challenge: authenticatorParams.challenge,
-//           attestation: authenticatorParams.attestation,
-//         },
-//       });
+        const httpClient = new TurnkeyClient(
+          { baseUrl: TURNKEY_API_URL },
+          stamper
+        );
 
-//       if (response.subOrganizationId) {
-//         // Successfully created sub-organization, proceed with the login flow
-//         const stamper = new PasskeyStamper({
-//           rpId: TURNKEY_RP_ID,
-//         });
+        const targetPublicKey = await createEmbeddedKey();
 
-//         const httpClient = new TurnkeyClient(
-//           { baseUrl: TURNKEY_API_URL },
-//           stamper
-//         );
+        console.log("Target public key", targetPublicKey);
 
-//         const targetPublicKey = await createEmbeddedKey();
+        const sessionResponse = await httpClient.createReadWriteSession({
+          type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
+          timestampMs: Date.now().toString(),
+          organizationId: TURNKEY_PARENT_ORG_ID,
+          parameters: {
+            targetPublicKey,
+          },
+        });
 
-//         const sessionResponse = await httpClient.createReadWriteSession({
-//           type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
-//           timestampMs: Date.now().toString(),
-//           organizationId: TURNKEY_PARENT_ORG_ID,
-//           parameters: {
-//             targetPublicKey,
-//           },
-//         });
+        const credentialBundle =
+          sessionResponse.activity.result.createReadWriteSessionResultV2
+            ?.credentialBundle;
 
-//         const credentialBundle =
-//           sessionResponse.activity.result.createReadWriteSessionResultV2
-//             ?.credentialBundle;
+        if (credentialBundle) {
+          await createSession({
+            bundle: credentialBundle,
+            expirationSeconds: 3600,
+          });
+        }
+      }
+    } catch (error: any) {
+      dispatch({ type: "ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "LOADING", payload: null });
+    }
+  };
 
-//         if (credentialBundle) {
-//           await createSession(credentialBundle);
-//         }
-//       }
-//     } catch (error: any) {
-//       dispatch({ type: "ERROR", payload: error.message });
-//     } finally {
-//       dispatch({ type: "LOADING", payload: null });
-//     }
-//   };
+  const loginWithPasskey = async () => {
+    if (!isSupported()) {
+      throw new Error("Passkeys are not supported on this device");
+    }
 
-//   const loginWithPasskey = async () => {
-//     if (!isSupported()) {
-//       throw new Error("Passkeys are not supported on this device");
-//     }
-//     dispatch({ type: "LOADING", payload: LoginMethod.Passkey });
+    dispatch({ type: "LOADING", payload: LoginMethod.Passkey });
 
-//     try {
-//       const stamper = new PasskeyStamper({
-//         rpId: TURNKEY_RP_ID,
-//       });
+    try {
+      const stamper = new PasskeyStamper({
+        rpId: PASSKEY_CONFIG.RP_ID,
+      });
 
-//       const httpClient = new TurnkeyClient(
-//         { baseUrl: TURNKEY_API_URL },
-//         stamper
-//       );
+      const httpClient = new TurnkeyClient(
+        { baseUrl: TURNKEY_API_URL },
+        stamper
+      );
 
-//       const targetPublicKey = await createEmbeddedKey();
+      const targetPublicKey = await createEmbeddedKey();
 
-//       const sessionResponse = await httpClient.createReadWriteSession({
-//         type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
-//         timestampMs: Date.now().toString(),
-//         organizationId: TURNKEY_PARENT_ORG_ID,
-//         parameters: {
-//           targetPublicKey,
-//         },
-//       });
+      const sessionResponse = await httpClient.createReadWriteSession({
+        type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
+        timestampMs: Date.now().toString(),
+        organizationId: TURNKEY_PARENT_ORG_ID,
+        parameters: {
+          targetPublicKey,
+        },
+      });
 
-//       const credentialBundle =
-//         sessionResponse.activity.result.createReadWriteSessionResultV2
-//           ?.credentialBundle;
+      console.log("Session response", sessionResponse);
 
-//       if (credentialBundle) {
-//         await createSession(credentialBundle);
-//       }
-//     } catch (error: any) {
-//       dispatch({ type: "ERROR", payload: error.message });
-//     } finally {
-//       dispatch({ type: "LOADING", payload: null });
-//     }
-//   };
+      const credentialBundle =
+        sessionResponse.activity.result.createReadWriteSessionResultV2
+          ?.credentialBundle;
 
-//   const loginWithOAuth = async ({
-//     oidcToken,
-//     providerName,
-//     targetPublicKey,
-//     expirationSeconds,
-//   }: {
-//     oidcToken: string;
-//     providerName: string;
-//     targetPublicKey: string;
-//     expirationSeconds: string;
-//   }) => {
-//     dispatch({ type: "LOADING", payload: LoginMethod.OAuth });
-//     try {
-//       const response = await turnkeyRPC.oAuthLogin({
-//         oidcToken,
-//         providerName,
-//         targetPublicKey,
-//         expirationSeconds,
-//       });
+      if (credentialBundle) {
+        await createSession({
+          bundle: credentialBundle,
+          expirationSeconds: 3600,
+        });
+      }
+    } catch (error: any) {
+      dispatch({ type: "ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "LOADING", payload: null });
+    }
+  };
 
-//       if (response.credentialBundle) {
-//         await createSession(response.credentialBundle);
-//       }
-//     } catch (error: any) {
-//       dispatch({ type: "ERROR", payload: error.message });
-//     } finally {
-//       dispatch({ type: "LOADING", payload: null });
-//     }
-//   };
+  const clearError = () => {
+    dispatch({ type: "CLEAR_ERROR" });
+  };
 
-//   const clearError = () => {
-//     dispatch({ type: "CLEAR_ERROR" });
-//   };
-
-//   return (
-//     <AuthRelayContext.Provider
-//       value={{
-//         state,
-//         initEmailLogin,
-//         completeEmailAuth,
-//         initPhoneLogin,
-//         completePhoneAuth,
-//         signUpWithPasskey,
-//         loginWithPasskey,
-//         loginWithOAuth,
-//         clearError,
-//       }}
-//     >
-//       {children}
-//     </AuthRelayContext.Provider>
-//   );
-// };
+  return (
+    <AuthRelayContext.Provider
+      value={{
+        state,
+        initEmailLogin,
+        completeEmailAuth,
+        signUpWithPasskey,
+        loginWithPasskey,
+        clearError,
+      }}
+    >
+      {children}
+    </AuthRelayContext.Provider>
+  );
+};

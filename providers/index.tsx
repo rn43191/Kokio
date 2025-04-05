@@ -1,35 +1,54 @@
-// import { SafeAreaProvider } from "react-native-safe-area-context";
-// import { GestureHandlerRootView } from "react-native-gesture-handler";
-// import { TurnkeyProvider } from "@turnkey/sdk-react-native";
-// import { AuthRelayProvider } from "./authProvider";
-// import React from "react";
-// import { useRouter } from "expo-router";
-// import { TURNKEY_API_URL, TURNKEY_PARENT_ORG_ID } from "~/lib/constants";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Session, TurnkeyProvider } from "@turnkey/sdk-react-native";
+import { AuthRelayProvider } from "./authProvider";
+import React from "react";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// export const Providers = ({ children }: { children: React.ReactNode }) => {
-//   const router = useRouter();
+import {
+  TURNKEY_API_URL,
+  TURNKEY_PARENT_ORG_ID,
+} from "@/constants/passkey.constants";
+import { useColorScheme } from "@/hooks/useColorScheme";
 
-//   const sessionConfig = {
-//     apiBaseUrl: TURNKEY_API_URL,
-//     organizationId: TURNKEY_PARENT_ORG_ID,
-//     onSessionCreated: () => {
-//       router.replace("/settings");
-//     },
-//     onSessionExpired: () => {
-//       router.push("/");
-//     },
-//     onSessionCleared: () => {
-//       router.push("/");
-//     },
-//   };
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
-//   return (
-//     <SafeAreaProvider>
-//       <GestureHandlerRootView>
-//         <TurnkeyProvider config={sessionConfig}>
-//           <AuthRelayProvider>{children}</AuthRelayProvider>
-//         </TurnkeyProvider>
-//       </GestureHandlerRootView>
-//     </SafeAreaProvider>
-//   );
-// };
+export const Providers = ({ children }: { children: React.ReactNode }) => {
+  const colorScheme = useColorScheme();
+
+  const sessionConfig = {
+    apiBaseUrl: TURNKEY_API_URL,
+    organizationId: TURNKEY_PARENT_ORG_ID,
+    onSessionCreated: (session: Session) => {
+      console.log("Session created", session);
+    },
+    onSessionCleared: (session: Session) => {
+      console.log("Session cleared", session);
+    },
+  };
+
+  return (
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <SafeAreaProvider>
+        <GestureHandlerRootView>
+          <QueryClientProvider client={queryClient}>
+            <TurnkeyProvider config={sessionConfig}>
+              <AuthRelayProvider>{children}</AuthRelayProvider>
+            </TurnkeyProvider>
+          </QueryClientProvider>
+        </GestureHandlerRootView>
+      </SafeAreaProvider>
+    </ThemeProvider>
+  );
+};
