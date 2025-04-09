@@ -33,6 +33,15 @@ export function base64UrlToBuffer(base64url: string): Buffer {
   return Buffer.from(base64, "base64");
 }
 
+export function decodeClientDataJSON(base64url: string): any {
+  const base64 = base64url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd((base64url.length + 3) & ~3, "=");
+  const jsonString = Buffer.from(base64, "base64").toString("utf-8");
+  return JSON.parse(jsonString);
+}
+
 // Function to return 32 random bytes encoded as hex
 // (e.g "5e4c2c235fc876a9bef433506cf596f2f7db19a959e3e30c5a2d965ec149d40f")
 // ----

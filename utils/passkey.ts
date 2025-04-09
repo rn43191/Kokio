@@ -20,6 +20,7 @@ import { TurnkeyClient } from "@turnkey/http";
 import { TurnkeySigner } from "@turnkey/ethers";
 import {
   base64UrlToBuffer,
+  decodeClientDataJSON,
   getRandomChallenge,
   parseDEREncodedSignature,
 } from "@/helpers/converters";
@@ -529,12 +530,12 @@ export const stampGetWhoami = async (organizationId: string) => {
 
   const { url, body, stamp } = signedRequest;
 
-  const clientDataJSON = JSON.parse(stamp.stampHeaderValue).clientDataJson;
+  const clientDataJson = JSON.parse(stamp.stampHeaderValue).clientDataJson;
   const signature = JSON.parse(stamp.stampHeaderValue).signature;
   const sigBytes = base64UrlToBuffer(signature);
   const { r, s } = parseDEREncodedSignature(sigBytes);
-  const decodedClientDataJSON = decodeClientDataJSON(clientDataJSON);
-  console.log("decodedClientDataJSON:", decodedClientDataJSON);
+  const decodedClientDataJson = decodeClientDataJSON(clientDataJson);
+  console.log("decodedClientDataJSON:", decodedClientDataJson);
   console.log("r:", r);
   console.log("s:", s);
 
@@ -551,12 +552,3 @@ export const stampGetWhoami = async (organizationId: string) => {
 
   return resp.json();
 };
-
-function decodeClientDataJSON(base64url: string): any {
-  const base64 = base64url
-    .replace(/-/g, "+")
-    .replace(/_/g, "/")
-    .padEnd((base64url.length + 3) & ~3, "=");
-  const jsonString = Buffer.from(base64, "base64").toString("utf-8");
-  return JSON.parse(jsonString);
-}
