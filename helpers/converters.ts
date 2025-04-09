@@ -1,74 +1,36 @@
 import { base64 } from "@hexagon/base64";
+import { Buffer } from "buffer";
 
-/**
- * Convert from a Base64URL-encoded string to an Array Buffer. Best used when converting a
- * credential ID from a JSON string to an ArrayBuffer, like in allowCredentials or
- * excludeCredentials
- *
- * Helper method to compliment `bufferToBase64URLString`
- */
-export function base64URLStringToBuffer(base64URLString: string): ArrayBuffer {
-  // Convert from Base64URL to Base64
-  const base64 = base64URLString.replace(/-/g, "+").replace(/_/g, "/");
-  /**
-   * Pad with '=' until it's a multiple of four
-   * (4 - (85 % 4 = 1) = 3) % 4 = 3 padding
-   * (4 - (86 % 4 = 2) = 2) % 4 = 2 padding
-   * (4 - (87 % 4 = 3) = 1) % 4 = 1 padding
-   * (4 - (88 % 4 = 0) = 4) % 4 = 0 padding
-   */
-  const padLength = (4 - (base64.length % 4)) % 4;
-  const padded = base64.padEnd(base64.length + padLength, "=");
+export function parseDEREncodedSignature(signature: Uint8Array): {
+  r: string;
+  s: string;
+} {
+  let offset = 0;
+  if (signature[offset++] !== 0x30) throw new Error("Invalid DER sequence");
 
-  // Convert to a binary string
-  const binary = atob(padded);
+  const length = signature[offset++];
+  if (signature[offset++] !== 0x02) throw new Error("Expected integer for r");
 
-  // Convert binary string to buffer
-  const buffer = new ArrayBuffer(binary.length);
-  const bytes = new Uint8Array(buffer);
+  const rLen = signature[offset++];
+  const r = signature.slice(offset, offset + rLen);
+  offset += rLen;
 
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i);
-  }
+  if (signature[offset++] !== 0x02) throw new Error("Expected integer for s");
+  const sLen = signature[offset++];
+  const s = signature.slice(offset, offset + sLen);
 
-  return buffer;
+  return {
+    r: Buffer.from(r).toString("hex"),
+    s: Buffer.from(s).toString("hex"),
+  };
 }
 
-// ! taken from https://github.com/MasterKale/SimpleWebAuthn/blob/e02dce6f2f83d8923f3a549f84e0b7b3d44fa3da/packages/browser/src/helpers/bufferToBase64URLString.ts
-/**
- * Convert the given array buffer into a Base64URL-encoded string. Ideal for converting various
- * credential response ArrayBuffers to string for sending back to the server as JSON.
- *
- * Helper method to compliment `base64URLStringToBuffer`
- */
-export function bufferToBase64URLString(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let str = "";
-
-  for (const charCode of bytes) {
-    str += String.fromCharCode(charCode);
-  }
-
-  const base64String = btoa(str);
-
-  return base64String.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
-}
-
-// ! taken from https://github.com/MasterKale/SimpleWebAuthn/blob/e02dce6f2f83d8923f3a549f84e0b7b3d44fa3da/packages/browser/src/helpers/utf8StringToBuffer.ts
-/**
- * A helper method to convert an arbitrary string sent from the server to an ArrayBuffer the
- * authenticator will expect.
- */
-export function utf8StringToBuffer(value: string): ArrayBuffer {
-  // @ts-ignore
-  return new TextEncoder().encode(value);
-}
-
-/**
- * Decode a base64url string into its original string
- */
-export function base64UrlToString(base64urlString: Base64URLString): string {
-  return base64.toString(base64urlString, true);
+export function base64UrlToBuffer(base64url: string): Buffer {
+  const base64 = base64url
+    .replace(/-/g, "+")
+    .replace(/_/g, "/")
+    .padEnd((base64url.length + 3) & ~3, "=");
+  return Buffer.from(base64, "base64");
 }
 
 // Function to return 32 random bytes encoded as hex

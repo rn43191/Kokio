@@ -18,7 +18,7 @@ import {
 import { ApiKeyStamper } from "@turnkey/api-key-stamper";
 import { TurnkeyClient } from "@turnkey/http";
 import { TurnkeySigner } from "@turnkey/ethers";
-import { getRandomChallenge } from "@/helpers/converters";
+import { base64UrlToBuffer, getRandomChallenge, parseDEREncodedSignature } from "@/helpers/converters";
 import { decode } from "cbor";
 import {
   BrokenPasskeyCreateResult,
@@ -28,7 +28,14 @@ import {
 } from "./types";
 import { Buffer } from "buffer";
 import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
-import { toHex, http, createWalletClient, Account, WalletClient } from "viem";
+import {
+  toHex,
+  http,
+  createWalletClient,
+  Account,
+  WalletClient,
+  parseSignature,
+} from "viem";
 import { createLightAccountClient } from "@account-kit/smart-contracts";
 import { sepolia } from "viem/chains";
 import { createAccount } from "@turnkey/viem";
@@ -487,14 +494,14 @@ export const returnTurnkeyAlchemyLightAccountClient = async (
     signer,
   });
 
-  const xv = await accountClient.signMessage({ message: "hello" });
-  console.log("accountClient signed message", xv);
+  // const xv = await accountClient.signMessage({ message: "hello" });
+  // console.log("accountClient signed message", xv);
 
-  console.log("accountClient", accountClient.getAddress());
-  console.log(
-    "block transaction count",
-    await accountClient.getBlockTransactionCount()
-  );
+  // console.log("accountClient", accountClient.getAddress());
+  // console.log(
+  //   "block transaction count",
+  //   await accountClient.getBlockTransactionCount()
+  // );
 
   return {
     accountClient: accountClient as unknown as AlchemySmartAccountClient,
@@ -518,6 +525,16 @@ export const stampGetWhoami = async (organizationId: string) => {
 
   const { url, body, stamp } = signedRequest;
 
+  const signature = JSON.parse(stamp.stampHeaderValue).signature;
+  const sigBytes = base64UrlToBuffer(signature);
+
+  console.log("sigBytes", sigBytes);
+
+  const { r, s } = parseDEREncodedSignature(sigBytes);
+
+  console.log("r:", r);
+  console.log("s:", s);
+
   // Forward the signed request to the Turnkey API for validation
   const resp = await fetch(url, {
     method: "POST",
@@ -527,7 +544,7 @@ export const stampGetWhoami = async (organizationId: string) => {
     },
   });
 
-  console.log("response", await resp.json());
+  console.log("response from validation", await resp.json());
 
   return resp.json();
 };
