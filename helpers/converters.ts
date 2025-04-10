@@ -1,4 +1,3 @@
-import { base64 } from "@hexagon/base64";
 import { Buffer } from "buffer";
 
 export function parseDEREncodedSignature(signature: Uint8Array): {
@@ -40,6 +39,15 @@ export function decodeClientDataJSON(base64url: string): any {
     .padEnd((base64url.length + 3) & ~3, "=");
   const jsonString = Buffer.from(base64, "base64").toString("utf-8");
   return JSON.parse(jsonString);
+}
+
+export function hexToArrayBuffer(hexString: string): ArrayBuffer {
+  const cleanHex = hexString.startsWith("0x") ? hexString.slice(2) : hexString;
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] = parseInt(cleanHex.substr(i * 2, 2), 16);
+  }
+  return bytes.buffer;
 }
 
 // Function to return 32 random bytes encoded as hex

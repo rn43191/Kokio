@@ -4,14 +4,13 @@ import {
   isSupported,
   PasskeyStamper,
 } from "@turnkey/react-native-passkey-stamper";
-import { Email, LoginMethod, User } from "@/utils/types";
+import { LoginMethod, User } from "@/utils/types";
 import {
   PASSKEY_CONFIG,
   TURNKEY_API_URL,
   TURNKEY_PARENT_ORG_ID,
 } from "@/constants/passkey.constants";
 import { useTurnkey } from "@turnkey/sdk-react-native";
-import { generateP256KeyPair } from "@turnkey/crypto";
 import {
   handleInitOtpAuthClient,
   handleOtpAuthClient,

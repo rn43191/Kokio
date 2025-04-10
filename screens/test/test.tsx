@@ -225,18 +225,6 @@ export default function TestScreen() {
         </Pressable>
       )}
 
-      {/* this comes from storage somewhere after creating the user for the first time with passkey create from turnkey */}
-      {/* {data && (
-        <Text style={styles.resultText}>
-          {`\n`}
-        challenge: {challenge}
-        {`\n`}
-        X: {pubKeyData.x}
-        {`\n`}
-        Y: {pubKeyData.y}
-        </Text>
-      )} */}
-
       {user && (
         <>
           <View style={styles.separator} />
