@@ -240,7 +240,7 @@ export async function handleInitOtpAuthClient({ email }: { email: string }) {
 
 export async function onPasskeyCreate(user: {
   username: string;
-  email: string;
+  email?: string;
 }): Promise<
   | {
       authenticatorParams: TurnkeyAuthenticatorParams;
@@ -259,19 +259,21 @@ export async function onPasskeyCreate(user: {
   });
   const client = new TurnkeyClient({ baseUrl: TURNKEY_API_URL }, stamper);
 
-  const { organizationIds } = await client.getSubOrgIds({
-    organizationId: TURNKEY_PARENT_ORG_ID,
-    filterType: "EMAIL",
-    filterValue: user.email,
-  });
+  // Check if user already exists with the same email only if email was provided by the user
+  if (user.email) {
+    const { organizationIds } = await client.getSubOrgIds({
+      organizationId: TURNKEY_PARENT_ORG_ID,
+      filterType: "EMAIL",
+      filterValue: user.email,
+    });
 
-  if (organizationIds.length > 0) {
-    console.log("User with this email already exists", user.email);
-    return;
+    if (organizationIds.length > 0) {
+      console.log("User with this email already exists", user.email);
+      return;
+    }
   }
 
   try {
-    const now = new Date();
     // ID isn't visible by users, but needs to be random enough and valid base64 (for Android)
     const userId = Buffer.from(String(Date.now())).toString("base64");
 
@@ -286,7 +288,8 @@ export async function onPasskeyCreate(user: {
       user: {
         id: userId,
         name: user.username,
-        displayName: user.email,
+        // if we make the email optional the passkey authenticator will not have the email as the displayName and this cannot be changed later on
+        displayName: user.email ?? user.username,
       },
       authenticatorSelection: {
         residentKey: "required",
@@ -385,7 +388,7 @@ export async function createSubOrganization(
   authenticatorParams: Awaited<ReturnType<typeof createPasskey>>,
   user: {
     username: string;
-    email: string;
+    email?: string;
   }
 ) {
   const stamper = new ApiKeyStamper({
@@ -399,14 +402,14 @@ export async function createSubOrganization(
     timestampMs: String(Date.now()),
     organizationId: TURNKEY_PARENT_ORG_ID,
     parameters: {
-      subOrganizationName: `Sub-organization - ${user.email} ${String(
+      subOrganizationName: `Sub-organization - ${user.username} ${String(
         Date.now()
       )}`,
       rootQuorumThreshold: 1,
       rootUsers: [
         {
           userName: user.username,
-          userEmail: user.email,
+          userEmail: user.email ?? "",
           apiKeys: [],
           authenticators: [authenticatorParams],
           oauthProviders: [],
@@ -551,4 +554,26 @@ export const stampGetWhoami = async (organizationId: string) => {
   console.log("response from validation", await resp.json());
 
   return resp.json();
+};
+
+export const checkIfEmailInUse = async ({ email }: { email: string }) => {
+  const stamper = new ApiKeyStamper({
+    apiPublicKey: process.env.EXPO_PUBLIC_TURNKEY_API_PUBLIC_KEY!,
+    apiPrivateKey: process.env.EXPO_PUBLIC_TURNKEY_API_PRIVATE_KEY!,
+  });
+  const client = new TurnkeyClient({ baseUrl: TURNKEY_API_URL }, stamper);
+
+  const { organizationIds } = await client.getSubOrgIds({
+    organizationId: TURNKEY_PARENT_ORG_ID,
+    filterType: "EMAIL",
+    filterValue: email,
+  });
+
+  if (organizationIds.length > 0) {
+    console.log(organizationIds);
+    return true;
+  } else {
+    // User does not exist
+    return false;
+  }
 };

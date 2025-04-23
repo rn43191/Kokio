@@ -66,7 +66,7 @@ export interface AuthRelayProviderType {
   }) => Promise<void>;
   signUpWithPasskey: (user: {
     username: string;
-    email: string;
+    email?: string;
   }) => Promise<void>;
   loginWithPasskey: () => Promise<void>;
   clearError: () => void;
@@ -161,7 +161,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
   // User will be prompted twice for passkey, once for account creation and once for login
   const signUpWithPasskey = async (user: {
     username: string;
-    email: string;
+    email?: string;
   }) => {
     if (!isSupported()) {
       throw new Error("Passkeys are not supported on this device");
