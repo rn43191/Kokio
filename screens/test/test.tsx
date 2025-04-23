@@ -157,7 +157,7 @@ export default function TestScreen() {
                 ]}
               >
                 <Text style={[styles.buttonText]}>
-                  Sign Up with Passkey & OPTIONAL Email
+                  Sign Up with Passkey & OPTIONAL EMAIL
                 </Text>
               </View>
             )}
@@ -217,11 +217,11 @@ export default function TestScreen() {
 
           <Pressable
             onPress={onChangeUserEmail}
-            style={styles.button}
+            style={[styles.button, { opacity: !isValidEmail(email) ? 0.5 : 1 }]}
             disabled={!isValidEmail(email)}
           >
             <Text style={[styles.buttonText]}>
-              {user.email ? "Change" : "Set"} Email Address
+              {user.email !== "" ? "Change" : "Set"} Email Address
             </Text>
           </Pressable>
 
