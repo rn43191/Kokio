@@ -7,13 +7,15 @@ import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import {
   checkIfEmailInUse,
   deleteSubOrganization,
-  returnTurnkeyAlchemyLightAccountClient,
+  viemClientTestFunction,
   stampGetWhoami,
 } from "@/utils/passkey";
-import { keccak256, toBytes, toHex } from "viem";
+import { keccak256, toBytes, toHex, Address } from "viem";
 import { HashFunction, PayloadEncoding } from "@/utils/types";
 import { uncompressRawPublicKey } from "@turnkey/crypto";
 import { hexToArrayBuffer } from "@/helpers/converters";
+import { useKokio } from "@/hooks/useKokio";
+import { P256Key } from "kokio-sdk/types";
 
 const isValidEmail = (email: string | undefined) => {
   if (!email) return false;
@@ -31,8 +33,9 @@ export default function TestScreen() {
     signRawPayload,
     exportWallet,
     updateUser,
-    client,
   } = useTurnkey();
+
+  const { kokio, setupKokio } = useKokio();
 
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
@@ -115,6 +118,67 @@ export default function TestScreen() {
       });
     }
   }, [session]);
+
+  const returnSmartAccountAddress = useCallback(async () => {
+    // # Viktor Kokio
+    // #(NOBRIDGE) LOG  Credentials id: 7qQ3mS7LgV_chnQAASzfpg
+    // #(NOBRIDGE) LOG  {"attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViUk2E-QIol2_wJ0zsX_cMNQ-S2H1mi_ziPKN1OBzugWPtdAAAAAOqbjWZNAR0hPOS2tIy1ddQAEO6kN5kuy4Ff3IZ0AAEs36alAQIDJiABIVggFNzHK4hc-8UXQFchDqoT_yGRNciOZyjEyg3BdkbGbpsiWCApELwxH5-3Rp2Gx2SF2Gyx4lCpwHJcWvHetMxV-4r3Bw", "clientDataJson": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZjQ3MjczMjA1ZWQ5NjA0Zjc1MmZmZjNiODExOTk1YjE0MjQ4Y2U4OWMzYjI3YmQ2MDI5YTU4OTI0M2M3ZGVjZiIsIm9yaWdpbiI6ImFuZHJvaWQ6YXBrLWtleS1oYXNoOlNEeFJVSFE1WVd0LWR1ZWdEU3pHZlFfR1dFX0FGMUVWeW5tLWtzVE5HR1UiLCJhbmRyb2lkUGFja2FnZU5hbWUiOiJhcHAua29raW8ifQ"}
+    // #(NOBRIDGE) LOG  Public Key X from attestationObject: 0x14dcc72b885cfbc5174057210eaa13ff219135c88e6728c4ca0dc17646c66e9b
+    // #(NOBRIDGE) LOG  Public Key Y from attestationObject: 0x2910bc311f9fb7469d86c76485d86cb1e250a9c0725c5af1deb4cc55fb8af707
+
+    /* Sample input params to deterministically Kokio’s
+     ** device calculate the device wallet address without
+     ** actually deploying it.
+     */
+    const deviceUniqueIdentifier = "Device_App";
+    const deviceWalletOwnerKey: P256Key = [
+      "0x14dcc72b885cfbc5174057210eaa13ff219135c88e6728c4ca0dc17646c66e9b",
+      "0x2910bc311f9fb7469d86c76485d86cb1e250a9c0725c5af1deb4cc55fb8af707",
+    ];
+    const salt = 25042025n; // BigInt
+    const sender = "0xFf5EA36C69189b8e21d6bb0Ff847f4FdAd429890" as Address; // Turnkey address
+
+    // Calculates device wallet address without deploying
+    const deviceWallet = await kokio.sdk!.smartAccount.getSmartWallet(
+      deviceUniqueIdentifier,
+      deviceWalletOwnerKey,
+      salt,
+      sender
+    );
+
+    /* Returns the smart account client, inline with
+     ** Alchemy’s SDK
+     */
+    const deviceWalletClient =
+      await kokio.sdk!.smartAccount.getSmartWalletClient(
+        deviceWallet // Returned by getSmartWallet fn
+      );
+    console.log("device wallet client", deviceWalletClient.account?.address);
+
+    try {
+      const uo = await deviceWalletClient.sendUserOperation({
+        uo: {
+          target: deviceWalletClient.account.address,
+          data: "0x",
+          value: 0n,
+        },
+      });
+      console.log("uo", uo);
+    } catch (e) {
+      console.log("error", e);
+    }
+  }, [kokio]);
+
+  useEffect(() => {
+    if (!kokio.sdk && user) {
+      setupKokio();
+    }
+    if (kokio.sdk && user) {
+      const viemWalletAddressFromKokioSdk =
+        kokio.sdk?.viemWalletClient.account?.address;
+      console.log("kokio viem wallet address", viemWalletAddressFromKokioSdk);
+    }
+  }, [kokio, user]);
 
   return (
     <ScrollView
@@ -265,9 +329,12 @@ export default function TestScreen() {
       {session && user && (
         <Pressable
           style={styles.button}
-          onPress={async () => {
-            const data = await returnTurnkeyAlchemyLightAccountClient(user);
-            setSmartAccountAddress(data.accountClient.account?.address!);
+          // onPress={async () => {
+          //   const data = await viemClientTestFunction(user);
+          //   setSmartAccountAddress(data.accountClient.account?.address!);
+          // }}
+          onPress={() => {
+            returnSmartAccountAddress();
           }}
         >
           <Text style={[styles.buttonText]}>Get Account Address</Text>

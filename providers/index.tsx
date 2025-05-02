@@ -2,6 +2,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Session, TurnkeyProvider } from "@turnkey/sdk-react-native";
 import { AuthRelayProvider } from "./authProvider";
+import { KokioProvider } from "./kokioProvider";
 import React from "react";
 import {
   DarkTheme,
@@ -44,7 +45,9 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
         <GestureHandlerRootView>
           <QueryClientProvider client={queryClient}>
             <TurnkeyProvider config={sessionConfig}>
-              <AuthRelayProvider>{children}</AuthRelayProvider>
+              <AuthRelayProvider>
+                <KokioProvider>{children}</KokioProvider>
+              </AuthRelayProvider>
             </TurnkeyProvider>
           </QueryClientProvider>
         </GestureHandlerRootView>

@@ -54,6 +54,7 @@
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.8",
     "expo-web-browser": "~14.0.2",
+    "kokio-sdk": "^0.0.3",
     "lodash": "^4.17.21",
     "node-libs-react-native": "^1.2.1",
     "permissionless": "^0.2.39",
@@ -83,6 +84,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@babel/plugin-syntax-import-assertions": "^7.27.1",
     "@types/jest": "^29.5.12",
     "@types/lodash": "^4.17.13",
     "@types/react": "~18.3.12",

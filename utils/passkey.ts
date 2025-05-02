@@ -444,7 +444,7 @@ export async function deleteSubOrganization() {
   return data;
 }
 
-export const returnTurnkeyAlchemyLightAccountClient = async (
+export const viemClientTestFunction = async (
   user: User
 ): Promise<{
   accountClient: AlchemySmartAccountClient;
@@ -513,6 +513,39 @@ export const returnTurnkeyAlchemyLightAccountClient = async (
 
   return {
     accountClient: accountClient as unknown as AlchemySmartAccountClient,
+    viemClient,
+  };
+};
+
+export const returnViemWalletClient = async (
+  user: User
+): Promise<{
+  viemClient: WalletClient;
+}> => {
+  console.log("user wallet address", user.wallets[0].accounts[0].address);
+  const stamper = new PasskeyStamper({
+    rpId: PASSKEY_CONFIG.RP_ID,
+  });
+  const client = new TurnkeyClient({ baseUrl: TURNKEY_API_URL }, stamper);
+
+  const viemAccount = await createAccount({
+    client,
+    organizationId: user.organizationId,
+    signWith: user.wallets[0].accounts[0].address,
+    ethereumAddress: user.wallets[0].accounts[0].address,
+  });
+
+  const viemClient = createWalletClient({
+    account: viemAccount as Account,
+    chain: sepolia,
+    transport: http(
+      `https://eth-sepolia.g.alchemy.com/v2/${process.env.EXPO_PUBLIC_ALCHEMY_API_KEY}`
+    ),
+  });
+
+  console.log("viemClient", viemClient.account.address);
+
+  return {
     viemClient,
   };
 };
