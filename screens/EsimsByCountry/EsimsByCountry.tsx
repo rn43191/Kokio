@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 
 import _get from "lodash/get";
 
-import {  Theme } from "@/constants/Colors";
+import { Theme } from "@/constants/Colors";
 import { COUNTRY_CONFIG } from "@/constants/general.constants";
 import { useEsimsByCountry } from "@/queries/e-sims";
 
@@ -15,6 +15,8 @@ export default function EsimsByCountry() {
   const { data: esims, ...rest } = useEsimsByCountry(countryCode, {
     enabled: !!countryCode,
   });
+
+  console.log({ esims });
 
   return (
     <DataPackTabGroup esims={esims} containerStyle={styles.containerStyle} />

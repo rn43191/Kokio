@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import _defaults from "lodash/defaults";
 import _find from "lodash/find";
 import _map from "lodash/map";
+import _get from "lodash/get";
 
 import { fetchEsimsByCountry } from "@/services/esims";
 
@@ -18,31 +19,41 @@ export const emisQueryKeys = {
 };
 
 function useEsimsByCountry(country, options = defaultOptions) {
-  const result = useQuery({
-    queryKey: emisQueryKeys.esimsByCountry(country),
-    queryFn: async () => {
-      const payload = { country };
-      const response = await fetchEsimsByCountry(payload);
-      return response;
-    },
-    ..._defaults(options, { ...defaultOptions }),
-  });
+  try {
+    const result = useQuery({
+      queryKey: emisQueryKeys.esimsByCountry(country),
+      queryFn: async () => {
+        const payload = { country };
+        const response = await fetchEsimsByCountry(payload);
+        console.log({ response, d: response?.data });
+        return _get(response, "data.plans") || [];
+      },
+      ..._defaults(options, { ...defaultOptions }),
+    });
 
-  return result;
+    return result;
+  } catch (err) {
+    console.log({ err });
+  }
 }
 
 function useEsimsByRegion(region, options = defaultOptions) {
-  const result = useQuery({
-    queryKey: emisQueryKeys.esimsByCountry(region),
-    queryFn: async () => {
-      const payload = { region };
-      const response = await fetchEsimsByCountry(payload);
-      return response;
-    },
-    ..._defaults(options, { ...defaultOptions }),
-  });
+  try {
+    const result = useQuery({
+      queryKey: emisQueryKeys.esimsByCountry(region),
+      queryFn: async () => {
+        const payload = { region };
+        const response = await fetchEsimsByCountry(payload);
+        return _get(response, "data.plans") || [];
+      },
 
-  return result;
+      ..._defaults(options, { ...defaultOptions }),
+    });
+
+    return result;
+  } catch (err) {
+    console.log({ err });
+  }
 }
 
 export { useEsimsByCountry, useEsimsByRegion };
