@@ -4,12 +4,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import { TextInput } from "react-native-gesture-handler";
 import { useTurnkey } from "@turnkey/sdk-react-native";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
-import {
-  checkIfEmailInUse,
-  deleteSubOrganization,
-  viemClientTestFunction,
-  stampGetWhoami,
-} from "@/utils/passkey";
+import { stampGetWhoami } from "@/utils/passkey";
+import { checkIfEmailInUse } from "@/utils/api";
 import { keccak256, toBytes, toHex, Address } from "viem";
 import { HashFunction, PayloadEncoding } from "@/utils/types";
 import { uncompressRawPublicKey } from "@turnkey/crypto";
@@ -35,7 +31,7 @@ export default function TestScreen() {
     updateUser,
   } = useTurnkey();
 
-  const { kokio, setupKokio } = useKokio();
+  const { kokio, setupKokioUserPasskey, clearKokioUser } = useKokio();
 
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
@@ -74,8 +70,23 @@ export default function TestScreen() {
       return alert("Invalid email address");
     try {
       const response = await signUpWithPasskey({ username, email });
-      console.log("response", response);
-      return response;
+      console.log("response from user signup", response);
+      if (response?.authenticatorParams && response?.user) {
+        // save kokio user data authenticator params
+        setupKokioUserPasskey(response.user, {
+          clientDataJson:
+            response.authenticatorParams.attestation.clientDataJson,
+          attestationObject:
+            response.authenticatorParams.attestation.attestationObject,
+          credentialId: response.authenticatorParams.attestation.credentialId,
+          x:
+            response.decodedAttestationObject?.decodedAttestationObjectCbor
+              ?.x ?? "",
+          y:
+            response.decodedAttestationObject?.decodedAttestationObjectCbor
+              ?.y ?? "",
+        });
+      }
     } catch (e) {
       console.error("Error signing up", e);
     }
@@ -120,30 +131,18 @@ export default function TestScreen() {
   }, [session]);
 
   const returnSmartAccountAddress = useCallback(async () => {
-    // # Viktor Kokio
-    // #(NOBRIDGE) LOG  Credentials id: 7qQ3mS7LgV_chnQAASzfpg
-    // #(NOBRIDGE) LOG  {"attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViUk2E-QIol2_wJ0zsX_cMNQ-S2H1mi_ziPKN1OBzugWPtdAAAAAOqbjWZNAR0hPOS2tIy1ddQAEO6kN5kuy4Ff3IZ0AAEs36alAQIDJiABIVggFNzHK4hc-8UXQFchDqoT_yGRNciOZyjEyg3BdkbGbpsiWCApELwxH5-3Rp2Gx2SF2Gyx4lCpwHJcWvHetMxV-4r3Bw", "clientDataJson": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiZjQ3MjczMjA1ZWQ5NjA0Zjc1MmZmZjNiODExOTk1YjE0MjQ4Y2U4OWMzYjI3YmQ2MDI5YTU4OTI0M2M3ZGVjZiIsIm9yaWdpbiI6ImFuZHJvaWQ6YXBrLWtleS1oYXNoOlNEeFJVSFE1WVd0LWR1ZWdEU3pHZlFfR1dFX0FGMUVWeW5tLWtzVE5HR1UiLCJhbmRyb2lkUGFja2FnZU5hbWUiOiJhcHAua29raW8ifQ"}
-    // #(NOBRIDGE) LOG  Public Key X from attestationObject: 0x14dcc72b885cfbc5174057210eaa13ff219135c88e6728c4ca0dc17646c66e9b
-    // #(NOBRIDGE) LOG  Public Key Y from attestationObject: 0x2910bc311f9fb7469d86c76485d86cb1e250a9c0725c5af1deb4cc55fb8af707
-
-    /* Sample input params to deterministically Kokio’s
-     ** device calculate the device wallet address without
-     ** actually deploying it.
-     */
     const deviceUniqueIdentifier = "Device_App";
     const deviceWalletOwnerKey: P256Key = [
-      "0x14dcc72b885cfbc5174057210eaa13ff219135c88e6728c4ca0dc17646c66e9b",
-      "0x2910bc311f9fb7469d86c76485d86cb1e250a9c0725c5af1deb4cc55fb8af707",
+      kokio.userPasskey?.x as `0x${string}`, // Public Key X from attestationObject
+      kokio.userPasskey?.y as `0x${string}`, // Public Key Y from attestationObject
     ];
     const salt = 25042025n; // BigInt
-    const sender = "0xFf5EA36C69189b8e21d6bb0Ff847f4FdAd429890" as Address; // Turnkey address
 
     // Calculates device wallet address without deploying
     const deviceWallet = await kokio.sdk!.smartAccount.getSmartWallet(
       deviceUniqueIdentifier,
       deviceWalletOwnerKey,
-      salt,
-      sender
+      salt
     );
 
     /* Returns the smart account client, inline with
@@ -154,6 +153,7 @@ export default function TestScreen() {
         deviceWallet // Returned by getSmartWallet fn
       );
     console.log("device wallet client", deviceWalletClient.account?.address);
+    setSmartAccountAddress(deviceWalletClient.account?.address);
 
     try {
       const uo = await deviceWalletClient.sendUserOperation({
@@ -165,20 +165,20 @@ export default function TestScreen() {
       });
       console.log("uo", uo);
     } catch (e) {
-      console.log("error", e);
+      console.log("error uo", e);
     }
   }, [kokio]);
 
   useEffect(() => {
-    if (!kokio.sdk && user) {
-      setupKokio();
-    }
     if (kokio.sdk && user) {
+      console.log("user sub org", user.organizationId);
       const viemWalletAddressFromKokioSdk =
         kokio.sdk?.viemWalletClient.account?.address;
       console.log("kokio viem wallet address", viemWalletAddressFromKokioSdk);
     }
   }, [kokio, user]);
+
+  const now = new Date().getTime();
 
   return (
     <ScrollView
@@ -191,41 +191,50 @@ export default function TestScreen() {
       contentContainerStyle={styles.scrollContainer}
     >
       <Text style={styles.title}>Testing Passkeys and Smart Accounts</Text>
+      {kokio.userData && (
+        <Text style={styles.userText}>
+          Welcome User: {kokio.userData.userName}
+        </Text>
+      )}
       {!user && (
         <View style={styles.textInputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={username}
-            onChangeText={(val) => setUsername(val)}
-            placeholder="John Doe"
-          />
-          <TextInput
-            style={styles.textInput}
-            value={email}
-            onChangeText={(val) => setEmail(val.toLowerCase())}
-            placeholder="john@doe.com"
-          />
-          <Pressable onPress={onSignUp}>
-            {({ pressed }) => (
-              <View
-                style={[
-                  styles.button,
-                  {
-                    opacity: pressed || signUpDisabled ? 0.5 : 1,
-                    transform: [
+          {!kokio.userData && (
+            <>
+              <TextInput
+                style={styles.textInput}
+                value={username}
+                onChangeText={(val) => setUsername(val)}
+                placeholder="John Doe"
+              />
+              <TextInput
+                style={styles.textInput}
+                value={email}
+                onChangeText={(val) => setEmail(val.toLowerCase())}
+                placeholder="john@doe.com"
+              />
+              <Pressable onPress={onSignUp}>
+                {({ pressed }) => (
+                  <View
+                    style={[
+                      styles.button,
                       {
-                        scale: pressed ? 0.98 : 1,
+                        opacity: pressed || signUpDisabled ? 0.5 : 1,
+                        transform: [
+                          {
+                            scale: pressed ? 0.98 : 1,
+                          },
+                        ],
                       },
-                    ],
-                  },
-                ]}
-              >
-                <Text style={[styles.buttonText]}>
-                  Sign Up with Passkey & OPTIONAL EMAIL
-                </Text>
-              </View>
-            )}
-          </Pressable>
+                    ]}
+                  >
+                    <Text style={[styles.buttonText]}>
+                      Sign Up with Passkey & OPTIONAL EMAIL
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            </>
+          )}
 
           <Pressable onPress={onSignIn}>
             {({ pressed }) => (
@@ -264,6 +273,27 @@ export default function TestScreen() {
               </View>
             )}
           </Pressable>
+
+          {kokio.userData && (
+            <Pressable onPress={() => clearKokioUser()}>
+              {({ pressed }) => (
+                <View
+                  style={[
+                    styles.button,
+                    {
+                      transform: [
+                        {
+                          scale: pressed ? 0.98 : 1,
+                        },
+                      ],
+                    },
+                  ]}
+                >
+                  <Text style={[styles.buttonText]}>Clear User Data</Text>
+                </View>
+              )}
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -303,23 +333,27 @@ export default function TestScreen() {
 
           <View>
             <Text style={styles.userText}>SubOrgId: {user.organizationId}</Text>
-            <Text style={styles.userText}>
-              Turnkey User Wallet Id: {user?.wallets[0].id}
-            </Text>
-            <Text style={styles.userText}>
-              Turnkey User Wallet Address: {user.wallets[0].accounts[0].address}
-            </Text>
+
             {smartAccountAddress && (
               <Text style={styles.userText}>
                 Smart Account Address: {smartAccountAddress}
               </Text>
             )}
+
             {data && (
               <Text style={styles.userText}>
                 {`\n`}
                 Session public key X: {data.x}
                 {`\n`}
                 Session public key Y: {data.y}
+              </Text>
+            )}
+            {kokio && (
+              <Text style={styles.userText}>
+                {`\n`}
+                Attestation public key X: {kokio.userPasskey?.x}
+                {`\n`}
+                Attestation public key Y: {kokio.userPasskey?.y}
               </Text>
             )}
           </View>
@@ -329,10 +363,6 @@ export default function TestScreen() {
       {session && user && (
         <Pressable
           style={styles.button}
-          // onPress={async () => {
-          //   const data = await viemClientTestFunction(user);
-          //   setSmartAccountAddress(data.accountClient.account?.address!);
-          // }}
           onPress={() => {
             returnSmartAccountAddress();
           }}
@@ -347,30 +377,6 @@ export default function TestScreen() {
           onPress={() => stampGetWhoami(user.organizationId)}
         >
           <Text style={[styles.buttonText]}>Get stamped Who Am I</Text>
-        </Pressable>
-      )}
-
-      {session && user && (
-        <Pressable
-          style={styles.button}
-          onPress={async () => {
-            try {
-              const hashedMessage = keccak256(toBytes("Hello World"));
-
-              const response = await signRawPayload({
-                signWith: user.wallets[0].accounts[0].address as string,
-                payload: hashedMessage,
-                encoding: PayloadEncoding.Hexadecimal,
-                hashFunction: HashFunction.NoOp,
-              });
-              console.log("response of raw signed message", response);
-            } catch (error) {
-              alert("Error signing message.");
-              console.error("Error signing message:", error);
-            }
-          }}
-        >
-          <Text style={[styles.buttonText]}>Sign message</Text>
         </Pressable>
       )}
 

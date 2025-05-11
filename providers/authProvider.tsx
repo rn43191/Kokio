@@ -1,41 +1,39 @@
-import { ReactNode, createContext, useReducer } from "react";
+import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { TurnkeyClient } from "@turnkey/http";
 import {
   isSupported,
   PasskeyStamper,
 } from "@turnkey/react-native-passkey-stamper";
-import { LoginMethod, User } from "@/utils/types";
+import { LoginMethod } from "@/utils/types";
 import {
   PASSKEY_CONFIG,
   TURNKEY_API_URL,
   TURNKEY_PARENT_ORG_ID,
 } from "@/constants/passkey.constants";
-import { useTurnkey } from "@turnkey/sdk-react-native";
-import {
-  handleInitOtpAuthClient,
-  handleOtpAuthClient,
-  onPasskeyCreate,
-} from "@/utils/passkey";
+import { useTurnkey, User } from "@turnkey/sdk-react-native";
+import { decodeAttestationObj, onPasskeyCreate } from "@/utils/passkey";
+import { decodeAttestationObject } from "@simplewebauthn/server/helpers";
+
 import { useRouter } from "expo-router";
 import { handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
+import { base64UrlToBuffer } from "@/helpers/converters";
+import { toHex } from "@/helpers/iso/isoUint8Array";
 
 type AuthActionType =
-  | { type: "PASSKEY"; payload: User }
+  | { type: "PASSKEY"; payload: User | undefined }
   | { type: "INIT_EMAIL_AUTH" }
-  | { type: "COMPLETE_EMAIL_AUTH"; payload: User }
+  | { type: "COMPLETE_EMAIL_AUTH"; payload: User | undefined }
   | { type: "LOADING"; payload: LoginMethod | null }
   | { type: "ERROR"; payload: string }
   | { type: "CLEAR_ERROR" };
 interface AuthState {
   loading: LoginMethod | null;
   error: string;
-  user: User | null;
 }
 
 const initialState: AuthState = {
   loading: null,
   error: "",
-  user: null,
 };
 
 function authReducer(state: AuthState, action: AuthActionType): AuthState {
@@ -49,7 +47,6 @@ function authReducer(state: AuthState, action: AuthActionType): AuthState {
     case "INIT_EMAIL_AUTH":
       return { ...state, loading: null, error: "" };
     case "COMPLETE_EMAIL_AUTH":
-      return { ...state, user: action.payload, loading: null, error: "" };
     case "PASSKEY":
     default:
       return state;
@@ -64,10 +61,32 @@ export interface AuthRelayProviderType {
     otpCode: string;
     organizationId: string;
   }) => Promise<void>;
-  signUpWithPasskey: (user: {
-    username: string;
-    email?: string;
-  }) => Promise<void>;
+  signUpWithPasskey: (user: { username: string; email?: string }) => Promise<
+    | {
+        authenticatorParams: {
+          attestation: {
+            clientDataJson: string;
+            attestationObject: string;
+            credentialId: string;
+          };
+        };
+        decodedAttestationObject:
+          | {
+              decodedAttestationObjectCbor:
+                | {
+                    x: string;
+                    y: string;
+                    credentialId: string;
+                  }
+                | undefined;
+              decodedAttestationObjectSimpleWebAuthnHex: string;
+            }
+          | undefined;
+        user: User | undefined;
+      }
+    | undefined
+    | null
+  >;
   loginWithPasskey: () => Promise<void>;
   clearError: () => void;
 }
@@ -76,7 +95,25 @@ export const AuthRelayContext = createContext<AuthRelayProviderType>({
   state: initialState,
   initEmailLogin: async () => Promise.resolve(),
   completeEmailAuth: async () => Promise.resolve(),
-  signUpWithPasskey: async () => Promise.resolve(),
+  signUpWithPasskey: async () =>
+    Promise.resolve({
+      authenticatorParams: {
+        attestation: {
+          clientDataJson: "",
+          attestationObject: "",
+          credentialId: "",
+        },
+      },
+      decodedAttestationObject: {
+        decodedAttestationObjectCbor: {
+          x: "",
+          y: "",
+          credentialId: "",
+        },
+        decodedAttestationObjectSimpleWebAuthnHex: "",
+      },
+      user: undefined,
+    }),
   loginWithPasskey: async () => Promise.resolve(),
   clearError: () => {},
 });
@@ -88,9 +125,19 @@ interface AuthRelayProviderProps {
 export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
   children,
 }) => {
+  const now = new Date().getTime();
+
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const { createEmbeddedKey, createSession } = useTurnkey();
+  const { session, createEmbeddedKey, createSession, clearSession } =
+    useTurnkey();
   const router = useRouter();
+
+  useEffect(() => {
+    if (session && session.expiry < now) {
+      console.log("Session expired");
+      clearSession();
+    }
+  }, [session]);
 
   const initEmailLogin = async (email: string) => {
     dispatch({ type: "LOADING", payload: LoginMethod.Email });
@@ -142,12 +189,17 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
           organizationId: organizationId,
           targetPublicKey,
           invalidateExisting: true,
+          expirationSeconds: "600",
         });
 
         if (response?.activity.result.otpAuthResult?.credentialBundle) {
-          await createSession({
+          const session = await createSession({
             bundle: response?.activity.result.otpAuthResult?.credentialBundle,
             expirationSeconds: 3600,
+          });
+          dispatch({
+            type: "COMPLETE_EMAIL_AUTH",
+            payload: session.user,
           });
         }
       } catch (error: any) {
@@ -176,12 +228,30 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
         throw new Error("Failed to create passkey");
       }
 
-      const passkey = {
-        challenge: data.authenticatorParams.challenge,
-        attestation: data.authenticatorParams.attestation,
-      };
+      console.log("passkey registration succeeded: ", data.authenticatorParams);
 
-      console.log("Passkey data", passkey);
+      const decodedAttestationObjectCbor = await decodeAttestationObj({
+        rawId: data.authenticatorParams.attestation.credentialId,
+        response: {
+          clientDataJson: data.authenticatorParams.attestation.clientDataJson,
+          attestationObject:
+            data.authenticatorParams.attestation.attestationObject,
+        },
+      });
+      const decodedAttestationObjSimpleWebAuthn = await decodeAttestationObject(
+        base64UrlToBuffer(
+          data.authenticatorParams.attestation.attestationObject
+        )
+      );
+
+      console.log(
+        "decoded attestation object cbor: ",
+        decodedAttestationObjectCbor
+      );
+      console.log(
+        "decoded attestation object simpleWebAuthn: ",
+        toHex(decodedAttestationObjSimpleWebAuthn.get("authData"))
+      );
 
       if (data.subOrgCreationResponse) {
         // Successfully created sub-organization, proceed with the login flow
@@ -195,8 +265,6 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
         );
 
         const targetPublicKey = await createEmbeddedKey();
-
-        console.log("Target public key", targetPublicKey);
 
         const sessionResponse = await httpClient.createReadWriteSession({
           type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
@@ -212,14 +280,29 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
             ?.credentialBundle;
 
         if (credentialBundle) {
-          await createSession({
+          const session = await createSession({
             bundle: credentialBundle,
             expirationSeconds: 3600,
           });
+          dispatch({
+            type: "PASSKEY",
+            payload: session.user,
+          });
+          return {
+            authenticatorParams: data.authenticatorParams,
+            decodedAttestationObject: {
+              decodedAttestationObjectCbor,
+              decodedAttestationObjectSimpleWebAuthnHex: toHex(
+                decodedAttestationObjSimpleWebAuthn.get("authData")
+              ),
+            },
+            user: session?.user,
+          };
         }
       }
     } catch (error: any) {
       dispatch({ type: "ERROR", payload: error.message });
+      return null;
     } finally {
       dispatch({ type: "LOADING", payload: null });
     }
@@ -260,9 +343,13 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
           ?.credentialBundle;
 
       if (credentialBundle) {
-        await createSession({
+        const session = await createSession({
           bundle: credentialBundle,
           expirationSeconds: 3600,
+        });
+        dispatch({
+          type: "PASSKEY",
+          payload: session.user,
         });
       }
     } catch (error: any) {

@@ -17,7 +17,6 @@ import { useTurnkey } from "@turnkey/sdk-react-native";
 const windowHeight = Dimensions.get("window").height;
 
 export default function ModalScreen() {
-  const { user } = useTurnkey();
   const [otpCode, setOtpCode] = useState<string>("");
   const { completeEmailAuth } = useAuthRelay();
 
@@ -28,12 +27,13 @@ export default function ModalScreen() {
   }>();
 
   const handleUserOtp = useCallback(async () => {
-    await completeEmailAuth({
+    const response = await completeEmailAuth({
       otpCode,
       otpId: params.otpId,
       organizationId: params.organizationId,
     });
     router.back();
+    return response;
   }, [otpCode]);
 
   return (

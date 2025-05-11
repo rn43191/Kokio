@@ -1,4 +1,5 @@
 import {
+  DEFAULT_ETHEREUM_ACCOUNTS,
   TURNKEY_API_URL,
   TURNKEY_PARENT_ORG_ID,
 } from "@/constants/passkey.constants";
@@ -6,6 +7,7 @@ import {
 // see turnkey+api.ts in react-native-demo-wallet
 import { Turnkey } from "@turnkey/sdk-server";
 import { ParamsType } from "./types";
+import { createPasskey } from "@turnkey/react-native-passkey-stamper";
 
 export const turnkeyConfig = {
   apiBaseUrl: TURNKEY_API_URL,
@@ -62,7 +64,7 @@ export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
       otpCode,
       organizationId,
       targetPublicKey,
-      expirationSeconds: "600",
+      expirationSeconds,
       invalidateExisting,
     });
 
@@ -83,4 +85,58 @@ export async function deleteSubOrganization() {
   });
   console.log("delete sub-org", data);
   return data;
+}
+
+export async function createSubOrganization(
+  authenticatorParams: Awaited<ReturnType<typeof createPasskey>>,
+  user: {
+    username: string;
+    email?: string;
+  }
+) {
+  const turnkey = new Turnkey(turnkeyConfig).apiClient();
+
+  const data = await turnkey.createSubOrganization({
+    organizationId: TURNKEY_PARENT_ORG_ID,
+    subOrganizationName: `Sub-organization - ${user.username} ${String(
+      Date.now()
+    )}`,
+    rootQuorumThreshold: 1,
+    rootUsers: [
+      {
+        userName: user.username,
+        userEmail: user.email ?? "",
+        apiKeys: [],
+        authenticators: [authenticatorParams],
+        oauthProviders: [],
+      },
+    ],
+    wallet: {
+      walletName: "ETH wallet",
+      accounts: DEFAULT_ETHEREUM_ACCOUNTS,
+    },
+  });
+  return data;
+}
+
+export async function checkIfEmailInUse({
+  email,
+}: {
+  email: string;
+}): Promise<boolean | string[]> {
+  const turnkey = new Turnkey(turnkeyConfig).apiClient();
+
+  const { organizationIds } = await turnkey.getSubOrgIds({
+    organizationId: TURNKEY_PARENT_ORG_ID,
+    filterType: "EMAIL",
+    filterValue: email,
+  });
+
+  if (organizationIds.length > 0) {
+    console.log("Existing User sub-organization Ids: ", organizationIds);
+    return true;
+  } else {
+    // User does not exist
+    return false;
+  }
 }
