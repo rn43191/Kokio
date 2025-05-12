@@ -6,8 +6,7 @@ import { useTurnkey } from "@turnkey/sdk-react-native";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { stampGetWhoami } from "@/utils/passkey";
 import { checkIfEmailInUse } from "@/utils/api";
-import { keccak256, toBytes, toHex, Address } from "viem";
-import { HashFunction, PayloadEncoding } from "@/utils/types";
+import { toHex } from "viem";
 import { uncompressRawPublicKey } from "@turnkey/crypto";
 import { hexToArrayBuffer } from "@/helpers/converters";
 import { useKokio } from "@/hooks/useKokio";
@@ -34,7 +33,7 @@ export default function TestScreen() {
   const { kokio, setupKokioUserPasskey, clearKokioUser } = useKokio();
 
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(kokio.userData?.email ?? "");
   const [username, setUsername] = useState("");
   const [smartAccountAddress, setSmartAccountAddress] = useState("");
   const [data, setData] = useState<{
