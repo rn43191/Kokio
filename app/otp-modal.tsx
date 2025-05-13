@@ -48,8 +48,8 @@ export default function ModalScreen() {
         <TextInput
           style={styles.textInput}
           value={otpCode}
-          onChangeText={(val) => setOtpCode(val.toLowerCase())}
-          placeholder="123456"
+          onChangeText={(val) => setOtpCode(val)}
+          placeholder="PLACEHOLDER"
         />
         <Pressable onPress={handleUserOtp}>
           {({ pressed }) => (
