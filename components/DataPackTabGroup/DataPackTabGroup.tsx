@@ -9,7 +9,7 @@ import { Colors, Theme } from "@/constants/Colors";
 
 import ESIMItem, { Esim } from "../ESIMItem";
 
-const SCREEN_WIDTH = Dimensions.get("window").width - 32;
+const SCREEN_WIDTH = Dimensions.get("window").width - 28;
 
 const TAB_KEYS = {
   DATA: "DATA",
