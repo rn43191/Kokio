@@ -50,6 +50,7 @@ export default function Countries({ list = MOCK_COUNTRIES_LIST }) {
           numColumns={2}
           renderItem={renderItem}
           columnWrapperStyle={styles.columnWrapperStyle}
+          keyExtractor={(item) => item?.isoCode}
         />
       </View>
     </View>

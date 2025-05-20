@@ -44,7 +44,12 @@ export default function Regions({ list = MOCK_REGION_LIST }) {
 
   return (
     <View style={styles.tabWrapper}>
-      <FlatList data={list} renderItem={renderItem} style={{ width: "100%" }} />
+      <FlatList
+        data={list}
+        renderItem={renderItem}
+        style={{ width: "100%" }}
+        keyExtractor={(item) => item?.region}
+      />
     </View>
   );
 }
