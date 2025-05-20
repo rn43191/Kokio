@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, FlatList } from "react-native";
+import { StyleSheet, FlatList, Dimensions } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
 import _get from "lodash/get";
 
@@ -8,6 +8,8 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors, Theme } from "@/constants/Colors";
 
 import ESIMItem, { Esim } from "../ESIMItem";
+
+const SCREEN_WIDTH = Dimensions.get("window").width - 32;
 
 const TAB_KEYS = {
   DATA: "DATA",
@@ -37,7 +39,13 @@ const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
 };
 
 const TabBarLabel = ({ route: tabRoute, focused }: any) => (
-  <ThemedText style={[styles.tabBarText, !focused && styles.inactiveTab]}>
+  <ThemedText
+    style={[
+      styles.tabBarText,
+      !focused && styles.inactiveTab,
+      focused && styles.highlightTabStyle,
+    ]}
+  >
     {_get(tabRoute, "title", "")}
   </ThemedText>
 );
@@ -95,12 +103,19 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 30,
   },
+  highlightTabStyle: {
+    borderRadius: Theme.borderRadius.medium,
+    backgroundColor: "#5C5C61",
+  },
   inactiveTab: {
     color: Colors.dark.inactive,
   },
   tabBarText: {
     color: Colors.dark.text,
     backgroundColor: Colors.dark.secondaryBackground,
+    textAlign: "center",
+    paddingVertical: 2,
+    width: SCREEN_WIDTH / ROUTES.length,
   },
   indicatorStyle: {
     display: "none",

@@ -1,19 +1,10 @@
-import {
-  StyleSheet,
-  Image,
-  Platform,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
-import { Link, router } from "expo-router";
+import { StyleSheet, View, TouchableOpacity, FlatList } from "react-native";
+import { router } from "expo-router";
 
 import _map from "lodash/map";
 
 import { ThemedText } from "@/components/ThemedText";
 import CountryFlag from "@/components/ui/CountryFlag";
-import useHideTabBar from "@/hooks/useHideTabBar";
 import { Colors, Theme } from "@/constants/Colors";
 import { COUNTRY, COUNTRY_CONFIG } from "@/constants/general.constants";
 
@@ -51,17 +42,17 @@ export default function Countries({ list = MOCK_COUNTRIES_LIST }) {
   );
 
   return (
-      <View style={styles.tabWrapper}>
-        <ThemedText style={styles.tabTitle}>{"Popular Countries"}</ThemedText>
-        <View style={styles.countriesWrapper}>
-          <FlatList
-            data={list}
-            numColumns={2}
-            renderItem={renderItem}
-            columnWrapperStyle={styles.columnWrapperStyle}
-          />
-        </View>
+    <View style={styles.tabWrapper}>
+      <ThemedText style={styles.tabTitle}>{"Popular Destinations"}</ThemedText>
+      <View style={styles.countriesWrapper}>
+        <FlatList
+          data={list}
+          numColumns={2}
+          renderItem={renderItem}
+          columnWrapperStyle={styles.columnWrapperStyle}
+        />
       </View>
+    </View>
   );
 }
 
@@ -75,6 +66,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    paddingTop: 12,
   },
   countriesWrapper: {
     width: "100%",
