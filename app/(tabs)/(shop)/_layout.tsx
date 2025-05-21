@@ -5,8 +5,8 @@ import _get from "lodash/get";
 
 import Header from "@/components/Header";
 import { ROUTE_NAMES } from "@/constants/route.constants";
-import { REGION_CONFIG, COUNTRY_CONFIG } from "@/constants/general.constants";
 import CheckoutHeader from "@/components/checkoutHeader";
+import appBootstrap from "@/utils/appBootstrap";
 
 export default function ShopStack() {
   return (
@@ -22,8 +22,9 @@ export default function ShopStack() {
       <Stack.Screen
         name={ROUTE_NAMES.BY_COUNTRY}
         options={({ route, navigation }: any) => {
+          const countryConfig = appBootstrap.getCountryConfig;
           const countryLabel =
-            _get(COUNTRY_CONFIG, [route?.params?.id, "label"]) || "";
+            _get(countryConfig, [route?.params?.id, "name"]) || "";
           return {
             header: () => (
               <Header
@@ -38,8 +39,9 @@ export default function ShopStack() {
       <Stack.Screen
         name={ROUTE_NAMES.BY_REGION}
         options={({ route, navigation }: any) => {
+          const regionConfig = appBootstrap.getRegionConfig;
           const regionLabel =
-            _get(REGION_CONFIG, [route?.params?.id, "label"]) || "";
+            _get(regionConfig, [route?.params?.id, "name"]) || "";
 
           return {
             header: () => (

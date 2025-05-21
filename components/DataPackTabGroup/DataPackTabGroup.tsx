@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { StyleSheet, FlatList, Dimensions } from "react-native";
 import { TabView, TabBar } from "react-native-tab-view";
+
 import _get from "lodash/get";
+import _groupBy from "lodash/groupBy";
+import _isEmpty from "lodash/isEmpty";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors, Theme } from "@/constants/Colors";
+import FullScreenLoader from "@/components/ui/FullScreenLoader";
+import EsimItemSkeleton from "@/components/EsimItemSkeleton";
 
 import ESIMItem, { Esim } from "../ESIMItem";
 
@@ -21,8 +26,36 @@ const ROUTES = [
   { key: TAB_KEYS.DATA_CALLS_SMS, title: "Data+Calls+SMS" },
 ];
 
-const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
-  return (
+const EmptyListComponent = () => (
+  <ThemedText
+    style={[
+      {
+        textAlign: "center",
+        verticalAlign: "middle",
+        flex: 1,
+        paddingTop: 42,
+      },
+    ]}
+  >
+    No Plans found
+  </ThemedText>
+);
+
+const ESIMsFlatList = ({
+  esims,
+  isLoading,
+}: {
+  esims: Esim[];
+  isLoading: boolean;
+}) => {
+  return isLoading ? (
+    <FlatList
+      data={[1, 2, 3, 4, 5]}
+      renderItem={({ item }) => <EsimItemSkeleton />}
+      keyExtractor={(_, index) => index}
+      contentContainerStyle={styles.flatListContainer}
+    />
+  ) : (
     <FlatList
       data={esims}
       renderItem={({ item }) => (
@@ -32,8 +65,9 @@ const ESIMsFlatList = ({ esims }: { esims: Esim[] }) => {
           containerStyle={styles.eSimItemContainer}
         />
       )}
-      keyExtractor={(item) => item.catalogueId}
+      keyExtractor={(item, index) => item.catalogueId || index}
       contentContainerStyle={styles.flatListContainer}
+      ListEmptyComponent={EmptyListComponent}
     />
   );
 };
@@ -53,18 +87,32 @@ const TabBarLabel = ({ route: tabRoute, focused }: any) => (
 export default function DataPackTabGroup({
   esims,
   containerStyle,
+  isLoading,
 }: {
   esims: Esim[];
   containerStyle?: any;
+  isLoading?: any;
 }) {
   const [index, setIndex] = useState<number>(0);
+
+  const { eSimsByData, eSimsByDataCallsSMS } = useMemo(() => {
+    const eSimsGroupedByPlanType = _groupBy(esims, "planType");
+    const eSimsByData = _get(eSimsGroupedByPlanType, TAB_KEYS.DATA);
+    const eSimsByDataCallsSMS = _get(
+      eSimsGroupedByPlanType,
+      TAB_KEYS.DATA_CALLS_SMS
+    );
+    return { eSimsByData, eSimsByDataCallsSMS };
+  }, [esims]);
 
   const renderScene = ({ route }: any) => {
     switch (route.key) {
       case TAB_KEYS.DATA:
-        return <ESIMsFlatList esims={esims} />;
+        return <ESIMsFlatList esims={eSimsByData} isLoading={isLoading} />;
       case TAB_KEYS.DATA_CALLS_SMS:
-        return <ESIMsFlatList esims={esims} />;
+        return (
+          <ESIMsFlatList esims={eSimsByDataCallsSMS} isLoading={isLoading} />
+        );
       default:
         return null;
     }
@@ -72,21 +120,28 @@ export default function DataPackTabGroup({
 
   return (
     <ThemedView style={[styles.container, containerStyle]}>
-      <TabView
-        navigationState={{ index, routes: ROUTES }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        renderTabBar={(args) => (
-          <TabBar
-            {...args}
-            style={styles.tabBarStyle}
-            renderLabel={TabBarLabel}
-            indicatorStyle={styles.indicatorStyle}
-            tabStyle={styles.tabStyle}
-            contentContainerStyle={styles.tabBarContentContainer}
-          />
-        )}
-      />
+      {_isEmpty(eSimsByData) || _isEmpty(eSimsByDataCallsSMS) ? (
+        <ESIMsFlatList
+          esims={eSimsByData || eSimsByDataCallsSMS}
+          isLoading={isLoading}
+        />
+      ) : (
+        <TabView
+          navigationState={{ index, routes: ROUTES }}
+          renderScene={renderScene}
+          onIndexChange={setIndex}
+          renderTabBar={(args) => (
+            <TabBar
+              {...args}
+              style={styles.tabBarStyle}
+              renderLabel={TabBarLabel}
+              indicatorStyle={styles.indicatorStyle}
+              tabStyle={styles.tabStyle}
+              contentContainerStyle={styles.tabBarContentContainer}
+            />
+          )}
+        />
+      )}
     </ThemedView>
   );
 }

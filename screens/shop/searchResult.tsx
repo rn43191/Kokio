@@ -1,5 +1,11 @@
-import React from "react";
-import { StyleSheet, FlatList, View, Dimensions } from "react-native";
+import React, { useMemo } from "react";
+import {
+  StyleSheet,
+  FlatList,
+  View,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import _get from "lodash/get";
@@ -17,7 +23,11 @@ import { ThemedView } from "@/components/ThemedView";
 import { Colors, Theme } from "@/constants/Colors";
 import CountryFlag from "@/components/ui/CountryFlag";
 import { useThemeColor } from "@/hooks/useThemeColor";
-import { REGION_CONFIG, COUNTRY_CONFIG } from "@/constants/general.constants";
+import appBootstrap from "@/utils/appBootstrap";
+import {
+  navigateToESIMsByCountry,
+  navigateToESIMsByRegion,
+} from "@/utils/general";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const ITEM_WIDTH = SCREEN_WIDTH * 0.8;
@@ -29,24 +39,33 @@ const isSearchTextMatch = ({ searchText, item, keyExtractor }) =>
 const CountryItemRender = ({ item }) => {
   const firstItem = _get(item, "0", {});
   const secondItem = _get(item, "1", {});
+
   return (
     <View style={styles.countryItem}>
-      <View style={styles.flagWrapper}>
+      <TouchableOpacity
+        onPress={navigateToESIMsByCountry(firstItem?.code)}
+        style={styles.flagWrapper}
+      >
         <CountryFlag
-          isoCode={firstItem?.isoCode}
+          isoCode={firstItem?.code}
           style={styles.flag}
-          size={76}
+          flagUrl={firstItem?.flag}
+          size={80}
         />
-        <ThemedText>{firstItem?.label}</ThemedText>
-      </View>
-      <View style={styles.flagWrapper}>
+        <ThemedText>{firstItem?.name}</ThemedText>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.flagWrapper}
+        onPress={navigateToESIMsByCountry(secondItem?.code)}
+      >
         <CountryFlag
-          isoCode={secondItem?.isoCode}
+          isoCode={secondItem?.code}
           style={styles.flag}
-          size={76}
+          flagUrl={secondItem?.flag}
+          size={80}
         />
-        <ThemedText>{secondItem?.label}</ThemedText>
-      </View>
+        <ThemedText>{secondItem?.name}</ThemedText>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -67,68 +86,85 @@ const RegionEmptyListComponent = () => (
 const RegionItemRender = ({
   item,
 }: {
-  item: { label?: string; isoCode: string };
-}) => (
-  <ThemedView
-    style={styles.regionItem}
-    darkColor={Colors.dark.secondaryBackground}
-  >
-    <ThemedView
-      darkColor={Colors.dark.secondaryBackground}
-      style={{ flexDirection: "row", alignItems: "center" }}
-    >
-      <Ionicons
-        name="globe-outline"
-        size={16}
-        color={useThemeColor({}, "foreground")}
-        style={{ marginRight: 16 }}
-      />
-      <ThemedText>{item?.label}</ThemedText>
-    </ThemedView>
-    <Ionicons
-      name="chevron-forward"
-      size={16}
-      color={useThemeColor({}, "foreground")}
-    />
-  </ThemedView>
-);
+  item: { name?: string; code: string; flag: string };
+}) => {
+  return (
+    <TouchableOpacity onPress={navigateToESIMsByRegion(item?.code)}>
+      <ThemedView
+        style={styles.regionItem}
+        darkColor={Colors.dark.secondaryBackground}
+      >
+        <ThemedView
+          darkColor={Colors.dark.secondaryBackground}
+          style={{ flexDirection: "row", alignItems: "center" }}
+        >
+          <Ionicons
+            name="globe-outline"
+            size={16}
+            color={useThemeColor({}, "foreground")}
+            style={{ marginRight: 16 }}
+          />
+          <ThemedText>{item?.name}</ThemedText>
+        </ThemedView>
+        <Ionicons
+          name="chevron-forward"
+          size={16}
+          color={useThemeColor({}, "foreground")}
+        />
+      </ThemedView>
+    </TouchableOpacity>
+  );
+};
 
 const SearchResult = ({ searchText }: { searchText: string }) => {
+  const countryConfig = appBootstrap.getCountryConfig;
+  const regionConfig = appBootstrap.getRegionConfig;
+
   const sanitizedSearchText = _lowerCase(_trim(searchText));
-  const countries = _reduce(
-    COUNTRY_CONFIG,
-    (acc, item) => {
-      if (
-        isSearchTextMatch({
-          searchText: sanitizedSearchText,
-          item,
-          keyExtractor: "label",
-        })
-      ) {
-        acc.push(item);
-      }
-      return acc;
-    },
-    []
+
+  const countries = useMemo(
+    () =>
+      _reduce(
+        countryConfig,
+        (acc, item) => {
+          if (
+            isSearchTextMatch({
+              searchText: sanitizedSearchText,
+              item,
+              keyExtractor: "name",
+            })
+          ) {
+            acc.push(item);
+          }
+          return acc;
+        },
+        []
+      ),
+    [countryConfig, sanitizedSearchText]
   );
 
-  const regions = _reduce(
-    REGION_CONFIG,
-    (acc, item) => {
-      if (
-        isSearchTextMatch({
-          searchText: sanitizedSearchText,
-          item,
-          keyExtractor: "label",
-        })
-      ) {
-        acc.push(item);
-      }
-      return acc;
-    },
-    []
+  const regions = useMemo(
+    () =>
+      _reduce(
+        regionConfig,
+        (acc, item) => {
+          if (
+            isSearchTextMatch({
+              searchText: sanitizedSearchText,
+              item,
+              keyExtractor: "name",
+            })
+          ) {
+            acc.push(item);
+          }
+          return acc;
+        },
+        []
+      ),
+    [regionConfig, sanitizedSearchText]
   );
 
+  const {} = useMemo;
   return (
     <ThemedView style={styles.container}>
       {_size(countries) ? (
@@ -136,7 +172,7 @@ const SearchResult = ({ searchText }: { searchText: string }) => {
           <FlatList
             data={_chunk(countries, 2)}
             renderItem={CountryItemRender}
-            keyExtractor={(item) => item?.isoCode}
+            keyExtractor={(item, index) => item?.code || index}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.countryListContainer}
@@ -152,7 +188,7 @@ const SearchResult = ({ searchText }: { searchText: string }) => {
           <FlatList
             data={regions}
             renderItem={RegionItemRender}
-            keyExtractor={(item) => item?.isoCode}
+            keyExtractor={(item, index) => item?.code || index}
             ItemSeparatorComponent={() => <View style={{ height: SPACING }} />}
             ListEmptyComponent={RegionEmptyListComponent}
             showsVerticalScrollIndicator={false}

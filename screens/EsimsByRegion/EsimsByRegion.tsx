@@ -4,20 +4,25 @@ import { StyleSheet } from "react-native";
 import _get from "lodash/get";
 
 import { Theme } from "@/constants/Colors";
-import { REGION_CONFIG } from "@/constants/general.constants";
 import { useEsimsByRegion } from "@/queries/e-sims";
+import appBootstrap from "@/utils/appBootstrap";
 
 import DataPackTabGroup from "@/components/DataPackTabGroup";
 
 export default function EsimsByRegion() {
   const params = useLocalSearchParams();
-  const region = _get(REGION_CONFIG, [params?.id, "region"]);
-  const { data: esims, ...rest } = useEsimsByRegion(region, {
+  const regionConfig = appBootstrap.getRegionConfig;
+  const region = _get(regionConfig, [params?.id, "code"]);
+  const { data: esims, isFetching } = useEsimsByRegion(region, {
     enabled: !!region,
   });
 
   return (
-    <DataPackTabGroup esims={esims} containerStyle={styles.containerStyle} />
+    <DataPackTabGroup
+      esims={esims}
+      containerStyle={styles.containerStyle}
+      isLoading={isFetching}
+    />
   );
 }
 

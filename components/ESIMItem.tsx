@@ -2,10 +2,10 @@ import React, { useCallback } from "react";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import CountryFlag from "react-native-country-flag";
 import _get from "lodash/get";
 
 import { Colors, Theme } from "@/constants/Colors";
+import CountryFlag from "@/components/ui/CountryFlag";
 import DetailItem from "./ui/DetailItem";
 
 export interface Esim {
@@ -15,6 +15,7 @@ export interface Esim {
   serviceRegionCode: string;
   serviceRegionFlag: string;
   serviceRegionName: string;
+  coverageType: string;
   data: number;
   sms: number | null;
   validity: number;
@@ -48,10 +49,11 @@ const ESIMItem = ({
       <View style={styles.flagContainer}>
         {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
         {/* TODO: Use flag from API response and fallback to this if not present */}
-        {item.serviceRegionCode && (
+        {item?.coverageType === "LOCAL" && item?.serviceRegionCode && (
           <CountryFlag
             style={styles.flag}
-            isoCode={item.serviceRegionCode}
+            isoCode={item?.serviceRegionCode}
+            flagUrl={item?.serviceRegionFlag}
             size={25}
           />
         )}

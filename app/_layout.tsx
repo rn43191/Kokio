@@ -11,8 +11,10 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import "../global.css";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ToastProvider } from "@/contexts/ToastContext";
+import useBootstrap from "@/hooks/useBootstrap";
+import FullScreenLoader from "@/components/ui/FullScreenLoader";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -37,28 +39,33 @@ export default function RootLayout() {
     "Lexend-Black": require("../assets/fonts/Lexend-Black.ttf"),
   });
 
+  // Use the bootstrap hook to fetch data when the app starts
+  const { isLoading, error } = useBootstrap();
+
   useEffect(() => {
-    if (loaded) {
+    // Hide splash screen once bootstrap data is loaded and fonts are ready
+    if (loaded && !isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, isLoading]);
 
-  if (!loaded) {
-    return null;
+  // Show nothing until bootstrap and fonts are loaded
+  if (!loaded || isLoading) {
+    return <FullScreenLoader />;
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        </ToastProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </ToastProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

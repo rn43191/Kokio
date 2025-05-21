@@ -3,6 +3,7 @@ import { Dimensions, StyleSheet } from "react-native";
 import { TabView, SceneMap, TabBar } from "react-native-tab-view";
 
 import _get from "lodash/get";
+import _debounce from "lodash/debounce";
 
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -44,9 +45,11 @@ export default function Shop() {
   const [index, setIndex] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
 
+  const debouncedOnSearch = _debounce(setSearchText, 500);
+
   return (
     <ThemedView style={styles.shopContainer}>
-      <SearchInput onSearch={setSearchText} onClear={setSearchText} />
+      <SearchInput onSearch={debouncedOnSearch} onClear={setSearchText} />
       <ThemedView style={styles.container}>
         {searchText ? (
           <SearchResult searchText={searchText} />

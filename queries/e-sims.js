@@ -14,8 +14,9 @@ const defaultOptions = {
 
 export const emisQueryKeys = {
   all: ["esims"],
-  esimsByCountry: (country) => [...emisQueryKeys.all, "byCountry", country],
-  esimsByRegion: (country) => [...emisQueryKeys.all, "byRegion", country],
+  esimsByCountry: (item) => [...emisQueryKeys.all, "byCountry", item],
+  esimsByRegion: (item) => [...emisQueryKeys.all, "byRegion", item],
+  esimsByGlobal: (item) => [...emisQueryKeys.all, "byGlobal", item],
 };
 
 function useEsimsByCountry(serviceRegionCode, options = defaultOptions) {
@@ -23,10 +24,13 @@ function useEsimsByCountry(serviceRegionCode, options = defaultOptions) {
     const result = useQuery({
       queryKey: emisQueryKeys.esimsByCountry(serviceRegionCode),
       queryFn: async () => {
-        const payload = { serviceRegionCode };
-        const response = await fetchEsimsCatalogue(payload);
-        console.log({ response, d: response?.data });
-        return _get(response, "data.plans") || [];
+        try {
+          const payload = { serviceRegionCode };
+          const response = await fetchEsimsCatalogue(payload);
+          return _get(response, "data.plans") || [];
+        } catch (err) {
+          return [];
+        }
       },
       ..._defaults(options, { ...defaultOptions }),
     });
@@ -42,9 +46,13 @@ function useEsimsByRegion(region, options = defaultOptions) {
     const result = useQuery({
       queryKey: emisQueryKeys.esimsByRegion(region),
       queryFn: async () => {
-        const payload = { region };
-        const response = await fetchEsimsCatalogue(payload);
-        return _get(response, "data.plans") || [];
+        try {
+          const payload = { serviceRegionCode: region };
+          const response = await fetchEsimsCatalogue(payload);
+          return _get(response, "data.plans") || [];
+        } catch (err) {
+          return [];
+        }
       },
       ..._defaults(options, { ...defaultOptions }),
     });
@@ -55,4 +63,26 @@ function useEsimsByRegion(region, options = defaultOptions) {
   }
 }
 
-export { useEsimsByCountry, useEsimsByRegion };
+function useGloabalEsims(options = defaultOptions) {
+  try {
+    const result = useQuery({
+      queryKey: emisQueryKeys.esimsByGlobal("GLOBAL"),
+      queryFn: async () => {
+        try {
+          const payload = { serviceRegionCode: "GLOBAL" };
+          const response = await fetchEsimsCatalogue(payload);
+          return _get(response, "data.plans") || [];
+        } catch (err) {
+          return [];
+        }
+      },
+      ..._defaults(options, { ...defaultOptions }),
+    });
+
+    return result;
+  } catch (err) {
+    console.log({ err });
+  }
+}
+
+export { useEsimsByCountry, useEsimsByRegion, useGloabalEsims };
