@@ -57,11 +57,9 @@ export default function ShopStack() {
       <Stack.Screen
         name={ROUTE_NAMES.CHECKOUT}
         options={({ route }: any) => {
-          // TODO: Check Params
-          console.log("Checkout Header", { route, p: route.params });
-          const id = route?.params?.id;
+          const { id, item } = route?.params || {};
           return {
-            header: () => <CheckoutHeader id={id} />,
+            header: () => <CheckoutHeader id={id} eSimDetails={item} />,
           };
         }}
       />

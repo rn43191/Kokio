@@ -41,36 +41,34 @@ const EmptyListComponent = () => (
   </ThemedText>
 );
 
-const ESIMsFlatList = ({
-  esims,
-  isLoading,
-}: {
-  esims: Esim[];
-  isLoading: boolean;
-}) => {
-  return isLoading ? (
-    <FlatList
-      data={[1, 2, 3, 4, 5]}
-      renderItem={({ item }) => <EsimItemSkeleton />}
-      keyExtractor={(_, index) => index}
-      contentContainerStyle={styles.flatListContainer}
-    />
-  ) : (
-    <FlatList
-      data={esims}
-      renderItem={({ item }) => (
-        <ESIMItem
-          item={item}
-          showBuyButton
-          containerStyle={styles.eSimItemContainer}
-        />
-      )}
-      keyExtractor={(item, index) => item.catalogueId || index}
-      contentContainerStyle={styles.flatListContainer}
-      ListEmptyComponent={EmptyListComponent}
-    />
-  );
-};
+const ESIMsFlatList = React.memo(
+  ({ esims, isLoading }: { esims: Esim[]; isLoading: boolean }) => {
+    return isLoading ? (
+      <FlatList
+        data={[1, 2, 3, 4, 5]}
+        renderItem={({ item }) => (
+          <EsimItemSkeleton containerStyle={styles.eSimItemContainer} />
+        )}
+        keyExtractor={(_, index) => index}
+        contentContainerStyle={styles.flatListContainer}
+      />
+    ) : (
+      <FlatList
+        data={esims}
+        renderItem={({ item }) => (
+          <ESIMItem
+            item={item}
+            showBuyButton
+            containerStyle={styles.eSimItemContainer}
+          />
+        )}
+        keyExtractor={(item, index) => item.catalogueId || index}
+        contentContainerStyle={styles.flatListContainer}
+        ListEmptyComponent={EmptyListComponent}
+      />
+    );
+  }
+);
 
 const TabBarLabel = ({ route: tabRoute, focused }: any) => (
   <ThemedText
@@ -84,7 +82,7 @@ const TabBarLabel = ({ route: tabRoute, focused }: any) => (
   </ThemedText>
 );
 
-export default function DataPackTabGroup({
+function DataPackTabGroup({
   esims,
   containerStyle,
   isLoading,
@@ -190,3 +188,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
 });
+
+export default React.memo(DataPackTabGroup);

@@ -1,13 +1,14 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   View,
-  Pressable,
   Platform,
   Text,
   Dimensions,
+  TouchableOpacity,
 } from "react-native";
+import { useLocalSearchParams } from "expo-router";
 import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
 import ToggleSwitch from "toggle-switch-react-native";
 import _sum from "lodash/sum";
@@ -17,6 +18,10 @@ import { Theme } from "@/constants/Colors";
 import DetailItem from "@/components/ui/DetailItem";
 import Checkbox from "@/components/ui/Checkbox";
 import AmountInput from "@/components/amountInput";
+import { Esim } from "@/components/ESIMItem";
+import { getEsimOrderPayload } from "@/helpers/esimOrder";
+import { eSimOderCheckout } from "@/services/esims";
+import CheckoutSuccessModal from "@/components/ui/CheckoutSuccessModal";
 
 import { createRadioButtons } from "./checkout.helpers";
 
@@ -24,10 +29,24 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const RADIO_WIDTH = SCREEN_WIDTH - 24;
 
 const Checkout = ({ currentBalance = 25 }: any) => {
+  const { item: eSimDetails } = useLocalSearchParams();
+
+  const eSimItem: Esim = React.useMemo(() => {
+    if (typeof eSimDetails === "string") {
+      try {
+        return JSON.parse(eSimDetails);
+      } catch (error) {
+        return null;
+      }
+    }
+    return eSimDetails;
+  }, [eSimDetails]);
+
   const [isESimEnabled, setIsESimEnabled] = useState<boolean>(false);
   const [selectedId, setSelectedId] = useState<string | undefined>();
   const [fundOnDeviceWallet, setFundOnDeviceWallet] = useState<boolean>(false);
   const [amount, setAmount] = useState<number | null>(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => createRadioButtons(selectedId, styles.buttonStyle),
@@ -59,17 +78,37 @@ const Checkout = ({ currentBalance = 25 }: any) => {
           <ThemedText style={{ color: Theme.colors.foreground }}>
             Current Balance
           </ThemedText>
-          <ThemedText>25.00 USDC</ThemedText>
+          <ThemedText>{`${(currentBalance || 0).toFixed(2)}  USDC`}</ThemedText>
         </View>
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <ThemedText style={{ color: Theme.colors.foreground }}>
             Balance after
           </ThemedText>
-          <ThemedText>{_sum([amount, 25]).toFixed(2)} USDC</ThemedText>
+          <ThemedText>
+            {_sum([amount, currentBalance]).toFixed(2)} USDC
+          </ThemedText>
         </View>
       </View>
     );
   }, [amount, setAmount]);
+
+  const handleCheckout = useCallback(async () => {
+    try {
+      const payload = getEsimOrderPayload({ eSimItem });
+      const response = await eSimOderCheckout(payload);
+
+      setShowSuccessModal(true);
+      // TODO: Persist API response for navigating to QA Screen
+    } catch (err) {
+      setShowSuccessModal(true); // TODO: false on API integrate
+    }
+  }, [eSimItem]);
+
+  const handleInstallESIM = useCallback(() => {
+    setShowSuccessModal(false);
+    // TODO: Add navigation to eSIM installation screen
+    console.log("Navigate to eSIM installation");
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -122,17 +161,22 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomButtonContainer}>
-        <Pressable
-          style={({ pressed }) => [
-            styles.checkoutButton,
-            pressed && styles.checkoutButtonPressed,
-          ]}
-          onPress={() => console.log("TODO: Checkout pressed")}
-        >
-          <DetailItem prefix="Total " value={6.5} suffix="USD" />
-        </Pressable>
-      </View>
+      <TouchableOpacity
+        style={styles.bottomButtonContainer}
+        onPress={handleCheckout}
+      >
+        <DetailItem
+          prefix="Total "
+          value={eSimItem.actualSellingPrice}
+          suffix="USD"
+          containerStyles={styles.checkoutButton}
+        />
+      </TouchableOpacity>
+
+      <CheckoutSuccessModal
+        visible={showSuccessModal}
+        onInstallESIM={handleInstallESIM}
+      />
     </View>
   );
 };
@@ -163,9 +207,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  checkoutButtonPressed: {
-    opacity: 0.9,
   },
   checkoutButtonText: {
     fontSize: 16,

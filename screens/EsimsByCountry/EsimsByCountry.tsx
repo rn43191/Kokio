@@ -1,3 +1,4 @@
+import React from "react";
 import { useLocalSearchParams } from "expo-router";
 import { StyleSheet } from "react-native";
 
@@ -10,7 +11,7 @@ import appBootstrap from "@/utils/appBootstrap";
 
 import DataPackTabGroup from "@/components/DataPackTabGroup";
 
-export default function EsimsByCountry() {
+function EsimsByCountry() {
   const params = useLocalSearchParams();
   const countryConfig = appBootstrap.getCountryConfig;
   const countryCode = _get(countryConfig, [params?.id, "code"]);
@@ -32,3 +33,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: Theme.spacing.sm,
   },
 });
+
+export default React.memo(EsimsByCountry);
