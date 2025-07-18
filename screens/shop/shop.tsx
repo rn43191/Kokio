@@ -41,7 +41,7 @@ const renderScene = SceneMap({
   Global: Global,
 });
 
-export default function Shop() {
+const Shop = () => {
   const [index, setIndex] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
 
@@ -73,7 +73,7 @@ export default function Shop() {
       </ThemedView>
     </ThemedView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: { flex: 1, marginTop: 12 },
@@ -111,3 +111,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.background,
   },
 });
+
+export default React.memo(Shop);

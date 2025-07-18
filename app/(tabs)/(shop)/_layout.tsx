@@ -1,4 +1,6 @@
 import { Stack } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { View } from "react-native";
 
 import _isFunction from "lodash/isFunction";
 import _get from "lodash/get";
@@ -10,12 +12,19 @@ import appBootstrap from "@/utils/appBootstrap";
 
 export default function ShopStack() {
   return (
-    <Stack>
+    <Stack
+      screenOptions={({ route }) => ({
+        contentStyle:
+          route.name === ROUTE_NAMES.CHECKOUT ? { flex: 1 } : undefined,
+      })}
+    >
       <Stack.Screen
         name={ROUTE_NAMES.HOME}
         options={{
           header: () => (
-            <Header title="Shop" style={{ justifyContent: "center" }} />
+            <SafeAreaView edges={["top"]}>
+              <Header title="Shop" style={{ justifyContent: "center" }} />
+            </SafeAreaView>
           ),
         }}
       />
@@ -27,11 +36,13 @@ export default function ShopStack() {
             _get(countryConfig, [route?.params?.id, "name"]) || "";
           return {
             header: () => (
-              <Header
-                title={countryLabel}
-                hasBack
-                style={{ justifyContent: "center" }}
-              />
+              <SafeAreaView edges={["top"]}>
+                <Header
+                  title={countryLabel}
+                  hasBack
+                  style={{ justifyContent: "center" }}
+                />
+              </SafeAreaView>
             ),
           };
         }}
@@ -45,11 +56,13 @@ export default function ShopStack() {
 
           return {
             header: () => (
-              <Header
-                title={regionLabel}
-                hasBack
-                style={{ justifyContent: "center" }}
-              />
+              <SafeAreaView edges={["top"]}>
+                <Header
+                  title={regionLabel}
+                  hasBack
+                  style={{ justifyContent: "center" }}
+                />
+              </SafeAreaView>
             ),
           };
         }}
@@ -68,12 +81,16 @@ export default function ShopStack() {
         options={() => {
           return {
             header: () => (
-              <Header
-                title="Install eSIM"
-                style={{ justifyContent: "center" }}
-                hasBack
-              />
+              <SafeAreaView edges={["top"]}>
+                <Header
+                  title="Install eSIM"
+                  style={{ justifyContent: "center" }}
+                  hasBack
+                />
+              </SafeAreaView>
             ),
+            animation: "slide_from_right",
+            animationDuration: 100,
           };
         }}
       />

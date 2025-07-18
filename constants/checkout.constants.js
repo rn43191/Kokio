@@ -47,7 +47,7 @@ export const ESIM_EXTRA_DETAILS = [
     iconName: "ip-network-outline",
     key: "IP_ROUTING",
     label: "IP Routing",
-    formatter: () => "No", // NOTE: Not currently received
+    formatter: () => "N/A", // NOTE: Not currently received
   },
   {
     iconType: "MCI",

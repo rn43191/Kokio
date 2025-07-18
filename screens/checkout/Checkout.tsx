@@ -58,7 +58,6 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       <View>
         <View style={{ flexDirection: "row", marginBottom: 4 }}>
           <ThemedText
-            type="defaultSemiBold"
             style={{ color: Theme.colors.foreground, marginRight: 4 }}
           >
             Add this amount to my eSIM wallet
@@ -120,7 +119,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         keyboardShouldPersistTaps="always"
       >
         <View style={{ marginTop: 16 }}>
-          <ThemedText type="defaultSemiBold">eSIM & Network</ThemedText>
+          <ThemedText>eSIM & Network</ThemedText>
           <View style={{ flexDirection: "row", marginTop: 12 }}>
             <Checkbox onChange={setIsESimEnabled} checked={isESimEnabled} />
             <Text style={{ color: Theme.colors.foreground, marginLeft: 8 }}>
@@ -130,7 +129,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         </View>
 
         <View style={{ marginTop: 16 }}>
-          <ThemedText type="defaultSemiBold">Payment Method</ThemedText>
+          <ThemedText>Payment Method</ThemedText>
           <View style={{ flexDirection: "row", marginTop: 12 }}>
             <RadioGroup
               radioButtons={radioButtons}
@@ -142,7 +141,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         </View>
 
         <View style={{ marginTop: 16 }}>
-          <ThemedText type="defaultSemiBold">Fund Device Wallet</ThemedText>
+          <ThemedText>Fund Device Wallet</ThemedText>
           <Text style={{ color: Theme.colors.foreground, marginTop: 12 }}>
             Speed up and secure your next eSIM purchase or top-up by funding
             your on-device eSIM crypto wallet.

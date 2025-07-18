@@ -51,10 +51,10 @@ const ESIMItem = ({
         {/* TODO: Use flag from API response and fallback to this if not present */}
         {item?.coverageType === "LOCAL" && item?.serviceRegionCode && (
           <CountryFlag
-            style={styles.flag}
+            style={[showBuyButton && styles.flag]}
             isoCode={item?.serviceRegionCode}
             flagUrl={item?.serviceRegionFlag}
-            size={25}
+            size={40}
           />
         )}
       </View>
@@ -118,13 +118,13 @@ const styles = StyleSheet.create({
   },
   flagContainer: {
     position: "absolute",
-    top: -20,
+    top: -12,
     right: 40,
     zIndex: 10,
   },
   flag: {
-    width: 60,
-    height: 40,
+    width: 85,
+    height: 50,
     borderRadius: 4,
   },
   country: {

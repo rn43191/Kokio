@@ -9,7 +9,6 @@ import _isEmpty from "lodash/isEmpty";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors, Theme } from "@/constants/Colors";
-import FullScreenLoader from "@/components/ui/FullScreenLoader";
 import EsimItemSkeleton from "@/components/EsimItemSkeleton";
 
 import ESIMItem, { Esim } from "../ESIMItem";
@@ -46,7 +45,7 @@ const ESIMsFlatList = React.memo(
     return isLoading ? (
       <FlatList
         data={[1, 2, 3, 4, 5]}
-        renderItem={({ item }) => (
+        renderItem={() => (
           <EsimItemSkeleton containerStyle={styles.eSimItemContainer} />
         )}
         keyExtractor={(_, index) => index}
@@ -136,6 +135,12 @@ function DataPackTabGroup({
               indicatorStyle={styles.indicatorStyle}
               tabStyle={styles.tabStyle}
               contentContainerStyle={styles.tabBarContentContainer}
+              // NOTE: DATA_CALLS_SMS is disabled until needed
+              onTabPress={({ route, preventDefault }) => {
+                if (route.key === TAB_KEYS.DATA_CALLS_SMS) {
+                  preventDefault();
+                }
+              }}
             />
           )}
         />

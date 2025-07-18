@@ -74,13 +74,13 @@ const styles = StyleSheet.create({
   },
   flagContainer: {
     position: "absolute",
-    top: -20,
+    top: -12,
     right: 40,
     zIndex: 10,
   },
   flag: {
-    width: 60,
-    height: 40,
+    width: 85,
+    height: 50,
     borderRadius: 4,
   },
   detailsContainer: {
