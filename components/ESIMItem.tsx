@@ -68,8 +68,8 @@ const ESIMItem = ({
           />
           <DetailItem
             iconName="cellular-outline"
-            value={item.data}
-            suffix="GB"
+            value={item.isUnlimited ? "Unlimited" : item.data}
+            suffix={item.isUnlimited ? "" : "GB"}
           />
           <DetailItem
             iconName="call-outline"

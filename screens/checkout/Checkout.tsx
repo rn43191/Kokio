@@ -20,8 +20,9 @@ import Checkbox from "@/components/ui/Checkbox";
 import AmountInput from "@/components/amountInput";
 import { Esim } from "@/components/ESIMItem";
 import { getEsimOrderPayload } from "@/helpers/esimOrder";
-import { eSimOderCheckout } from "@/services/esims";
+// import { eSimOderCheckout } from "@/services/esims";
 import CheckoutSuccessModal from "@/components/ui/CheckoutSuccessModal";
+import WalletSetupModal from "@/components/ui/WalletSetupModal";
 
 import { createRadioButtons } from "./checkout.helpers";
 
@@ -43,14 +44,17 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   }, [eSimDetails]);
 
   const [isESimEnabled, setIsESimEnabled] = useState<boolean>(false);
-  const [selectedId, setSelectedId] = useState<string | undefined>();
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    string | undefined
+  >();
   const [fundOnDeviceWallet, setFundOnDeviceWallet] = useState<boolean>(false);
   const [amount, setAmount] = useState<number | null>(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
 
   const radioButtons: RadioButtonProps[] = useMemo(
-    () => createRadioButtons(selectedId, styles.buttonStyle),
-    [selectedId]
+    () => createRadioButtons(selectedPaymentMethod, styles.buttonStyle),
+    [selectedPaymentMethod]
   );
 
   const addAmountSection = useMemo(() => {
@@ -94,7 +98,8 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const handleCheckout = useCallback(async () => {
     try {
       const payload = getEsimOrderPayload({ eSimItem });
-      const response = await eSimOderCheckout(payload);
+      // TODO: Uncomment on API integrate
+      // const response = await eSimOderCheckout(payload);
 
       setShowSuccessModal(true);
       // TODO: Persist API response for navigating to QA Screen
@@ -109,6 +114,14 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       pathname: "/(shop)/installation",
       params: {},
     });
+  }, []);
+
+  const handlePaymentMethodChange = useCallback((value: string) => {
+    if (value === "E_SIM_WALLET") {
+      setShowWalletSetupModal(true);
+    } else {
+      setSelectedPaymentMethod(value);
+    }
   }, []);
 
   return (
@@ -133,8 +146,8 @@ const Checkout = ({ currentBalance = 25 }: any) => {
           <View style={{ flexDirection: "row", marginTop: 12 }}>
             <RadioGroup
               radioButtons={radioButtons}
-              onPress={setSelectedId}
-              selectedId={selectedId}
+              onPress={handlePaymentMethodChange}
+              selectedId={selectedPaymentMethod}
               containerStyle={styles.containerStyle}
             />
           </View>
@@ -163,8 +176,12 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       </ScrollView>
 
       <TouchableOpacity
-        style={styles.bottomButtonContainer}
-        onPress={handleCheckout}
+        style={[
+          styles.bottomButtonContainer,
+          !isESimEnabled && { opacity: 0.5 },
+        ]}
+        onPress={isESimEnabled ? handleCheckout : undefined}
+        disabled={!isESimEnabled}
       >
         <DetailItem
           prefix="Total "
@@ -177,6 +194,16 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       <CheckoutSuccessModal
         visible={showSuccessModal}
         onInstallESIM={handleInstallESIM}
+      />
+
+      <WalletSetupModal
+        visible={showWalletSetupModal}
+        onClose={() => setShowWalletSetupModal(false)}
+        onContinue={() => {
+          // TODO: Loader for Wallet
+          setShowWalletSetupModal(false);
+          setSelectedPaymentMethod("E_SIM_WALLET");
+        }}
       />
     </View>
   );
@@ -233,5 +260,62 @@ const styles = StyleSheet.create({
     marginVertical: 2,
     borderRadius: 12,
     borderWidth: 1,
+  },
+  walletModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  walletModalContainer: {
+    backgroundColor: "#2C2C2E",
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    maxWidth: 320,
+  },
+  walletModalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  walletModalDescription: {
+    fontSize: 16,
+    color: "#AEAEB2",
+    textAlign: "center",
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  walletModalButtons: {
+    flexDirection: "row",
+    gap: 1,
+  },
+  laterButton: {
+    flex: 1,
+    backgroundColor: "#48484A",
+    paddingVertical: 16,
+    alignItems: "center",
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+  },
+  laterButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  continueButton: {
+    flex: 1,
+    backgroundColor: "#FF9500",
+    paddingVertical: 16,
+    alignItems: "center",
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  continueButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
