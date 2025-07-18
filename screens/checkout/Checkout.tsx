@@ -8,7 +8,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
 import ToggleSwitch from "toggle-switch-react-native";
 import _sum from "lodash/sum";
@@ -106,8 +106,10 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
-    // TODO: Add navigation to eSIM installation screen
-    console.log("Navigate to eSIM installation");
+    router.navigate({
+      pathname: "/(shop)/installation",
+      params: {},
+    });
   }, []);
 
   return (

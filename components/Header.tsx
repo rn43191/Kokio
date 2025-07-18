@@ -38,15 +38,14 @@ const Header = ({
 
   return (
     <ThemedView
-    
       style={{
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        margin: Theme.spacing.md_l,
+        marginVertical: Theme.spacing.md_l,
         position: "relative",
-        zIndex: 1, 
-        backgroundColor:"white",
+        zIndex: 1,
+        backgroundColor: "white",
         ...containerStyle,
       }}
     >
@@ -55,7 +54,11 @@ const Header = ({
           name="chevron-back-outline"
           size={25}
           color={useThemeColor({}, "icon")}
-          style={{ marginRight: Theme.spacing.sm, position: "absolute", zIndex: 0.8 }}
+          style={{
+            marginRight: Theme.spacing.sm,
+            position: "absolute",
+            zIndex: 0.8,
+          }}
           onPress={handleBack}
         />
       )}
@@ -70,9 +73,13 @@ const Header = ({
         }}
       >
         <ThemedText
-          style={{ color: useThemeColor({}, "headerText"),position:'relative',zIndex:1, ...titleStyle }}
+          style={{
+            color: useThemeColor({}, "headerText"),
+            position: "relative",
+            zIndex: 1,
+            ...titleStyle,
+          }}
           className="text-[#AEAEB2]    text-[16px] text-center font-Lexend "
-          
         >
           {title || ""}
         </ThemedText>

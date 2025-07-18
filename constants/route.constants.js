@@ -7,11 +7,11 @@ export const ROUTE_NAMES = {
   SETTINGS: "settings",
   BY_COUNTRY: "country/[id]",
   BY_REGION: "region/[id]",
-  TOKENS:"tokens",
-  TRANSACTIONS:"transactions",
-  TRANSACTIONDETAILS:"transactionDetails"
+  TOKENS: "tokens",
+  TRANSACTIONS: "transactions",
+  TRANSACTIONDETAILS: "transactionDetails",
+  INSTALLATION: "installation",
 };
-
 
 export const TAB_BAR_ENABLED_ROUTES = [
   ROUTE_NAMES.HOME,

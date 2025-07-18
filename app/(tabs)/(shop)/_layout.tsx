@@ -63,6 +63,20 @@ export default function ShopStack() {
           };
         }}
       />
+      <Stack.Screen
+        name={ROUTE_NAMES.INSTALLATION}
+        options={() => {
+          return {
+            header: () => (
+              <Header
+                title="Install eSIM"
+                style={{ justifyContent: "center" }}
+                hasBack
+              />
+            ),
+          };
+        }}
+      />
     </Stack>
   );
 }
