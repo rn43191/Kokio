@@ -1,4 +1,5 @@
 import { ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
@@ -16,6 +17,7 @@ const mockEsims = [
     sms: 500,
     validity: 7,
     voice: 100,
+    coverageType: "LOCAL",
   },
   {
     catalogueId: "681604659b6fe88ebea137a3",
@@ -28,6 +30,7 @@ const mockEsims = [
     sms: 50,
     validity: 30,
     voice: 200,
+    coverageType: "LOCAL",
   },
   {
     catalogueId: "681604659b6fe88ebea137c5",
@@ -40,16 +43,19 @@ const mockEsims = [
     sms: null,
     validity: 30,
     voice: null,
+    coverageType: "LOCAL",
   },
   // Add more eSIM objects as needed
 ];
 
 export default function HomeScreen() {
   return (
-    <ScrollView>
-      <Hero />
-      <ActiveESIMsScroll esims={mockEsims} />
-      <Wallet />
-    </ScrollView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView>
+        <Hero />
+        <ActiveESIMsScroll esims={mockEsims} />
+        <Wallet walletId="0x9bf...b1e2ef7" balance="500" />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

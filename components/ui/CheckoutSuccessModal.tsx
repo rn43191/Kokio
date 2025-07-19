@@ -54,6 +54,7 @@ const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      statusBarTranslucent
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
@@ -100,6 +101,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    paddingTop: 0,
   },
   modalContainer: {
     backgroundColor: "rgba(60, 60, 60, 0.9)",
@@ -114,7 +116,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     width: "80%",
-    backgroundColor: "#7878805C",
+    backgroundColor: "rgba(100, 100, 100, 0.9)",
     borderRadius: 20,
     padding: 24,
     paddingTop: 32,

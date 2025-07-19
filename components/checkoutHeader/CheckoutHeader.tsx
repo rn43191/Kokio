@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Animated,
   StyleSheet,
@@ -17,7 +18,7 @@ import CountryFlag from "@/components/ui/CountryFlag";
 
 import DetailItem from "../ui/DetailItem";
 
-const HEADER_MIN_HEIGHT = 140;
+const HEADER_MIN_HEIGHT = 200; // Increased from 140 to accommodate top padding + content
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const MAX_ALLOWED_HEIGHT = SCREEN_HEIGHT * 0.6;
 
@@ -44,6 +45,7 @@ const ExpandableContent = ({ eSimItem = {} }: any) => (
 );
 
 const CheckoutHeader = ({ eSimDetails = {} }: any) => {
+  const insets = useSafeAreaInsets();
   const eSimItem = React.useMemo(() => {
     if (typeof eSimDetails === "string") {
       try {
@@ -166,7 +168,13 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
 
   return (
     <Animated.View
-      style={[styles.header, { height: animation }]}
+      style={[
+        styles.header,
+        {
+          height: animation,
+          paddingTop: insets.top + 16, // Add status bar height + some padding
+        },
+      ]}
       {...panResponder.panHandlers}
     >
       <View
@@ -221,7 +229,8 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.card,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
   },
   countryFlagContainer: {
     flexDirection: "row",
