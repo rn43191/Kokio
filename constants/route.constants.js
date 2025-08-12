@@ -11,6 +11,7 @@ export const ROUTE_NAMES = {
   TRANSACTIONS: "transactions",
   TRANSACTIONDETAILS: "transactionDetails",
   INSTALLATION: "installation",
+  OFFLINE: "Offline"
 };
 
 export const TAB_BAR_ENABLED_ROUTES = [

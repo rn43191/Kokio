@@ -23,8 +23,10 @@ import { getEsimOrderPayload } from "@/helpers/esimOrder";
 // import { eSimOderCheckout } from "@/services/esims";
 import CheckoutSuccessModal from "@/components/ui/CheckoutSuccessModal";
 import WalletSetupModal from "@/components/ui/WalletSetupModal";
+import CreditCardModal from "@/components/CreditCardModal";
 
 import { createRadioButtons } from "./checkout.helpers";
+import { RADIO_KEYS } from "@/constants/checkout.constants";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const RADIO_WIDTH = SCREEN_WIDTH - 24;
@@ -51,6 +53,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [amount, setAmount] = useState<number | null>(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
+  const [showCreditCardModal, setShowCreditCardModal] = useState(false);
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => createRadioButtons(selectedPaymentMethod, styles.buttonStyle),
@@ -96,6 +99,12 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   }, [amount, setAmount]);
 
   const handleCheckout = useCallback(async () => {
+    // If credit card is selected, open the credit card modal instead of proceeding with checkout
+    if (selectedPaymentMethod === RADIO_KEYS.CREDIT_CARD) {
+      setShowCreditCardModal(true);
+      return;
+    }
+
     try {
       const payload = getEsimOrderPayload({ eSimItem });
       // TODO: Uncomment on API integrate
@@ -106,7 +115,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     } catch (err) {
       setShowSuccessModal(true); // TODO: false on API integrate
     }
-  }, [eSimItem]);
+  }, [eSimItem, selectedPaymentMethod]);
 
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
@@ -116,13 +125,49 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     });
   }, []);
 
+  const handleWalletModalClose = useCallback(()=>{
+    setShowWalletSetupModal(false)
+  },[])
+
   const handlePaymentMethodChange = useCallback((value: string) => {
-    if (value === "E_SIM_WALLET") {
+    if (value === RADIO_KEYS.E_SIM_WALLET) {
       setShowWalletSetupModal(true);
     } else {
       setSelectedPaymentMethod(value);
     }
   }, []);
+
+  const handleCreditModalClose = useCallback(()=>{
+    setShowCreditCardModal(false)
+  },[])
+
+  const handleCreditCardSubmit = useCallback(
+    (cardData: {
+      cardName: string;
+      nameOnCard: string;
+      cardNumber: string;
+      expiration: string;
+      cvv: string;
+      saveCard: boolean;
+    }) => {
+      // TODO: Handle credit card submission
+      console.log("Credit card data:", cardData);
+      setShowCreditCardModal(false);
+
+      // Now proceed with the actual checkout process
+      try {
+        const payload = getEsimOrderPayload({ eSimItem });
+        // TODO: Uncomment on API integrate
+        // const response = await eSimOderCheckout(payload);
+
+        setShowSuccessModal(true);
+        // TODO: Persist API response for navigating to QA Screen
+      } catch (err) {
+        setShowSuccessModal(true); // TODO: false on API integrate
+      }
+    },
+    [eSimItem]
+  );
 
   return (
     <View style={styles.container}>
@@ -178,10 +223,12 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       <TouchableOpacity
         style={[
           styles.bottomButtonContainer,
-          !isESimEnabled && { opacity: 0.5 },
+          (!isESimEnabled || !selectedPaymentMethod) && { opacity: 0.5 },
         ]}
-        onPress={isESimEnabled ? handleCheckout : undefined}
-        disabled={!isESimEnabled}
+        onPress={
+          isESimEnabled && selectedPaymentMethod ? handleCheckout : undefined
+        }
+        disabled={!isESimEnabled || !selectedPaymentMethod}
       >
         <DetailItem
           prefix="Total "
@@ -198,12 +245,18 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
       <WalletSetupModal
         visible={showWalletSetupModal}
-        onClose={() => setShowWalletSetupModal(false)}
+        onClose={handleWalletModalClose}
         onContinue={() => {
           // TODO: Loader for Wallet
-          setShowWalletSetupModal(false);
-          setSelectedPaymentMethod("E_SIM_WALLET");
+          handleWalletModalClose();
+          setSelectedPaymentMethod(RADIO_KEYS.E_SIM_WALLET);
         }}
+      />
+
+      <CreditCardModal
+        visible={showCreditCardModal}
+        onClose={handleCreditModalClose}
+        onSubmit={handleCreditCardSubmit}
       />
     </View>
   );
