@@ -25,5 +25,5 @@ export const createRadioButtons = (
       buttonStyles,
       selectedId === key && { backgroundColor: "#78788073" },
     ],
-    disabled: key !== RADIO_KEYS.E_SIM_WALLET, // NOTE: Disabled Credit Card and Apple Pay
+    disabled: key === RADIO_KEYS.APPLE_PAY, // NOTE: Only Apple Pay is disabled
   }));
