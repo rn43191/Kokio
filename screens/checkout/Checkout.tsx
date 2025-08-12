@@ -26,6 +26,7 @@ import WalletSetupModal from "@/components/ui/WalletSetupModal";
 import CreditCardModal from "@/components/CreditCardModal";
 
 import { createRadioButtons } from "./checkout.helpers";
+import { RADIO_KEYS } from "@/constants/checkout.constants";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const RADIO_WIDTH = SCREEN_WIDTH - 24;
@@ -99,7 +100,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handleCheckout = useCallback(async () => {
     // If credit card is selected, open the credit card modal instead of proceeding with checkout
-    if (selectedPaymentMethod === "CREDIT_CARD") {
+    if (selectedPaymentMethod === RADIO_KEYS.CREDIT_CARD) {
       setShowCreditCardModal(true);
       return;
     }
@@ -124,13 +125,21 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     });
   }, []);
 
+  const handleWalletModalClose = useCallback(()=>{
+    setShowWalletSetupModal(false)
+  },[])
+
   const handlePaymentMethodChange = useCallback((value: string) => {
-    if (value === "E_SIM_WALLET") {
+    if (value === RADIO_KEYS.E_SIM_WALLET) {
       setShowWalletSetupModal(true);
     } else {
       setSelectedPaymentMethod(value);
     }
   }, []);
+
+  const handleCreditModalClose = useCallback(()=>{
+    setShowCreditCardModal(false)
+  },[])
 
   const handleCreditCardSubmit = useCallback(
     (cardData: {
@@ -236,17 +245,17 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
       <WalletSetupModal
         visible={showWalletSetupModal}
-        onClose={() => setShowWalletSetupModal(false)}
+        onClose={handleWalletModalClose}
         onContinue={() => {
           // TODO: Loader for Wallet
-          setShowWalletSetupModal(false);
-          setSelectedPaymentMethod("E_SIM_WALLET");
+          handleWalletModalClose();
+          setSelectedPaymentMethod(RADIO_KEYS.E_SIM_WALLET);
         }}
       />
 
       <CreditCardModal
         visible={showCreditCardModal}
-        onClose={() => setShowCreditCardModal(false)}
+        onClose={handleCreditModalClose}
         onSubmit={handleCreditCardSubmit}
       />
     </View>

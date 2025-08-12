@@ -20,6 +20,7 @@ import {
   getSkipNextOfflineRedirect,
   setSkipNextOfflineRedirect,
 } from "@/utils/offlineRedirectFlag";
+import { ROUTE_NAMES } from "@/constants/route.constants";
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -62,8 +63,12 @@ export default function RootLayout() {
       const online = !!state.isConnected && !!state.isInternetReachable;
       setIsConnected(online);
 
-      if (!online && !getSkipNextOfflineRedirect() && pathname !== "/Offline") {
-        router.replace("/Offline");
+      if (
+        !online &&
+        !getSkipNextOfflineRedirect() &&
+        pathname !== ROUTE_NAMES.OFFLINE
+      ) {
+        router?.replace(ROUTE_NAMES.OFFLINE as any);
       }
 
       // Once back online, reset the flag
@@ -77,7 +82,7 @@ export default function RootLayout() {
 
   // Hide splash screen after fonts and bootstrap complete
   useEffect(() => {
-    if (loaded && !isLoading ) {
+    if (loaded && !isLoading) {
       SplashScreen.hideAsync();
     }
   }, [loaded, isLoading]);
