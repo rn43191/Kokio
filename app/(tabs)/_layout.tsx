@@ -7,6 +7,7 @@ import { Theme, createStyles } from "@/constants/Colors";
 import { ROUTE_NAMES } from "@/constants/route.constants";
 import { getRouteName, getIsTabBarVisible } from "@/helpers/navigator.helper";
 import Header from "@/components/Header";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const styles = createStyles(StyleSheet);
 
@@ -73,10 +74,12 @@ export default function TabLayout() {
           title: "Contacts",
           headerShown: true,
           header: () => (
-            <Header
-              title="Contacts"
-              style={{ justifyContent: "center" }}
-            />
+            <SafeAreaView edges={["top"]}>
+              <Header
+                title="Contacts"
+                style={{ justifyContent: "center" }}
+              />
+            </SafeAreaView>
           ),
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
