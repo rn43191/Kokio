@@ -7,6 +7,7 @@ import _get from "lodash/get";
 import { ROUTE_NAMES } from "@/constants/route.constants";
 
 import Header from "@/components/Header";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function WalletStack() {
@@ -16,7 +17,12 @@ export default function WalletStack() {
         name={ROUTE_NAMES.HOME}
         options={{
             header: () => (
-              <Header title="eSim Wallet" style={{ justifyContent: "center" }} />
+              <SafeAreaView edges={["top"]}>
+                <Header
+                  title="Install eSIM"
+                  style={{ justifyContent: "center" }}
+                />
+              </SafeAreaView>
             ),
           }}
         
@@ -67,6 +73,12 @@ export default function WalletStack() {
             ),
           
         }}
+      />
+      
+     
+      <Stack.Screen
+        name={ROUTE_NAMES.CONTACTS}
+        options={{headerShown:false}}
       />
       
       </Stack>

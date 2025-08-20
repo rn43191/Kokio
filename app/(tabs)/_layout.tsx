@@ -6,6 +6,8 @@ import { StyleSheet } from "react-native";
 import { Theme, createStyles } from "@/constants/Colors";
 import { ROUTE_NAMES } from "@/constants/route.constants";
 import { getRouteName, getIsTabBarVisible } from "@/helpers/navigator.helper";
+import Header from "@/components/Header";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const styles = createStyles(StyleSheet);
 
@@ -69,7 +71,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name={ROUTE_NAMES.PHONE}
         options={{
-          title: "eSIMs",
+          title: "Contacts",
+          headerShown: true,
+          header: () => (
+            <SafeAreaView edges={["top"]}>
+              <Header
+                title="Contacts"
+                style={{ justifyContent: "center" }}
+              />
+            </SafeAreaView>
+          ),
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "call" : "call-outline"}

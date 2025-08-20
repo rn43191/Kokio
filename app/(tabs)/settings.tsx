@@ -1,9 +1,8 @@
 import React from 'react';
-import { FlatList, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, globalStyles } from '@/constants/Colors';
 
 const menuItems = [
   { id: '1', title: 'Profile', iconLeft: 'person-outline', iconRight: 'chevron-forward-outline' },
@@ -14,26 +13,63 @@ const menuItems = [
 ];
 
 const MenuItem = ({ title, iconLeft, iconRight }: { title: string, iconLeft: string, iconRight: string }) => (
-  <TouchableOpacity style={globalStyles.menuItem}>
-    <View style={globalStyles.menuItemContent}>
+  <TouchableOpacity style={styles.menuItem}>
+    <View style={styles.menuItemContent}>
       { /* @ts-ignore */ }
-      <Ionicons name={iconLeft} size={24} color={Colors.light.icon} style={globalStyles.iconLeft} />
-      <ThemedText style={globalStyles.menuItemText}>{title}</ThemedText>
+      <Ionicons name={iconLeft} size={24} color="white" style={styles.iconLeft} />
+      <ThemedText style={styles.menuItemText}>{title}</ThemedText>
       { /* @ts-ignore */ }
-      <Ionicons name={iconRight} size={24} color={Colors.light.icon} style={globalStyles.iconRight} />
+      <Ionicons name={iconRight} size={24} color="white" style={styles.iconRight} />
     </View>
   </TouchableOpacity>
 );
 
 export default function MenuScreen() {
   return (
-    <ThemedView style={globalStyles.container}>
+    <ThemedView style={styles.container}>
       <FlatList
         data={menuItems}
         renderItem={({ item }) => <MenuItem title={item.title} iconLeft={item.iconLeft} iconRight={item.iconRight} />}
         keyExtractor={item => item.id}
-        style={globalStyles.list}
+        style={styles.list}
       />
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'black',
+    padding: 10,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  list: {
+    backgroundColor: '#242427',
+    borderRadius: 25,
+    maxHeight: 'auto',
+    padding: 10,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  menuItem: {
+    padding: 16,
+  },
+  menuItemContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  menuItemText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+    flex: 1,
+  },
+  iconLeft: {
+    marginRight: 16,
+  },
+  iconRight: {
+    marginLeft: 16,
+  },
+});

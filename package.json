@@ -16,6 +16,8 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@gorhom/bottom-sheet": "^4.6.4",
+    "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/blur": "^4.4.1",
     "@react-native-community/netinfo": "11.3.1",
     "@react-navigation/native": "^6.0.2",
@@ -24,6 +26,7 @@
     "clsx": "^2.1.1",
     "expo": "~51.0.31",
     "expo-blur": "~13.0.3",
+    "expo-camera": "~15.0.16",
     "expo-clipboard": "~6.0.3",
     "expo-constants": "~16.0.2",
     "expo-dev-client": "~4.0.29",
@@ -44,6 +47,8 @@
     "react-native-country-flag": "^2.0.2",
     "react-native-currency-input": "^1.1.1",
     "react-native-gesture-handler": "~2.16.1",
+    "react-native-get-random-values": "~1.11.0",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-pager-view": "6.3.0",
     "react-native-qrcode-svg": "^6.3.15",
     "react-native-radio-buttons-group": "^3.1.0",
@@ -55,7 +60,8 @@
     "react-native-web": "~0.19.10",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.4.17",
-    "toggle-switch-react-native": "^3.3.0"
+    "toggle-switch-react-native": "^3.3.0",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

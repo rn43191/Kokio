@@ -11,7 +11,18 @@ export const ROUTE_NAMES = {
   TRANSACTIONS: "transactions",
   TRANSACTIONDETAILS: "transactionDetails",
   INSTALLATION: "installation",
-  OFFLINE: "Offline"
+  OFFLINE: "Offline",
+  TOKENS:"tokens",
+  TRANSACTIONS:"transactions",
+  CONTACTS:"(contacts)",
+  TRANSACTIONDETAILS:"transactionDetails",
+  CONTACTS_SCREEN: "contactsScreen",
+  ADD_CONTACTS_SCREEN:"addContactScreen",
+  QR_CODE_SCREEN:"qrCodeScreen",
+  CONTACT_DETAILS: "contactDetails",
+  EDIT_CONTACT:"editContact",
+  SEND_TO_CONTACT:"sendToContact",
+  CONTACT_TRANSACTIONS:"contactTransactions"
 };
 
 export const TAB_BAR_ENABLED_ROUTES = [
