@@ -2,21 +2,24 @@ import React, { useCallback } from "react";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import CountryFlag from "react-native-country-flag";
 import _get from "lodash/get";
 
 import { Colors, Theme } from "@/constants/Colors";
+import CountryFlag from "@/components/ui/CountryFlag";
 import DetailItem from "./ui/DetailItem";
 
 export interface Esim {
-  id: string;
-  country: string;
-  isoCode: string;
-  duration: number;
+  catalogueId: string;
+  actualSellingPrice: number;
+  isUnlimited: boolean;
+  serviceRegionCode: string;
+  serviceRegionFlag: string;
+  serviceRegionName: string;
+  coverageType: string;
   data: number;
-  minutes: number;
-  sms: number;
-  flagColor: string;
+  sms: number | null;
+  validity: number;
+  voice: number | null;
 }
 
 const ESIMItem = ({
@@ -29,8 +32,14 @@ const ESIMItem = ({
   containerStyle?: Object;
 }) => {
   const handleBuyCTAClick = useCallback(
-    (id: String) => () => {
-      router.navigate(`/checkout/${id}`);
+    (id: string) => () => {
+      router.navigate({
+        pathname: `/checkout/[id]`,
+        params: {
+          id,
+          item: JSON.stringify(item),
+        },
+      });
     },
     []
   );
@@ -39,24 +48,32 @@ const ESIMItem = ({
     <View style={[styles.esimItemContainer, containerStyle]}>
       <View style={styles.flagContainer}>
         {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
-        <CountryFlag style={styles.flag} isoCode={item.isoCode} size={25} />
+        {/* TODO: Use flag from API response and fallback to this if not present */}
+        {item?.coverageType === "LOCAL" && item?.serviceRegionCode && (
+          <CountryFlag
+            style={[showBuyButton && styles.flag]}
+            isoCode={item?.serviceRegionCode}
+            flagUrl={item?.serviceRegionFlag}
+            size={40}
+          />
+        )}
       </View>
       <View style={styles.esimItem}>
-        <Text style={styles.country}>{item.country}</Text>
+        <Text style={styles.country}>{item.serviceRegionName}</Text>
         <View style={styles.detailsContainer}>
           <DetailItem
             iconName="calendar-outline"
-            value={item.duration}
+            value={item.validity}
             suffix="Days"
           />
           <DetailItem
             iconName="cellular-outline"
-            value={item.data}
-            suffix="GB"
+            value={item.isUnlimited ? "Unlimited" : item.data}
+            suffix={item.isUnlimited ? "" : "GB"}
           />
           <DetailItem
             iconName="call-outline"
-            value={item.minutes}
+            value={item.voice}
             suffix="Mins"
           />
           <DetailItem
@@ -68,9 +85,12 @@ const ESIMItem = ({
         {showBuyButton && (
           <TouchableOpacity
             style={styles.buyButton}
-            onPress={handleBuyCTAClick(item.id)}
+            onPress={handleBuyCTAClick(item.catalogueId)}
           >
-            <DetailItem prefix="$" value={_get(item, "price", 0).toFixed(2)} />
+            <DetailItem
+              prefix="$"
+              value={(item.actualSellingPrice || 0).toFixed(2)}
+            />
             <View style={styles.buyButtonText}>
               <Ionicons name="cart-outline" size={20} />
               <Text style={styles.details}>Buy</Text>
@@ -98,13 +118,13 @@ const styles = StyleSheet.create({
   },
   flagContainer: {
     position: "absolute",
-    top: -20,
+    top: -12,
     right: 40,
     zIndex: 10,
   },
   flag: {
-    width: 60,
-    height: 40,
+    width: 85,
+    height: 50,
     borderRadius: 4,
   },
   country: {
@@ -114,7 +134,7 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap: 12,
     alignItems: "center",
   },
   details: {

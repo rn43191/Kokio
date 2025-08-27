@@ -1,4 +1,5 @@
 import React from "react";
+import _isNil from "lodash/isNil";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import _get from "lodash/get";
@@ -20,12 +21,16 @@ const DetailItem = ({
   const IconRenderer =
     _get(ICON_TYPE_VS_RENDERER, iconType) || ICON_TYPE_VS_RENDERER.ION;
 
+  if (_isNil(value)) {
+    return null;
+  }
+
   return (
     <View style={[styles.detailItem, containerStyles]}>
       {iconName && <IconRenderer name={iconName} size={20} />}
       {prefix && <Text>{prefix}</Text>}
       <Text style={[styles.details, highlight && { fontWeight: "800" }]}>
-        {value || ""}
+        {value ?? ""}
       </Text>
       {suffix && <Text>{suffix}</Text>}
     </View>

@@ -1,6 +1,5 @@
-/* eslint-disable import/extensions */
-
 import { ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
@@ -8,44 +7,55 @@ import Hero from "@/components/home/hero";
 
 const mockEsims = [
   {
-    id: "1",
-    country: "Italy",
-    isoCode: "it",
-    duration: 3,
-    data: 1.7,
-    minutes: 52,
-    sms: 27,
-    flagColor: "#008C45",
+    catalogueId: "681604659b6fe88ebea13796",
+    actualSellingPrice: 4.5,
+    data: 1,
+    isUnlimited: false,
+    serviceRegionCode: "US",
+    serviceRegionFlag: "https://flagcdn.com/w320/us.png",
+    serviceRegionName: "United States",
+    sms: 500,
+    validity: 7,
+    voice: 100,
+    coverageType: "LOCAL",
   },
   {
-    id: "2",
-    country: "Greece",
-    isoCode: "gr",
-    duration: 5,
-    data: 3,
-    minutes: 120,
-    sms: 100,
-    flagColor: "#008C45",
+    catalogueId: "681604659b6fe88ebea137a3",
+    actualSellingPrice: 36,
+    data: 20,
+    isUnlimited: false,
+    serviceRegionCode: "FR",
+    serviceRegionFlag: "https://flagcdn.com/w320/fr.png",
+    serviceRegionName: "France",
+    sms: 50,
+    validity: 30,
+    voice: 200,
+    coverageType: "LOCAL",
   },
   {
-    id: "3",
-    country: "France",
-    isoCode: "fr",
-    duration: 20,
-    data: 5.7,
-    minutes: 52,
-    sms: 7,
-    flagColor: "#008C45",
+    catalogueId: "681604659b6fe88ebea137c5",
+    actualSellingPrice: 22.5,
+    data: 10,
+    isUnlimited: false,
+    serviceRegionCode: "GB",
+    serviceRegionFlag: "https://flagcdn.com/w320/gb.png",
+    serviceRegionName: "United Kingdom",
+    sms: null,
+    validity: 30,
+    voice: null,
+    coverageType: "LOCAL",
   },
   // Add more eSIM objects as needed
 ];
 
 export default function HomeScreen() {
   return (
-    <ScrollView>
-      <Hero />
-      <ActiveESIMsScroll esims={mockEsims} />
-      <Wallet />
-    </ScrollView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ScrollView>
+        <Hero />
+        <ActiveESIMsScroll esims={mockEsims} />
+        <Wallet walletId="0x9bf...b1e2ef7" balance="500" />
+      </ScrollView>
+    </SafeAreaView>
   );
 }

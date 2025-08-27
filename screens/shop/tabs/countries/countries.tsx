@@ -1,67 +1,49 @@
-import {
-  StyleSheet,
-  Image,
-  Platform,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-} from "react-native";
-import { Link, router } from "expo-router";
+import { StyleSheet, View, TouchableOpacity, FlatList } from "react-native";
+import { router } from "expo-router";
 
 import _map from "lodash/map";
 
 import { ThemedText } from "@/components/ThemedText";
 import CountryFlag from "@/components/ui/CountryFlag";
-import useHideTabBar from "@/hooks/useHideTabBar";
 import { Colors, Theme } from "@/constants/Colors";
-import { COUNTRY, COUNTRY_CONFIG } from "@/constants/general.constants";
+import appBootstrap from "@/utils/appBootstrap";
+import { navigateToESIMsByCountry } from "@/utils/general";
 
-const MOCK_COUNTRIES_LIST = [
-  COUNTRY_CONFIG[COUNTRY.INDIA],
-  COUNTRY_CONFIG[COUNTRY.SINGAPORE],
-  COUNTRY_CONFIG[COUNTRY.UNITED_KINGDOM],
-  COUNTRY_CONFIG[COUNTRY.YEMEN],
-  COUNTRY_CONFIG[COUNTRY.COSTA_RICA],
-  COUNTRY_CONFIG[COUNTRY.UNITED_STATES],
-  COUNTRY_CONFIG[COUNTRY.AUSTRALIA],
-  COUNTRY_CONFIG[COUNTRY.JAPAN],
-  COUNTRY_CONFIG[COUNTRY.FRANCE],
-  COUNTRY_CONFIG[COUNTRY.BRAZIL],
-  COUNTRY_CONFIG[COUNTRY.CANADA],
-  COUNTRY_CONFIG[COUNTRY.SOUTH_AFRICA],
-  COUNTRY_CONFIG[COUNTRY.CHINA],
-  COUNTRY_CONFIG[COUNTRY.GERMANY],
-  COUNTRY_CONFIG[COUNTRY.RUSSIA],
-  COUNTRY_CONFIG[COUNTRY.MEXICO],
-];
-
-export default function Countries({ list = MOCK_COUNTRIES_LIST }) {
-  const navigateToESIMsByCountry = (country: any) => () => {
-    router.push(`/country/${country}`);
-  };
+export default function Countries() {
+  const list = appBootstrap.getCountries;
 
   const renderItem = ({ item, index }: any) => (
-    <TouchableOpacity onPress={navigateToESIMsByCountry(item?.name)}>
-      <View key={item?.isoCode || index} style={styles.country}>
-        <CountryFlag style={styles.flag} isoCode={item?.isoCode} size={60} />
-        <ThemedText style={styles.countryLabel}>{item?.label || ""}</ThemedText>
+    <TouchableOpacity
+      onPress={navigateToESIMsByCountry(item?.code)}
+      style={{
+        flex: 1,
+      }}
+    >
+      <View key={item?.code || index} style={styles.country}>
+        <CountryFlag
+          style={styles.flag}
+          isoCode={item?.code}
+          flagUrl={item?.flag}
+          size={80}
+        />
+        <ThemedText style={styles.countryLabel}>{item?.name || ""}</ThemedText>
       </View>
     </TouchableOpacity>
   );
 
   return (
-      <View style={styles.tabWrapper}>
-        <ThemedText style={styles.tabTitle}>{"Popular Countries"}</ThemedText>
-        <View style={styles.countriesWrapper}>
-          <FlatList
-            data={list}
-            numColumns={2}
-            renderItem={renderItem}
-            columnWrapperStyle={styles.columnWrapperStyle}
-          />
-        </View>
+    <View style={styles.tabWrapper}>
+      <ThemedText style={styles.tabTitle}>{"Popular Destinations"}</ThemedText>
+      <View style={styles.countriesWrapper}>
+        <FlatList
+          data={list}
+          numColumns={2}
+          renderItem={renderItem}
+          columnWrapperStyle={styles.columnWrapperStyle}
+          keyExtractor={(item, index) => item?.code || index}
+        />
       </View>
+    </View>
   );
 }
 
@@ -75,9 +57,10 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    paddingTop: 12,
   },
   countriesWrapper: {
-    width: "100%",
+    width: "90%",
   },
   country: {
     display: "flex",
@@ -91,7 +74,7 @@ const styles = StyleSheet.create({
     paddingTop: Theme.spacing.sm,
   },
   flag: {
-    borderRadius: Theme.borderRadius.medium,
+    borderRadius: Theme.borderRadius.medium + Theme.borderRadius.medium,
   },
   columnWrapperStyle: {
     display: "flex",

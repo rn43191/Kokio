@@ -5,46 +5,45 @@ import {
   FlatList,
   TouchableOpacity,
 } from "react-native";
-import { router } from "expo-router";
 
+import _get from "lodash/get";
 import _map from "lodash/map";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme } from "@/constants/Colors";
-import { REGION, REGION_CONFIG } from "@/constants/general.constants";
+import { REGION_CONFIG } from "@/constants/general.constants";
+import appBootstrap from "@/utils/appBootstrap";
+import { navigateToESIMsByRegion } from "@/utils/general";
 
-const MOCK_REGION_LIST = [
-  REGION_CONFIG[REGION.ASIA],
-  REGION_CONFIG[REGION.NORTH_AMERICA],
-  REGION_CONFIG[REGION.SOUTH_AMERICA],
-  REGION_CONFIG[REGION.AFRICA],
-  REGION_CONFIG[REGION.EUROPE],
-  REGION_CONFIG[REGION.AUSTRALIA],
-];
+export default function Regions() {
+  const list = appBootstrap.getRegions;
 
-export default function Regions({ list = MOCK_REGION_LIST }) {
-  const navigateToESIMsByRegion = (region: any) => () => {
-    router.navigate(`/region/${region}`);
+  const renderItem = ({ item, index }: any) => {
+    const imagePath = _get(REGION_CONFIG, [item?.code, "imagePath"]);
+    return (
+      <TouchableOpacity onPress={navigateToESIMsByRegion(item?.code)}>
+        <View key={item?.code || index} style={styles.region}>
+          <ThemedText style={styles.regionLabel} type="subtitle">
+            {item?.name || ""}
+          </ThemedText>
+          <Image
+            source={imagePath}
+            style={styles.regionImage}
+            resizeMode="contain"
+          />
+        </View>
+      </TouchableOpacity>
+    );
   };
-
-  const renderItem = ({ item, index }: any) => (
-    <TouchableOpacity onPress={navigateToESIMsByRegion(item?.region)}>
-      <View key={item?.region || index} style={styles.region}>
-        <ThemedText style={styles.regionLabel} type="subtitle">
-          {item?.label || ""}
-        </ThemedText>
-        <Image
-          source={item?.imagePath}
-          style={styles.regionImage}
-          resizeMode="contain"
-        />
-      </View>
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.tabWrapper}>
-      <FlatList data={list} renderItem={renderItem} style={{ width: "100%" }} />
+      <FlatList
+        data={list}
+        renderItem={renderItem}
+        style={{ width: "100%" }}
+        keyExtractor={(item, index) => item?.code || index}
+      />
     </View>
   );
 }

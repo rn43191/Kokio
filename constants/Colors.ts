@@ -102,6 +102,7 @@ export const Theme = {
     xs: 4,
     sm: 8,
     md: 16,
+    md_l: 20,
     lg: 24,
     xl: 32,
   },
@@ -149,7 +150,7 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   menuItemText: {
-    color: Colors.light.text,
+    color: Colors.dark.text,
     fontSize: 16,
     fontWeight: "500",
     flex: 1,

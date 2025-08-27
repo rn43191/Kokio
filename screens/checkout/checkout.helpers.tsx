@@ -25,4 +25,5 @@ export const createRadioButtons = (
       buttonStyles,
       selectedId === key && { backgroundColor: "#78788073" },
     ],
+    disabled: key === RADIO_KEYS.APPLE_PAY, // NOTE: Only Apple Pay is disabled
   }));

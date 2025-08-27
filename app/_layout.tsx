@@ -1,57 +1,110 @@
-// Add global shims
-import "react-native-get-random-values";
-import "@ethersproject/shims";
-import "cbor-rn-prereqs";
-import "react-native-reanimated";
-import { useEffect } from "react";
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { Providers } from "@/providers";
-import { Platform } from "react-native";
-import { useAppState } from "@/hooks/useAppState";
 import {
-  getSkipNextAuthRedirect,
-  setSkipNextAuthRedirect,
-} from "@/utils/authRedirectFlag";
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
+import { Stack, useRouter, usePathname } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState, useRef } from "react";
+import "react-native-reanimated";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import "../global.css";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { ToastProvider } from "@/contexts/ToastContext";
+import useBootstrap from "@/hooks/useBootstrap";
+import FullScreenLoader from "@/components/ui/FullScreenLoader";
+import NetInfo from "@react-native-community/netinfo";
+import {
+  getSkipNextOfflineRedirect,
+  setSkipNextOfflineRedirect,
+} from "@/utils/offlineRedirectFlag";
+import { ROUTE_NAMES } from "@/constants/route.constants";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+// Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [isConnected, setIsConnected] = useState(true);
   const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    "Lexend-Light": require("../assets/fonts/Lexend-Light.ttf"),
+    Lexend: require("../assets/fonts/Lexend-Regular.ttf"),
+    "Lexend-Medium": require("../assets/fonts/Lexend-Medium.ttf"),
+    "Lexend-SemiBold": require("../assets/fonts/Lexend-SemiBold.ttf"),
+    "Lexend-Bold": require("../assets/fonts/Lexend-Bold.ttf"),
+    "Lexend-Black": require("../assets/fonts/Lexend-Black.ttf"),
   });
 
+  const { isLoading } = useBootstrap();
+
+  // Initial connectivity check
   useEffect(() => {
-    if (loaded) {
+    NetInfo.fetch().then((state) => {
+      const online = !!state.isConnected && !!state.isInternetReachable;
+      setIsConnected(online);
+    });
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const online = !!state.isConnected && !!state.isInternetReachable;
+      setIsConnected(online);
+
+      if (
+        !online &&
+        !getSkipNextOfflineRedirect() &&
+        pathname !== ROUTE_NAMES.OFFLINE
+      ) {
+        router?.replace(ROUTE_NAMES.OFFLINE as any);
+      }
+
+      // Once back online, reset the flag
+      if (online) {
+        setSkipNextOfflineRedirect(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Hide splash screen after fonts and bootstrap complete
+  useEffect(() => {
+    if (loaded && !isLoading) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [loaded, isLoading]);
 
-  if (!loaded) {
-    return null;
+  // Wait until ready
+  if (!loaded || isLoading) {
+    return <FullScreenLoader />;
   }
 
-  // const appState = useAppState(true);
-  // console.log("AppState in layout", appState);
-
   return (
-    <Providers>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-        <Stack.Screen
-          name="otp-modal"
-          options={{
-            headerShown: false,
-            presentation:
-              Platform.OS === "ios" ? "formSheet" : "containedTransparentModal",
-            animation:
-              Platform.OS === "android" ? "slide_from_bottom" : "default",
-          }}
-        />
-      </Stack>
-    </Providers>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="Offline" options={{ headerShown: false }} />
+            </Stack>
+          </ToastProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

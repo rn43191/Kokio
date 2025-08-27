@@ -42,17 +42,23 @@ const Header = ({
         display: "flex",
         flexDirection: "row",
         alignItems: "center",
-        margin: Theme.spacing.sm,
+        marginVertical: Theme.spacing.md_l,
         position: "relative",
+        zIndex: 1,
+        backgroundColor: "white",
         ...containerStyle,
       }}
     >
       {hasBack && (
         <Ionicons
           name="chevron-back-outline"
-          size={24}
+          size={25}
           color={useThemeColor({}, "icon")}
-          style={{ marginRight: Theme.spacing.sm, position: "absolute", zIndex: 1 }}
+          style={{
+            marginRight: Theme.spacing.sm,
+            position: "absolute",
+            zIndex: 0.8,
+          }}
           onPress={handleBack}
         />
       )}
@@ -67,7 +73,13 @@ const Header = ({
         }}
       >
         <ThemedText
-          style={{ color: useThemeColor({}, "headerText"), ...titleStyle }}
+          style={{
+            color: useThemeColor({}, "headerText"),
+            position: "relative",
+            zIndex: 1,
+            ...titleStyle,
+          }}
+          className="text-[#AEAEB2]    text-[16px] text-center font-Lexend "
         >
           {title || ""}
         </ThemedText>

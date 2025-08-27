@@ -58,38 +58,34 @@ export const REGION = {
   SOUTH_AMERICA: "SOUTH_AMERICA",
   AFRICA: "AFRICA",
   EUROPE: "EUROPE",
-  AUSTRALIA: "AUSTRALIA",
+  MIDDLE_EAST: "MIDDLE_EAST",
+  OCEANIA: "OCEANIA",
+  CARIBBEAN_ISLANDS: "CARIBBEAN_ISLANDS",
 };
 
 export const REGION_CONFIG = {
   [REGION.ASIA]: {
     imagePath: require("@/assets/images/asia.png"),
-    label: "Asia",
-    region: "ASIA",
   },
   [REGION.NORTH_AMERICA]: {
     imagePath: require("@/assets/images/north-america.png"),
-    label: "North America",
-    region: "NORTH_AMERICA",
   },
   [REGION.SOUTH_AMERICA]: {
     imagePath: require("@/assets/images/south-america.png"),
-    label: "South America",
-    region: "SOUTH_AMERICA",
   },
   [REGION.AFRICA]: {
     imagePath: require("@/assets/images/africa.png"),
-    label: "Africa",
-    region: "AFRICA",
   },
   [REGION.EUROPE]: {
     imagePath: require("@/assets/images/europe.png"),
-    label: "Europe",
-    region: "EUROPE",
   },
-  [REGION.AUSTRALIA]: {
+  [REGION.OCEANIA]: {
     imagePath: require("@/assets/images/australia.png"),
-    label: "Australia",
-    region: "AUSTRALIA",
+  },
+  [REGION.MIDDLE_EAST]: {
+    imagePath: require("@/assets/images/australia.png"),
+  },
+  [REGION.CARIBBEAN_ISLANDS]: {
+    imagePath: require("@/assets/images/australia.png"),
   },
 };
