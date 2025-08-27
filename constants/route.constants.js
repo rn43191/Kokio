@@ -4,6 +4,7 @@ export const ROUTE_NAMES = {
   CHECKOUT: "checkout/[id]",
   WALLET: "wallet",
   PHONE: "phone",
+  AUTH: "Auth",
   SETTINGS: "settings",
   BY_COUNTRY: "country/[id]",
   BY_REGION: "region/[id]",

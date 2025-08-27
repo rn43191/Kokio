@@ -104,6 +104,8 @@ export async function onPasskeyCreate(user: {
     // ID isn't visible by users, but needs to be random enough and valid base64 (for Android)
     const userId = uuid();
 
+    console.log("userId", userId);
+
     const authenticatorParams = await createPasskey({
       // This doesn't matter much, it will be the name of the authenticator persisted on the Turnkey side.
       // Won't be visible by default.
@@ -124,6 +126,8 @@ export async function onPasskeyCreate(user: {
         userVerification: "preferred",
       },
     });
+
+    console.log("authenticatorParams", authenticatorParams);
 
     const response = await createSubOrganization(authenticatorParams, user);
     if (!response) return;

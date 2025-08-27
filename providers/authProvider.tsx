@@ -25,13 +25,17 @@ type AuthActionType =
   | { type: "COMPLETE_EMAIL_AUTH"; payload: User | undefined }
   | { type: "LOADING"; payload: LoginMethod | null }
   | { type: "ERROR"; payload: string }
-  | { type: "CLEAR_ERROR" };
+  | { type: "CLEAR_ERROR" }
+  | { type: "AUTHENTICATE"; payload: boolean }
+  | { type: "REAUTHENTICATE" };
 interface AuthState {
+  authenticated: boolean;
   loading: LoginMethod | null;
   error: string;
 }
 
 const initialState: AuthState = {
+  authenticated: false,
   loading: null,
   error: "",
 };
@@ -47,7 +51,13 @@ function authReducer(state: AuthState, action: AuthActionType): AuthState {
     case "INIT_EMAIL_AUTH":
       return { ...state, loading: null, error: "" };
     case "COMPLETE_EMAIL_AUTH":
+      return { ...state, authenticated: true };
     case "PASSKEY":
+      return { ...state, authenticated: true };
+    case "REAUTHENTICATE":
+      return { ...state, authenticated: false };
+    case "AUTHENTICATE":
+      return { ...state, authenticated: action.payload };
     default:
       return state;
   }
@@ -88,6 +98,8 @@ export interface AuthRelayProviderType {
     | null
   >;
   loginWithPasskey: () => Promise<void>;
+  reauthenticate: () => void;
+  authenticate: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -115,6 +127,8 @@ export const AuthRelayContext = createContext<AuthRelayProviderType>({
       user: undefined,
     }),
   loginWithPasskey: async () => Promise.resolve(),
+  reauthenticate: () => {},
+  authenticate: async () => Promise.resolve(),
   clearError: () => {},
 });
 
@@ -136,6 +150,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
     if (session && session.expiry < now) {
       console.log("Session expired");
       clearSession();
+      reauthenticate();
     }
   }, [session]);
 
@@ -359,6 +374,42 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
     }
   };
 
+  const reauthenticate = async () => {
+    dispatch({ type: "REAUTHENTICATE" });
+  };
+
+  const authenticate = async () => {
+    if (!isSupported()) {
+      throw new Error("Passkeys are not supported on this device");
+    }
+
+    dispatch({ type: "LOADING", payload: LoginMethod.Passkey });
+
+    try {
+      const stamper = new PasskeyStamper({
+        rpId: PASSKEY_CONFIG.RP_ID,
+      });
+
+      const httpClient = new TurnkeyClient(
+        { baseUrl: TURNKEY_API_URL },
+        stamper
+      );
+
+      const stamp = await stamper.stamp("AUTHENTICATE");
+
+      if (stamp) {
+        dispatch({
+          type: "AUTHENTICATE",
+          payload: true,
+        });
+      }
+    } catch (error: any) {
+      dispatch({ type: "ERROR", payload: error.message });
+    } finally {
+      dispatch({ type: "LOADING", payload: null });
+    }
+  };
+
   const clearError = () => {
     dispatch({ type: "CLEAR_ERROR" });
   };
@@ -371,6 +422,8 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
         completeEmailAuth,
         signUpWithPasskey,
         loginWithPasskey,
+        reauthenticate,
+        authenticate,
         clearError,
       }}
     >

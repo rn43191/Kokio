@@ -9,6 +9,11 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Providers } from "@/providers";
 import { Platform } from "react-native";
+import { useAppState } from "@/hooks/useAppState";
+import {
+  getSkipNextAuthRedirect,
+  setSkipNextAuthRedirect,
+} from "@/utils/authRedirectFlag";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -27,6 +32,9 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
+  // const appState = useAppState(true);
+  // console.log("AppState in layout", appState);
 
   return (
     <Providers>
