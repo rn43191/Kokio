@@ -10,7 +10,6 @@ npm-debug.*
 *.orig.*
 web-build/
 .env*
-android/
 ios/
 production.keystore
 release.keystore
