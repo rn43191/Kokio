@@ -90,7 +90,8 @@ export async function deleteSubOrganization() {
 export async function createSubOrganization(
   authenticatorParams: Awaited<ReturnType<typeof createPasskey>>,
   user: {
-    username: string;
+    userId: string;
+    username?: string;
     email?: string;
   }
 ) {
@@ -104,7 +105,7 @@ export async function createSubOrganization(
     rootQuorumThreshold: 1,
     rootUsers: [
       {
-        userName: user.username,
+        userName: "Kokio User " + user.userId,
         userEmail: user.email ?? "",
         apiKeys: [],
         authenticators: [authenticatorParams],

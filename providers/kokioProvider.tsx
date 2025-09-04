@@ -260,8 +260,10 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     const kokioSDK = new Kokio(
       viemClient,
       turnkeyClient,
-      user.organizationId,
-      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
+      "" /* credentialId will be set internally by Kokio SDK */,
+      PASSKEY_CONFIG.RP_ID,
+      process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
+      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? "",
     );
 
     if (!kokioSDK) {

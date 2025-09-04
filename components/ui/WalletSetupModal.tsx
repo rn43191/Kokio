@@ -13,6 +13,11 @@ import {
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 import { ThemedText } from "@/components/ThemedText";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import { useKokio } from "@/hooks/useKokio";
+import { checkIfEmailInUse } from "@/utils/api";
+import { useTurnkey } from "@turnkey/sdk-react-native";
+import { isValidEmail } from "@/helpers/isValidEmail";
 
 interface WalletSetupModalProps {
   visible: boolean;
@@ -28,12 +33,38 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
   const [email, setEmail] = useState("");
+  const modalRef = React.useRef<Modal>(null);
+
+  const { signUpWithPasskey } = useAuthRelay();
+  const { setupKokioUserPasskey } = useKokio();
+  const { updateUser } = useTurnkey();
 
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
 
     // Mock API call
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    // await new Promise((resolve) => setTimeout(resolve, 3000));
+    const response = await signUpWithPasskey({ email });
+    if (response?.authenticatorParams && response?.user) {
+      // save kokio user data authenticator params
+      setupKokioUserPasskey(response.user, {
+        clientDataJson: response.authenticatorParams.attestation.clientDataJson,
+        attestationObject:
+          response.authenticatorParams.attestation.attestationObject,
+        credentialId: response.authenticatorParams.attestation.credentialId,
+        x:
+          response.decodedAttestationObject?.decodedAttestationObjectCbor?.x ??
+          "",
+        y:
+          response.decodedAttestationObject?.decodedAttestationObjectCbor?.y ??
+          "",
+      });
+      setIsLoading(false);
+      setShowRecovery(true);
+    } else {
+      setIsLoading(false);
+      onClose();
+    }
 
     setIsLoading(false);
     setShowRecovery(true);
@@ -92,7 +123,25 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     onClose();
   }, [onClose]);
 
+  const onChangeUserEmail = useCallback(async () => {
+    if (!isValidEmail(email)) return alert("Invalid email address");
+    const inUse = await checkIfEmailInUse({ email });
+    if (inUse) {
+      alert("Email already in use");
+      return;
+    }
+    try {
+      const response = await updateUser({ email });
+      console.log("response", response);
+      return response;
+    } catch (e) {
+      console.error("Error updating user email", e);
+    }
+  }, [email]);
+
   const handleDone = useCallback(() => {
+    // if email is provided, save it for recovery purpose
+    onChangeUserEmail();
     setShowRecovery(false);
     setEmail("");
     onContinue();
@@ -167,6 +216,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
       statusBarTranslucent
+      ref={modalRef}
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>

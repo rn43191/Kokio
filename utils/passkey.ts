@@ -78,7 +78,7 @@ export async function decodeAttestationObj(cred: {
 }
 
 export async function onPasskeyCreate(user: {
-  username: string;
+  username?: string;
   email?: string;
 }): Promise<
   | {
@@ -116,9 +116,15 @@ export async function onPasskeyCreate(user: {
       },
       user: {
         id: userId,
-        name: user.username,
+        // Username will be ignored and set to Kokio Passkey
+
+        // name: user.username,
+        name: "Kokio Passkey",
         // if we make the email optional the passkey authenticator will not have the email as the displayName and this cannot be changed later on
-        displayName: user.email ?? user.username,
+        // display name is set only at creation time
+
+        // displayName: user.email ?? user.username,
+        displayName: "",
       },
       authenticatorSelection: {
         residentKey: "required",
@@ -129,7 +135,7 @@ export async function onPasskeyCreate(user: {
 
     console.log("authenticatorParams", authenticatorParams);
 
-    const response = await createSubOrganization(authenticatorParams, user);
+    const response = await createSubOrganization(authenticatorParams, { username: user.username, email: user.email, userId });
     if (!response) return;
     console.log("created sub-org", response);
     return { authenticatorParams, subOrgCreationResponse: response };

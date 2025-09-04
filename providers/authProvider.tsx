@@ -71,7 +71,7 @@ export interface AuthRelayProviderType {
     otpCode: string;
     organizationId: string;
   }) => Promise<void>;
-  signUpWithPasskey: (user: { username: string; email?: string }) => Promise<
+  signUpWithPasskey: (user: { username?: string; email?: string }) => Promise<
     | {
         authenticatorParams: {
           attestation: {
@@ -227,7 +227,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
 
   // User will be prompted twice for passkey, once for account creation and once for login
   const signUpWithPasskey = async (user: {
-    username: string;
+    username?: string;
     email?: string;
   }) => {
     if (!isSupported()) {

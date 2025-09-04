@@ -35,7 +35,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   return context.resolveRequest(context, moduleName, platform);
 };
 
-// The `account-kit/react-native` and it's supoorting packages leverages package.json `exports` which is not (yet) suported by default in Metro.
+// The `account-kit/react-native` and it's supporting packages leverages package.json `exports` which is not (yet) supported by default in Metro.
 // we can enable this support using:
 config.resolver.unstable_enablePackageExports = true;
 config.resolver.unstable_conditionNames = [

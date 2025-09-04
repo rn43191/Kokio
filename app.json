@@ -5,7 +5,7 @@
     "slug": "Kokio",
     "version": "1.0.0",
     "orientation": "portrait",
-    "logo": "./assets/images/logo.png",
+    // "logo": "./assets/images/logo.png",
     "icon": "./assets/images/icon.png",
     "scheme": "kokio",
     "userInterfaceStyle": "automatic",
@@ -73,9 +73,6 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "0e210f4c-4470-4718-9e06-1ba50aa9f9a5"
       }

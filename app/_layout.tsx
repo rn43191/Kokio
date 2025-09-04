@@ -1,18 +1,9 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import "react-native-reanimated";
-import { useColorScheme } from "@/hooks/useColorScheme";
 import "../global.css";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ToastProvider } from "@/contexts/ToastContext";
 import useBootstrap from "@/hooks/useBootstrap";
 import FullScreenLoader from "@/components/ui/FullScreenLoader";
 import NetInfo from "@react-native-community/netinfo";
@@ -21,20 +12,12 @@ import {
   setSkipNextOfflineRedirect,
 } from "@/utils/offlineRedirectFlag";
 import { ROUTE_NAMES } from "@/constants/route.constants";
+import { Providers } from "@/providers";
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -93,18 +76,12 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <QueryClientProvider client={queryClient}>
-          <ToastProvider>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-              <Stack.Screen name="Offline" options={{ headerShown: false }} />
-            </Stack>
-          </ToastProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <Providers>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+        <Stack.Screen name="Offline" options={{ headerShown: false }} />
+      </Stack>
+    </Providers>
   );
 }

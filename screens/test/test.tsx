@@ -11,6 +11,7 @@ import { uncompressRawPublicKey } from "@turnkey/crypto";
 import { hexToArrayBuffer } from "@/helpers/converters";
 import { useKokio } from "@/hooks/useKokio";
 import { P256Key } from "kokio-sdk/types";
+import { useAppState } from "@/hooks/useAppState";
 
 const isValidEmail = (email: string | undefined) => {
   if (!email) return false;
@@ -19,6 +20,9 @@ const isValidEmail = (email: string | undefined) => {
 };
 
 export default function TestScreen() {
+  const appState = useAppState(true);
+  console.log("AppState in layout", appState);
+
   const { signUpWithPasskey, loginWithPasskey, initEmailLogin } =
     useAuthRelay();
   const {
@@ -41,7 +45,7 @@ export default function TestScreen() {
     y: string;
   } | null>(null);
 
-  const signUpDisabled = username.length < 1;
+  const signUpDisabled = false;
 
   const onSignIn = useCallback(async () => {
     try {

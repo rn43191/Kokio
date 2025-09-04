@@ -10,6 +10,7 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 import {
   TURNKEY_API_URL,
@@ -46,7 +47,9 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
           <QueryClientProvider client={queryClient}>
             <TurnkeyProvider config={sessionConfig}>
               <AuthRelayProvider>
-                <KokioProvider>{children}</KokioProvider>
+                <KokioProvider>
+                  <ToastProvider>{children}</ToastProvider>
+                </KokioProvider>
               </AuthRelayProvider>
             </TurnkeyProvider>
           </QueryClientProvider>
