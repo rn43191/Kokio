@@ -8,7 +8,6 @@ import { ROUTE_NAMES } from "@/constants/route.constants";
 import { getRouteName, getIsTabBarVisible } from "@/helpers/navigator.helper";
 import Header from "@/components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { AuthenticationModal } from "@/components/AuthenticationModal";
 import { useTurnkey } from "@turnkey/sdk-react-native";
 import { useKokio } from "@/hooks/useKokio";
 
@@ -106,7 +105,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <AuthenticationModal />
     </>
   );
 }

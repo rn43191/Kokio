@@ -32,18 +32,16 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
-  const [email, setEmail] = useState("");
   const modalRef = React.useRef<Modal>(null);
 
   const { signUpWithPasskey } = useAuthRelay();
-  const { setupKokioUserPasskey } = useKokio();
-  const { updateUser } = useTurnkey();
+  const { setupKokioUserPasskey, kokio } = useKokio();
+  const { updateUser, session } = useTurnkey();
+  const [email, setEmail] = useState(session?.user?.email || "");
 
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
 
-    // Mock API call
-    // await new Promise((resolve) => setTimeout(resolve, 3000));
     const response = await signUpWithPasskey({ email });
     if (response?.authenticatorParams && response?.user) {
       // save kokio user data authenticator params
@@ -73,9 +71,9 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const handleClose = useCallback(() => {
     setIsLoading(false);
     setShowRecovery(false);
-    setEmail("");
+    setEmail(session?.user?.email || "");
     onClose();
-  }, [onClose]);
+  }, [onClose, session]);
 
   const initialContent = useMemo(
     () => (
@@ -124,7 +122,6 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   }, [onClose]);
 
   const onChangeUserEmail = useCallback(async () => {
-    if (!isValidEmail(email)) return alert("Invalid email address");
     const inUse = await checkIfEmailInUse({ email });
     if (inUse) {
       alert("Email already in use");
@@ -143,7 +140,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     // if email is provided, save it for recovery purpose
     onChangeUserEmail();
     setShowRecovery(false);
-    setEmail("");
+    setEmail(session?.user?.email || "");
     onContinue();
   }, [onContinue]);
 
@@ -168,7 +165,9 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             Wallet Recovery
           </ThemedText>
 
-          <Text style={styles.addressText}>Address: 0xf68...5f8g</Text>
+          <Text style={styles.addressText}>
+            Address: {kokio.userData?.wallets[0].accounts[0].address}
+          </Text>
 
           <Text style={styles.recoveryDescription}>
             Please provide an email address for recovery purpose and to restore

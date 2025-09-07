@@ -27,6 +27,8 @@ import CreditCardModal from "@/components/CreditCardModal";
 
 import { createRadioButtons } from "./checkout.helpers";
 import { RADIO_KEYS } from "@/constants/checkout.constants";
+import { useKokio } from "@/hooks/useKokio";
+import { useTurnkey } from "@turnkey/sdk-react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const RADIO_WIDTH = SCREEN_WIDTH - 24;
@@ -54,6 +56,8 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
   const [showCreditCardModal, setShowCreditCardModal] = useState(false);
+  const { kokio } = useKokio();
+  const { session } = useTurnkey();
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => createRadioButtons(selectedPaymentMethod, styles.buttonStyle),
@@ -125,21 +129,25 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     });
   }, []);
 
-  const handleWalletModalClose = useCallback(()=>{
-    setShowWalletSetupModal(false)
-  },[])
+  const handleWalletModalClose = useCallback(() => {
+    setShowWalletSetupModal(false);
+  }, []);
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      setShowWalletSetupModal(true);
+      if (kokio.userData) {
+        setSelectedPaymentMethod(value);
+      } else {
+        setShowWalletSetupModal(true);
+      }
     } else {
       setSelectedPaymentMethod(value);
     }
   }, []);
 
-  const handleCreditModalClose = useCallback(()=>{
-    setShowCreditCardModal(false)
-  },[])
+  const handleCreditModalClose = useCallback(() => {
+    setShowCreditCardModal(false);
+  }, []);
 
   const handleCreditCardSubmit = useCallback(
     (cardData: {
