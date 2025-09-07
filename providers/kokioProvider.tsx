@@ -3,7 +3,7 @@ import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
 
-import { useTurnkey, User } from "@turnkey/sdk-react-native";
+import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
 import { TurnkeyClient } from "@turnkey/http";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
@@ -31,6 +31,7 @@ interface UserData {
   email: string;
   organizationId: string;
   id: string;
+  wallets: Wallet[];
 }
 interface KokioState {
   error: string;
@@ -100,7 +101,7 @@ interface KokioProviderProps {
 
 export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   const [kokio, dispatch] = useReducer(kokioReducer, initialState);
-  const { user } = useTurnkey();
+  const { user, clearSession } = useTurnkey();
 
   const saveValueForUserData = async (key: string, value: UserData) => {
     await SecureStore.setItemAsync(key, JSON.stringify(value));
@@ -135,7 +136,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   };
 
   const deleteValueForUser = async (key: string): Promise<void> => {
-    await SecureStore.deleteItemAsync(key)
+    await SecureStore.deleteItemAsync(key);
   };
 
   // Check if user is already saved with data inside the expo secure store then disable the passkey creation
@@ -151,6 +152,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
             email: userData.email,
             organizationId: userData.organizationId,
             id: userData.id,
+            wallets: userData.wallets,
           },
         });
         // if user data exists then return UserPasskey value from secure store
@@ -199,6 +201,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       organizationId: user.organizationId,
       userName: user.userName,
       email: user.email ?? "",
+      wallets: user.wallets || [],
     });
 
     console.log("User data saved to secure store:", user);
@@ -210,6 +213,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
         email: user.email ?? "",
         organizationId: user.organizationId,
         id: user.id,
+        wallets: user.wallets || [],
       },
     });
   };
@@ -263,7 +267,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       "" /* credentialId will be set internally by Kokio SDK */,
       PASSKEY_CONFIG.RP_ID,
       process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
-      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? "",
+      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
     );
 
     if (!kokioSDK) {
@@ -282,6 +286,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_KOKIO_USER" });
     await deleteValueForUser("userData");
     await clearKokio();
+    await clearSession();
   };
 
   return (

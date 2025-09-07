@@ -1,36 +1,106 @@
-import React from 'react';
-import { StyleSheet, FlatList, TouchableOpacity, View } from 'react-native';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Ionicons } from '@expo/vector-icons';
+import React from "react";
+import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
+import { ThemedText } from "@/components/ThemedText";
+import { ThemedView } from "@/components/ThemedView";
+import { Ionicons } from "@expo/vector-icons";
+import { useKokio } from "@/hooks/useKokio";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
 
-const menuItems = [
-  { id: '1', title: 'Profile', iconLeft: 'person-outline', iconRight: 'chevron-forward-outline' },
-  { id: '2', title: 'Notifications', iconLeft: 'notifications-outline', iconRight: 'chevron-forward-outline' },
-  { id: '3', title: 'Privacy', iconLeft: 'lock-closed-outline', iconRight: 'chevron-forward-outline' },
-  { id: '4', title: 'General', iconLeft: 'settings-outline', iconRight: 'chevron-forward-outline' },
-  { id: '5', title: 'About', iconLeft: 'information-circle-outline', iconRight: 'chevron-forward-outline' },
-];
-
-const MenuItem = ({ title, iconLeft, iconRight }: { title: string, iconLeft: string, iconRight: string }) => (
-  <TouchableOpacity style={styles.menuItem}>
+const MenuItem = ({
+  title,
+  iconLeft,
+  iconRight,
+  action,
+}: {
+  title: string;
+  iconLeft: string;
+  iconRight: string;
+  action: (() => void) | undefined;
+}) => (
+  <TouchableOpacity style={styles.menuItem} onPress={() => action && action()}>
     <View style={styles.menuItemContent}>
-      { /* @ts-ignore */ }
-      <Ionicons name={iconLeft} size={24} color="white" style={styles.iconLeft} />
+      <Ionicons
+      /* @ts-ignore */
+        name={iconLeft}
+        size={24}
+        color="white"
+        style={styles.iconLeft}
+      />
       <ThemedText style={styles.menuItemText}>{title}</ThemedText>
-      { /* @ts-ignore */ }
-      <Ionicons name={iconRight} size={24} color="white" style={styles.iconRight} />
+      <Ionicons
+      /* @ts-ignore */
+        name={iconRight}
+        size={24}
+        color="white"
+        style={styles.iconRight}
+      />
     </View>
   </TouchableOpacity>
 );
 
 export default function MenuScreen() {
+  const { clearKokioUser } = useKokio();
+  const { loginWithPasskey } = useAuthRelay();
+  const menuItems = [
+    {
+      id: "1",
+      title: "Profile",
+      iconLeft: "person-outline",
+      iconRight: "chevron-forward-outline",
+    },
+    {
+      id: "2",
+      title: "Notifications",
+      iconLeft: "notifications-outline",
+      iconRight: "chevron-forward-outline",
+    },
+    {
+      id: "3",
+      title: "Privacy",
+      iconLeft: "lock-closed-outline",
+      iconRight: "chevron-forward-outline",
+    },
+    {
+      id: "4",
+      title: "General",
+      iconLeft: "settings-outline",
+      iconRight: "chevron-forward-outline",
+    },
+    {
+      id: "5",
+      title: "About",
+      iconLeft: "information-circle-outline",
+      iconRight: "chevron-forward-outline",
+    },
+    {
+      id: "6",
+      title: "Logout",
+      iconLeft: "log-out-outline",
+      iconRight: "chevron-forward-outline",
+      action: clearKokioUser,
+    },
+    {
+      id: "7",
+      title: "Login",
+      iconLeft: "log-in-outline",
+      iconRight: "chevron-forward-outline",
+      action: loginWithPasskey,
+    },
+  ];
+
   return (
     <ThemedView style={styles.container}>
       <FlatList
         data={menuItems}
-        renderItem={({ item }) => <MenuItem title={item.title} iconLeft={item.iconLeft} iconRight={item.iconRight} />}
-        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <MenuItem
+            title={item.title}
+            iconLeft={item.iconLeft}
+            iconRight={item.iconRight}
+            action={item.action}
+          />
+        )}
+        keyExtractor={(item) => item.id}
         style={styles.list}
       />
     </ThemedView>
@@ -40,15 +110,15 @@ export default function MenuScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: "black",
     padding: 10,
     paddingTop: 20,
     paddingBottom: 40,
   },
   list: {
-    backgroundColor: '#242427',
+    backgroundColor: "#242427",
     borderRadius: 25,
-    maxHeight: 'auto',
+    maxHeight: "auto",
     padding: 10,
     paddingTop: 20,
     paddingBottom: 40,
@@ -57,13 +127,13 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   menuItemContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   menuItemText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     flex: 1,
   },
   iconLeft: {

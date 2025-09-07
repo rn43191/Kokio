@@ -4,6 +4,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
 import Hero from "@/components/home/hero";
+import { useTurnkey } from "@turnkey/sdk-react-native";
+import { useKokio } from "@/hooks/useKokio";
 
 const mockEsims = [
   {
@@ -49,12 +51,13 @@ const mockEsims = [
 ];
 
 export default function HomeScreen() {
+  const { kokio } = useKokio();
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
         <Hero />
         <ActiveESIMsScroll esims={mockEsims} />
-        <Wallet walletId="0x9bf...b1e2ef7" balance="500" />
+        {kokio.userData && <Wallet walletId={kokio.userData.wallets[0].accounts[0].address} balance="500" />}
       </ScrollView>
     </SafeAreaView>
   );

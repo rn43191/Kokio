@@ -10,11 +10,13 @@ import Header from "@/components/Header";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthenticationModal } from "@/components/AuthenticationModal";
 import { useTurnkey } from "@turnkey/sdk-react-native";
+import { useKokio } from "@/hooks/useKokio";
 
 const styles = createStyles(StyleSheet);
 
 export default function TabLayout() {
   const { session } = useTurnkey();
+  const { kokio } = useKokio();
   return (
     <>
       <Tabs
