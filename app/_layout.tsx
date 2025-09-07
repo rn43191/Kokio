@@ -1,7 +1,7 @@
 import { useFonts } from "expo-font";
 import { Stack, useRouter, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "react-native-reanimated";
 import "../global.css";
 import useBootstrap from "@/hooks/useBootstrap";
@@ -13,6 +13,7 @@ import {
 } from "@/utils/offlineRedirectFlag";
 import { ROUTE_NAMES } from "@/constants/route.constants";
 import { Providers } from "@/providers";
+import { AuthenticationModal } from "@/components/AuthenticationModal";
 
 // Prevent splash screen from auto-hiding
 SplashScreen.preventAutoHideAsync();
@@ -82,6 +83,7 @@ export default function RootLayout() {
         <Stack.Screen name="+not-found" />
         <Stack.Screen name="Offline" options={{ headerShown: false }} />
       </Stack>
+      <AuthenticationModal />
     </Providers>
   );
 }

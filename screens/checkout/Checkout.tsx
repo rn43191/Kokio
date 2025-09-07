@@ -124,7 +124,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
     router.navigate({
-      pathname: "/(shop)/installation",
+      pathname: "/(tabs)/(shop)/installation",
       params: {},
     });
   }, []);
@@ -135,7 +135,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      if (kokio.userData) {
+      if (kokio.userData && session) {
         setSelectedPaymentMethod(value);
       } else {
         setShowWalletSetupModal(true);

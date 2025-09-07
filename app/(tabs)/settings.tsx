@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useKokio } from "@/hooks/useKokio";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 const MenuItem = ({
   title,
@@ -40,8 +41,8 @@ const MenuItem = ({
 );
 
 export default function MenuScreen() {
-  const { clearKokioUser } = useKokio();
-  const { loginWithPasskey } = useAuthRelay();
+  const { reauthenticate } = useAuthRelay();
+  const router = useRouter();
   const menuItems = [
     {
       id: "1",
@@ -78,14 +79,10 @@ export default function MenuScreen() {
       title: "Logout",
       iconLeft: "log-out-outline",
       iconRight: "chevron-forward-outline",
-      action: clearKokioUser,
-    },
-    {
-      id: "7",
-      title: "Login",
-      iconLeft: "log-in-outline",
-      iconRight: "chevron-forward-outline",
-      action: loginWithPasskey,
+      action: () => {
+        reauthenticate();
+        router.push("/");
+      },
     },
   ];
 

@@ -1,11 +1,11 @@
-import { Button, ScrollView } from "react-native";
+import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
 import Hero from "@/components/home/hero";
-import { useTurnkey } from "@turnkey/sdk-react-native";
 import { useKokio } from "@/hooks/useKokio";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
 
 const mockEsims = [
   {
@@ -52,12 +52,13 @@ const mockEsims = [
 
 export default function HomeScreen() {
   const { kokio } = useKokio();
+  const { state: authState } = useAuthRelay();
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
         <Hero />
         <ActiveESIMsScroll esims={mockEsims} />
-        {kokio.userData && (
+        {kokio.userData && authState.authenticated && (
           <Wallet
             walletId={kokio.userData.wallets[0].accounts[0].address}
             balance="500"
