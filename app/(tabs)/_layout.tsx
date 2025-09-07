@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Tabs } from "expo-router";
 
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
@@ -17,7 +17,6 @@ export default function TabLayout() {
   const { session } = useTurnkey();
   const { kokio } = useKokio();
   return (
-    <>
       <Tabs
         screenOptions={({ navigation, route }) => {
           const navigationState = navigation.getState();
@@ -105,6 +104,5 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </>
   );
 }

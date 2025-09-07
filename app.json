@@ -27,7 +27,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.kokio"
+      "package": "app.kokio",
+      "edgeToEdgeEnabled": false
     },
     "web": {
       "bundler": "metro",

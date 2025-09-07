@@ -5,6 +5,7 @@ import { ThemedView } from "@/components/ThemedView";
 import { Ionicons } from "@expo/vector-icons";
 import { useKokio } from "@/hooks/useKokio";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const MenuItem = ({
   title,
@@ -20,7 +21,7 @@ const MenuItem = ({
   <TouchableOpacity style={styles.menuItem} onPress={() => action && action()}>
     <View style={styles.menuItemContent}>
       <Ionicons
-      /* @ts-ignore */
+        /* @ts-ignore */
         name={iconLeft}
         size={24}
         color="white"
@@ -28,7 +29,7 @@ const MenuItem = ({
       />
       <ThemedText style={styles.menuItemText}>{title}</ThemedText>
       <Ionicons
-      /* @ts-ignore */
+        /* @ts-ignore */
         name={iconRight}
         size={24}
         color="white"
@@ -89,21 +90,23 @@ export default function MenuScreen() {
   ];
 
   return (
-    <ThemedView style={styles.container}>
-      <FlatList
-        data={menuItems}
-        renderItem={({ item }) => (
-          <MenuItem
-            title={item.title}
-            iconLeft={item.iconLeft}
-            iconRight={item.iconRight}
-            action={item.action}
-          />
-        )}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-      />
-    </ThemedView>
+    <SafeAreaView style={{ flex: 1 }}>
+      <ThemedView style={styles.container}>
+        <FlatList
+          data={menuItems}
+          renderItem={({ item }) => (
+            <MenuItem
+              title={item.title}
+              iconLeft={item.iconLeft}
+              iconRight={item.iconRight}
+              action={item.action}
+            />
+          )}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+        />
+      </ThemedView>
+    </SafeAreaView>
   );
 }
 

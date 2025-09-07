@@ -215,6 +215,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
       statusBarTranslucent
+      navigationBarTranslucent
       ref={modalRef}
     >
       <View style={styles.overlay}>

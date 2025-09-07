@@ -1,4 +1,4 @@
-import { ScrollView } from "react-native";
+import { Button, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
@@ -57,7 +57,12 @@ export default function HomeScreen() {
       <ScrollView>
         <Hero />
         <ActiveESIMsScroll esims={mockEsims} />
-        {kokio.userData && <Wallet walletId={kokio.userData.wallets[0].accounts[0].address} balance="500" />}
+        {kokio.userData && (
+          <Wallet
+            walletId={kokio.userData.wallets[0].accounts[0].address}
+            balance="500"
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );

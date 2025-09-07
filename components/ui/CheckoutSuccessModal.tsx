@@ -55,6 +55,7 @@ const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>

@@ -53,6 +53,7 @@ const CreditCardModal: React.FC<CreditCardModalProps> = ({
       animationType="fade"
       transparent
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <View style={styles.overlay}>
         {/* <StatusBar translucent backgroundColor="transparent" /> */}
