@@ -135,7 +135,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      if (kokio.userData && session) {
+      if (kokio.userData) {
         setSelectedPaymentMethod(value);
       } else {
         setShowWalletSetupModal(true);

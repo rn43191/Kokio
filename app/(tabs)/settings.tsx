@@ -7,6 +7,7 @@ import { useKokio } from "@/hooks/useKokio";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTurnkey } from "@turnkey/sdk-react-native";
 
 const MenuItem = ({
   title,
@@ -42,6 +43,8 @@ const MenuItem = ({
 
 export default function MenuScreen() {
   const { reauthenticate } = useAuthRelay();
+  const { clearKokioUser } = useKokio();
+  const { clearSession } = useTurnkey();
   const router = useRouter();
   const menuItems = [
     {
@@ -76,10 +79,12 @@ export default function MenuScreen() {
     },
     {
       id: "6",
-      title: "Logout",
+      title: "Logout and Clear Data",
       iconLeft: "log-out-outline",
       iconRight: "chevron-forward-outline",
-      action: () => {
+      action: async () => {
+        await clearKokioUser();
+        await clearSession();
         reauthenticate();
         router.push("/");
       },
