@@ -226,7 +226,7 @@ const EsimInstallation = () => {
 
   return (
     <View style={styles.container}>
-      <TabView
+      {/* <TabView
         navigationState={{ index, routes: ROUTES }}
         renderScene={renderScene}
         onIndexChange={setIndex}
@@ -241,7 +241,8 @@ const EsimInstallation = () => {
             contentContainerStyle={styles.tabBarContentContainer}
           />
         )}
-      />
+      /> */}
+      <QRScene />
     </View>
   );
 };

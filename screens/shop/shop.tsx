@@ -54,21 +54,22 @@ const Shop = () => {
         {searchText ? (
           <SearchResult searchText={searchText} />
         ) : (
-          <TabView
-            navigationState={{ index, routes: ROUTES }}
-            renderScene={renderScene}
-            onIndexChange={setIndex}
-            renderTabBar={(args) => (
-              <TabBar
-                {...args}
-                style={styles.tabBarStyle}
-                renderLabel={TabBarLabel}
-                indicatorStyle={styles.indicatorStyle}
-                tabStyle={styles.tabStyle}
-                contentContainerStyle={styles.tabBarContentContainer}
-              />
-            )}
-          />
+          // <TabView
+          //   navigationState={{ index, routes: ROUTES }}
+          //   renderScene={renderScene}
+          //   onIndexChange={setIndex}
+          //   renderTabBar={(args) => (
+          //     <TabBar
+          //       {...args}
+          //       style={styles.tabBarStyle}
+          //       renderLabel={TabBarLabel}
+          //       indicatorStyle={styles.indicatorStyle}
+          //       tabStyle={styles.tabStyle}
+          //       contentContainerStyle={styles.tabBarContentContainer}
+          //     />
+          //   )}
+          // />
+          <Countries />
         )}
       </ThemedView>
     </ThemedView>
