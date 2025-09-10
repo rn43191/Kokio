@@ -1,6 +1,6 @@
 {
   "expo": {
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "name": "Kokio",
     "slug": "Kokio",
     "version": "1.0.0",
@@ -28,7 +28,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "app.kokio",
-      "edgeToEdgeEnabled": false
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -41,12 +41,8 @@
         {
           "android": {
             "compileSdkVersion": 36,
-            "targetSdkVersion": 35,
-            "kotlinVersion": "2.0.21",
-            "buildToolsVersion": "35.0.0"
-          },
-          "ios": {
-            "deploymentTarget": "17.0"
+            "targetSdkVersion": 36,
+            "kotlinVersion": "2.0.21"
           }
         }
       ],
@@ -59,16 +55,7 @@
           "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
         }
       ],
-      "expo-asset",
-      [
-        "react-native-edge-to-edge",
-        {
-          "android": {
-            "parentTheme": "Default",
-            "enforceNavigationBarContrast": false
-          }
-        }
-      ]
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
