@@ -93,6 +93,7 @@ export interface AuthRelayProviderType {
             }
           | undefined;
         user: User | undefined;
+        deviceUID: string;
       }
     | undefined
     | null
@@ -125,6 +126,7 @@ export const AuthRelayContext = createContext<AuthRelayProviderType>({
         decodedAttestationObjectSimpleWebAuthnHex: "",
       },
       user: undefined,
+      deviceUID: "",
     }),
   loginWithPasskey: async () => Promise.resolve(),
   reauthenticate: () => {},
@@ -312,6 +314,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
               ),
             },
             user: session?.user,
+            deviceUID: data.deviceUID,
           };
         }
       }
@@ -356,6 +359,8 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
       const credentialBundle =
         sessionResponse.activity.result.createReadWriteSessionResultV2
           ?.credentialBundle;
+
+      console.log(credentialBundle);
 
       if (credentialBundle) {
         const session = await createSession({

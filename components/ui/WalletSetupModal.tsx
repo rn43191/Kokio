@@ -11,13 +11,13 @@ import {
   Platform,
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-
+import { SmartContractAccount } from "@aa-sdk/core";
 import { ThemedText } from "@/components/ThemedText";
-import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { useKokio } from "@/hooks/useKokio";
 import { checkIfEmailInUse } from "@/utils/api";
-import { useTurnkey } from "@turnkey/sdk-react-native";
+import { User, useTurnkey } from "@turnkey/sdk-react-native";
 import { isValidEmail } from "@/helpers/isValidEmail";
+import { P256Key } from "kokio-sdk/types";
 
 interface WalletSetupModalProps {
   visible: boolean;
@@ -32,36 +32,54 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
+  const [email, setEmail] = useState("");
   const modalRef = React.useRef<Modal>(null);
+  const { kokio, setupKokioUserWallet } = useKokio();
+  const { session } = useTurnkey();
 
-  const { signUpWithPasskey } = useAuthRelay();
-  const { setupKokioUserPasskey, kokio } = useKokio();
-  const { updateUser, session } = useTurnkey();
-  const [email, setEmail] = useState(session?.user?.email || "");
+  const returnSmartAccountAddress =
+    useCallback(async (): Promise<SmartContractAccount> => {
+      const deviceUniqueIdentifier = kokio.deviceUID;
+      const deviceWalletOwnerKey: P256Key = [
+        kokio.userPasskey?.x as `0x${string}`, // Public Key X from attestationObject
+        kokio.userPasskey?.y as `0x${string}`, // Public Key Y from attestationObject
+      ];
+      const salt = 25042025n; // BigInt
+
+      console.log("data", deviceUniqueIdentifier, deviceWalletOwnerKey);
+
+      // Calculates device wallet address without deploying
+      const deviceWallet = await kokio.sdk!.smartAccount.getSmartWallet(
+        deviceUniqueIdentifier,
+        deviceWalletOwnerKey,
+        salt
+      );
+
+      console.log("wallet", deviceWallet);
+
+      /* Returns the smart account client, inline with
+       ** Alchemy’s SDK
+       */
+      const deviceWalletClient =
+        await kokio.sdk!.smartAccount.getSmartWalletClient(
+          deviceWallet // Returned by getSmartWallet fn
+        );
+      console.log("device wallet client", deviceWalletClient.account?.address);
+
+      return deviceWallet;
+    }, [kokio]);
+
+  const { updateUser } = useTurnkey();
 
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
 
-    const response = await signUpWithPasskey({ email });
-    if (response?.authenticatorParams && response?.user) {
-      // save kokio user data authenticator params
-      setupKokioUserPasskey(response.user, {
-        clientDataJson: response.authenticatorParams.attestation.clientDataJson,
-        attestationObject:
-          response.authenticatorParams.attestation.attestationObject,
-        credentialId: response.authenticatorParams.attestation.credentialId,
-        x:
-          response.decodedAttestationObject?.decodedAttestationObjectCbor?.x ??
-          "",
-        y:
-          response.decodedAttestationObject?.decodedAttestationObjectCbor?.y ??
-          "",
-      });
-      setIsLoading(false);
-      setShowRecovery(true);
-    } else {
-      setIsLoading(false);
-      onClose();
+    //wallet setup
+    if (session?.user && kokio.sdk && !kokio.userWallet) {
+      console.log("Setting up wallet...");
+      const wallet = await returnSmartAccountAddress();
+      console.log(wallet);
+      await setupKokioUserWallet(kokio.deviceUID, wallet);
     }
 
     setIsLoading(false);
@@ -71,9 +89,9 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const handleClose = useCallback(() => {
     setIsLoading(false);
     setShowRecovery(false);
-    setEmail(session?.user?.email || "");
+    setEmail("");
     onClose();
-  }, [onClose, session]);
+  }, [onClose]);
 
   const initialContent = useMemo(
     () => (
@@ -140,7 +158,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     // if email is provided, save it for recovery purpose
     onChangeUserEmail();
     setShowRecovery(false);
-    setEmail(session?.user?.email || "");
+    setEmail("");
     onContinue();
   }, [onContinue]);
 
@@ -165,9 +183,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             Wallet Recovery
           </ThemedText>
 
-          <Text style={styles.addressText}>
-            Address: {kokio.userData?.wallets[0].accounts[0].address}
-          </Text>
+          <Text style={styles.addressText}>Address: 0xf68...5f8g</Text>
 
           <Text style={styles.recoveryDescription}>
             Please provide an email address for recovery purpose and to restore
@@ -215,7 +231,6 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
       animationType="fade"
       onRequestClose={handleClose}
       statusBarTranslucent
-      navigationBarTranslucent
       ref={modalRef}
     >
       <View style={styles.overlay}>

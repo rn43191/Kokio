@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, Pressable, StyleSheet } from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -6,7 +6,7 @@ import BottomSheet, {
   BottomSheetView,
 } from "@gorhom/bottom-sheet";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
-import { useTurnkey } from "@turnkey/sdk-react-native";
+import { User, useTurnkey } from "@turnkey/sdk-react-native";
 import { ThemedText } from "./ThemedText";
 import { useRouter } from "expo-router";
 import { useKokio } from "@/hooks/useKokio";
@@ -14,11 +14,17 @@ import { BlurView } from "expo-blur";
 import { Easing } from "react-native-reanimated";
 
 export function AuthenticationModal() {
+  const [loading, setLoading] = useState<boolean>(false);
   const sheetRef = useRef<BottomSheet>(null);
 
-  const { authenticate, state, loginWithPasskey } = useAuthRelay();
-  const { kokio } = useKokio();
-  const { session } = useTurnkey();
+  const { state, loginWithPasskey, signUpWithPasskey } = useAuthRelay();
+  const {
+    kokio,
+    setupKokioDeviceUID,
+    setupKokioUserData,
+    setupKokioUserPasskey,
+  } = useKokio();
+  const { clearAllSessions } = useTurnkey();
   const router = useRouter();
 
   // renders
@@ -44,32 +50,67 @@ export function AuthenticationModal() {
     []
   );
 
-  const loginWithPasskeyOrAuthenticate = useCallback(async () => {
-    if (session) {
-      await authenticate().then(() => {
-        sheetRef.current?.close({
-          duration: 250,
-          easing: Easing.out(Easing.quad),
+  const loginOrSignUpWithPasskey = useCallback(async () => {
+    setLoading(true);
+    if (kokio.deviceUID) {
+      try {
+        await loginWithPasskey().then(() => {
+          setLoading(false);
+          sheetRef.current?.close({
+            duration: 250,
+            easing: Easing.out(Easing.quad),
+          });
         });
-      });
+      } catch (e) {
+        console.error("Error signing in", e);
+      }
     } else {
-      loginWithPasskey().then(() => {
-        sheetRef.current?.close({
-          duration: 250,
-          easing: Easing.out(Easing.quad),
-        });
-      });
+      try {
+        await signUpWithPasskey({})
+          .then((data) => {
+            if (data) {
+              setupKokioDeviceUID(data.deviceUID);
+              setupKokioUserData(data.deviceUID, data.user as User);
+              setupKokioUserPasskey(data.deviceUID, {
+                x:
+                  data.decodedAttestationObject?.decodedAttestationObjectCbor
+                    ?.x || "",
+                y:
+                  data.decodedAttestationObject?.decodedAttestationObjectCbor
+                    ?.y || "",
+                attestationObject:
+                  data.authenticatorParams?.attestation.attestationObject || "",
+                clientDataJson:
+                  data.authenticatorParams.attestation.clientDataJson,
+                credentialId:
+                  data.authenticatorParams?.attestation?.credentialId,
+              });
+            }
+          })
+          .finally(() => {
+            setLoading(false);
+            sheetRef.current?.close({
+              duration: 250,
+              easing: Easing.out(Easing.quad),
+            });
+          });
+      } catch (e) {
+        console.error("Error signing in", e);
+        setLoading(false);
+      }
     }
-  }, [authenticate, loginWithPasskey, session]);
+  }, [signUpWithPasskey, loginWithPasskey, kokio]);
 
   useEffect(() => {
-    if (!state.authenticated && kokio.userData) {
+    // Show the modal if not authenticated and we have user data (meaning user has set up passkey)
+    if (!state.authenticated) {
+      clearAllSessions();
       sheetRef.current?.expand({
         duration: 250,
         easing: Easing.in(Easing.quad),
       });
     }
-  }, [state, kokio.userData, session]);
+  }, [state.authenticated]);
 
   return (
     <BottomSheet
@@ -113,7 +154,7 @@ export function AuthenticationModal() {
         >
           Secure your account using your fingerprint
         </ThemedText>
-        <Pressable onPress={loginWithPasskeyOrAuthenticate}>
+        <Pressable onPress={loginOrSignUpWithPasskey}>
           <Image
             source={require("@/assets/images/fingerprint.png")}
             style={{
@@ -135,6 +176,7 @@ export function AuthenticationModal() {
           </ThemedText>
         </Pressable>
         <Pressable
+          disabled={loading}
           onPress={() =>
             sheetRef.current?.close({
               duration: 250,

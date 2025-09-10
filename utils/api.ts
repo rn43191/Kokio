@@ -99,7 +99,7 @@ export async function createSubOrganization(
 
   const data = await turnkey.createSubOrganization({
     organizationId: TURNKEY_PARENT_ORG_ID,
-    subOrganizationName: `Sub-organization - ${user.username} ${String(
+    subOrganizationName: `Sub-organization - ${user.userId} ${String(
       Date.now()
     )}`,
     rootQuorumThreshold: 1,

@@ -76,7 +76,7 @@ export default function TestScreen() {
       console.log("response from user signup", response);
       if (response?.authenticatorParams && response?.user) {
         // save kokio user data authenticator params
-        setupKokioUserPasskey(response.user, {
+        setupKokioUserPasskey(kokio.deviceUID, {
           clientDataJson:
             response.authenticatorParams.attestation.clientDataJson,
           attestationObject:

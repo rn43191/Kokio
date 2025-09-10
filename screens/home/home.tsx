@@ -5,7 +5,6 @@ import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
 import Hero from "@/components/home/hero";
 import { useKokio } from "@/hooks/useKokio";
-import { useAuthRelay } from "@/hooks/useAuthRelayer";
 
 const mockEsims = [
   {
@@ -52,17 +51,13 @@ const mockEsims = [
 
 export default function HomeScreen() {
   const { kokio } = useKokio();
-  const { state: authState } = useAuthRelay();
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
         <Hero />
         <ActiveESIMsScroll esims={mockEsims} />
-        {kokio.userData && authState.authenticated && (
-          <Wallet
-            walletId={kokio.userData.wallets[0].accounts[0].address}
-            balance="500"
-          />
+        {kokio.userWallet && (
+          <Wallet walletId={kokio.userWallet?.address} balance="500" />
         )}
       </ScrollView>
     </SafeAreaView>

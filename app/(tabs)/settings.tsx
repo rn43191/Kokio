@@ -44,7 +44,7 @@ const MenuItem = ({
 export default function MenuScreen() {
   const { reauthenticate } = useAuthRelay();
   const { clearKokioUser } = useKokio();
-  const { clearSession } = useTurnkey();
+  const { clearAllSessions } = useTurnkey();
   const router = useRouter();
   const menuItems = [
     {
@@ -83,10 +83,14 @@ export default function MenuScreen() {
       iconLeft: "log-out-outline",
       iconRight: "chevron-forward-outline",
       action: async () => {
-        await clearKokioUser();
-        await clearSession();
-        reauthenticate();
-        router.push("/");
+        clearAllSessions()
+          .then(() => {
+            clearKokioUser();
+          })
+          .finally(() => {
+            router.push("/");
+            reauthenticate();
+          });
       },
     },
   ];

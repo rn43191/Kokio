@@ -57,7 +57,6 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
   const [showCreditCardModal, setShowCreditCardModal] = useState(false);
   const { kokio } = useKokio();
-  const { session } = useTurnkey();
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => createRadioButtons(selectedPaymentMethod, styles.buttonStyle),
@@ -135,7 +134,8 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      if (kokio.userData) {
+      console.log(kokio.userWallet?.address)
+      if (kokio.userWallet) {
         setSelectedPaymentMethod(value);
       } else {
         setShowWalletSetupModal(true);

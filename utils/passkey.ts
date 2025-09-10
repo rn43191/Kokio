@@ -57,6 +57,7 @@ export async function decodeAttestationObj(cred: {
       "base64"
     );
     const decodedAttestationObj = decode(attestationObject);
+    console.log("Decoded Attestation Object in f:", decodedAttestationObj);
     let authDataBuffer = decodedAttestationObj.authData;
     if (Buffer.isBuffer(authDataBuffer)) {
       authDataBuffer = authDataBuffer.buffer.slice(
@@ -84,6 +85,7 @@ export async function onPasskeyCreate(user: {
   | {
       authenticatorParams: TurnkeyAuthenticatorParams;
       subOrgCreationResponse: any;
+      deviceUID: string;
     }
   | undefined
 > {
@@ -102,9 +104,7 @@ export async function onPasskeyCreate(user: {
 
   try {
     // ID isn't visible by users, but needs to be random enough and valid base64 (for Android)
-    const userId = uuid();
-
-    console.log("userId", userId);
+    const deviceUID = uuid();
 
     const authenticatorParams = await createPasskey({
       // This doesn't matter much, it will be the name of the authenticator persisted on the Turnkey side.
@@ -115,15 +115,11 @@ export async function onPasskeyCreate(user: {
         name: PASSKEY_CONFIG.RP_NAME,
       },
       user: {
-        id: userId,
+        id: deviceUID,
         // Username will be ignored and set to Kokio Passkey
-
-        // name: user.username,
         name: "Kokio Passkey",
         // if we make the email optional the passkey authenticator will not have the email as the displayName and this cannot be changed later on
         // display name is set only at creation time
-
-        // displayName: user.email ?? user.username,
         displayName: "",
       },
       authenticatorSelection: {
@@ -135,10 +131,14 @@ export async function onPasskeyCreate(user: {
 
     console.log("authenticatorParams", authenticatorParams);
 
-    const response = await createSubOrganization(authenticatorParams, { username: user.username, email: user.email, userId });
+    const response = await createSubOrganization(authenticatorParams, {
+      username: user.username,
+      email: user.email,
+      userId: deviceUID,
+    });
     if (!response) return;
     console.log("created sub-org", response);
-    return { authenticatorParams, subOrgCreationResponse: response };
+    return { authenticatorParams, subOrgCreationResponse: response, deviceUID };
   } catch (e) {
     console.error("error during passkey creation", e);
   }
@@ -146,9 +146,11 @@ export async function onPasskeyCreate(user: {
 
 export const returnViemWalletClient = async (
   user: User,
-  client: TurnkeyClient
+  client: TurnkeyClient,
+  smartAccountAddress: string
 ): Promise<WalletClient> => {
-  console.log("user wallet address", user.wallets[0].accounts[0].address);
+  // Kokio user wallet address comes from kokio SDK not Turnkey here - change
+  console.log("user wallet address", smartAccountAddress);
 
   const viemAccount = await createAccount({
     client,
