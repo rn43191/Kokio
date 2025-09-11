@@ -66,6 +66,19 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
         );
       console.log("device wallet client", deviceWalletClient.account?.address);
 
+      try {
+        const uo = await deviceWalletClient.sendUserOperation({
+          uo: {
+            target: deviceWalletClient.account.address,
+            data: "0x",
+            value: 0n,
+          },
+        });
+        console.log("uo", uo);
+      } catch (e) {
+        console.log("error uo", e);
+      }
+
       return deviceWallet;
     }, [kokio]);
 
