@@ -21,7 +21,7 @@ type AuthActionType =
   | { type: "CLEAR_KOKIO" }
   | { type: "CLEAR_KOKIO_USER" };
 
-interface UserPasskey {
+export interface UserPasskey {
   x: string;
   y: string;
   attestationObject: string;
@@ -372,7 +372,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     const kokioSDK = new Kokio(
       viemClient,
       turnkeyClient,
-      "" /* credentialId will be set internally by Kokio SDK */,
+      kokio.userPasskey?.credentialId ?? "",
       PASSKEY_CONFIG.RP_ID,
       process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
       process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
