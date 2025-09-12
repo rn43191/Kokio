@@ -9,6 +9,8 @@ import { SmartContractAccount } from "@aa-sdk/core";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import * as SecureStore from "expo-secure-store";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import { useRouter } from "expo-router";
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -125,6 +127,7 @@ interface KokioProviderProps {
 export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   const [kokio, dispatch] = useReducer(kokioReducer, initialState);
   const { user, clearSession } = useTurnkey();
+  const { reauthenticate } = useAuthRelay();
 
   const saveValueForDeviceUID = async (key: string, value: string) => {
     await SecureStore.setItemAsync(key, JSON.stringify(value));
@@ -254,7 +257,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   // Check if user is already saved with data inside the expo secure store then disable the passkey creation
   // and use the existing user data
   useEffect(() => {
-    if (user && kokio.deviceUID) {
+    if (!kokio.sdk && user && kokio.deviceUID && kokio.userPasskey) {
       // If user is found, setup Kokio SDK with current user data and user organizationId from Turnkey
       setupKokioUserData(kokio.deviceUID, user);
       setupKokio();
@@ -262,8 +265,9 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     if (!user) {
       // If user is not found, clear Kokio SDK
       clearKokio();
+      reauthenticate();
     }
-  }, [user, kokio.deviceUID]);
+  }, [user, kokio.deviceUID, kokio.userPasskey, kokio.sdk]);
 
   const clearError = () => {
     dispatch({ type: "CLEAR_ERROR" });
@@ -354,6 +358,11 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       return;
     }
 
+    if (!kokio.userPasskey?.credentialId) {
+      dispatch({ type: "ERROR", payload: "Credential Id not found" });
+      return;
+    }
+
     const stamper = new PasskeyStamper({
       rpId: PASSKEY_CONFIG.RP_ID,
     });
@@ -366,13 +375,13 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     const viemClient = await returnViemWalletClient(
       user,
       turnkeyClient,
-      kokio.userWallet?.address!
+      kokio.userWallet?.address ?? ""
     );
 
     const kokioSDK = new Kokio(
       viemClient,
       turnkeyClient,
-      kokio.userPasskey?.credentialId ?? "",
+      kokio.userPasskey?.credentialId,
       PASSKEY_CONFIG.RP_ID,
       process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
       process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""

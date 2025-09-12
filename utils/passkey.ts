@@ -149,7 +149,7 @@ export const returnViemWalletClient = async (
   client: TurnkeyClient,
   smartAccountAddress: string
 ): Promise<WalletClient> => {
-  // Kokio user wallet address comes from kokio SDK not Turnkey here - change
+  // Kokio user wallet address comes from kokio SDK not Turnkey here - change??
   console.log("user wallet address", smartAccountAddress);
 
   const viemAccount = await createAccount({
