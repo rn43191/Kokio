@@ -125,11 +125,11 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     () => (
       <>
         <ThemedText bold style={styles.title}>
-          eSIM Wallet
+          Device Wallet
         </ThemedText>
 
         <Text style={styles.description}>
-          Before you can fund your on-device eSIM wallet, it need to be setup.
+          Press "Continue" to setup your device wallet.
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -202,7 +202,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
           />
           <Text style={styles.warningText}>
             If you no longer have your device, you'll need this email id to
-            restore access to your eSIM wallet funds.
+            restore access to your wallet funds.
           </Text>
         </View>
 
@@ -215,7 +215,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 
           <Text style={styles.recoveryDescription}>
             Please provide an email address for recovery purpose and to restore
-            access to your eSIM wallet funds
+            access to your device wallet funds
           </Text>
 
           <TextInput

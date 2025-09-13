@@ -70,7 +70,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
           <ThemedText
             style={{ color: Theme.colors.foreground, marginRight: 4 }}
           >
-            Add this amount to my eSIM wallet
+            Add this amount to my device wallet
           </ThemedText>
           <ThemedText style={{ color: Theme.colors.foreground }}>
             (1USD=1USDC)
@@ -134,7 +134,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      console.log(kokio.userWallet?.address)
+      console.log(kokio.userWallet?.address);
       if (kokio.userWallet) {
         setSelectedPaymentMethod(value);
       } else {

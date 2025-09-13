@@ -7,12 +7,12 @@ import { Theme } from "@/constants/Colors";
 const ESimWallet = () => {
   return (
     <View style={styles.labelContainer}>
-      <ThemedText style={styles.textContent}>eSim Wallet</ThemedText>
+      <ThemedText style={styles.textContent}>Device Wallet</ThemedText>
       <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
         <ThemedText style={[styles.textContent, styles.smallText]}>
           Balance
         </ThemedText>
-        <ThemedText style={styles.textContent}>25.00</ThemedText>
+        <ThemedText style={styles.textContent}>0.00</ThemedText>
         <Image
           source={require("@/assets/images/usdc.png")}
           style={[styles.logoImage, { marginLeft: 8 }]}
