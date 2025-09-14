@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,28 +6,19 @@ import {
   TouchableOpacity,
   ScrollView,
   Share,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { TabView, TabBar } from "react-native-tab-view";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme, Colors } from "@/constants/Colors";
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
-
-const ROUTES = [
-  { key: "Direct", title: "Direct" },
-  { key: "QR", title: "QR" },
-  { key: "Manual", title: "Manual" },
-];
+const Tab = createMaterialTopTabNavigator();
 
 const EsimInstallation = () => {
-  const [index, setIndex] = useState(1);
-
   // TODO: From API
   const qrData =
     "LPA:1$activation.airalo.com$LPA:1$activation.airalo.com$sample-qr-data";
@@ -50,18 +41,6 @@ const EsimInstallation = () => {
       console.error("Error copying to clipboard:", error);
     }
   };
-
-  const TabBarLabel = ({ route, focused }: any) => (
-    <Text
-      style={[
-        styles.tabBarText,
-        !focused && styles.inactiveTab,
-        focused && styles.highlightTabStyle,
-      ]}
-    >
-      {route.title}
-    </Text>
-  );
 
   const QRScene = () => (
     <ScrollView style={styles.content}>
@@ -211,38 +190,43 @@ const EsimInstallation = () => {
     </ScrollView>
   );
 
-  const renderScene = useCallback(({ route }: any) => {
-    switch (route.key) {
-      case "QR":
-        return <QRScene />;
-      case "Manual":
-        return <ManualScene />;
-      case "Direct":
-        return <DirectScene />;
-      default:
-        return null;
-    }
-  }, []);
+  const TabsNavigator = () => {
+    return (
+      <Tab.Navigator
+        initialRouteName="QR"
+        screenOptions={{
+          tabBarStyle: styles.tabBarStyle,
+          tabBarIndicatorStyle: styles.indicatorStyle,
+          tabBarItemStyle: styles.tabStyle,
+          tabBarContentContainerStyle: styles.tabBarContentContainer,
+          tabBarLabelStyle: styles.tabBarText,
+          tabBarActiveTintColor: Colors.dark.text,
+          tabBarInactiveTintColor: Colors.dark.inactive,
+          tabBarPressColor: "#5C5C61",
+        }}
+      >
+        <Tab.Screen
+          name="Direct"
+          component={DirectScene}
+          options={{ tabBarLabel: "Direct" }}
+        />
+        <Tab.Screen
+          name="QR"
+          component={QRScene}
+          options={{ tabBarLabel: "QR" }}
+        />
+        <Tab.Screen
+          name="Manual"
+          component={ManualScene}
+          options={{ tabBarLabel: "Manual" }}
+        />
+      </Tab.Navigator>
+    );
+  };
 
   return (
     <View style={styles.container}>
-      {/* <TabView
-        navigationState={{ index, routes: ROUTES }}
-        renderScene={renderScene}
-        onIndexChange={setIndex}
-        initialLayout={{ width: SCREEN_WIDTH }}
-        renderTabBar={(props) => (
-          <TabBar
-            {...props}
-            style={styles.tabBarStyle}
-            renderLabel={TabBarLabel}
-            indicatorStyle={styles.indicatorStyle}
-            tabStyle={styles.tabStyle}
-            contentContainerStyle={styles.tabBarContentContainer}
-          />
-        )}
-      /> */}
-      <QRScene />
+      <TabsNavigator />
     </View>
   );
 };
@@ -359,22 +343,18 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 30,
   },
-  highlightTabStyle: {
-    borderRadius: Theme.borderRadius.medium,
-    backgroundColor: "#5C5C61",
-  },
-  inactiveTab: {
-    color: Colors.dark.inactive,
-  },
+
   tabBarText: {
     color: Colors.dark.text,
-    backgroundColor: Colors.dark.secondaryBackground,
     textAlign: "center",
     paddingVertical: 2,
-    width: SCREEN_WIDTH / ROUTES.length,
+    fontSize: 14,
+    fontWeight: "500",
   },
   indicatorStyle: {
-    display: "none",
+    backgroundColor: Colors.dark.muted,
+    height: "100%",
+    borderRadius: Theme.borderRadius.medium,
   },
   manualDetailsCard: {
     backgroundColor: "#2a2a2a",
