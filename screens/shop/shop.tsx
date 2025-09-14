@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { Dimensions, StyleSheet } from "react-native";
-import { TabView, SceneMap, TabBar } from "react-native-tab-view";
+import { StyleSheet } from "react-native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
-import _get from "lodash/get";
 import _debounce from "lodash/debounce";
 
-import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { Colors, Theme } from "@/constants/Colors";
 import SearchInput from "@/components/SearchInput";
@@ -15,34 +13,42 @@ import Global from "./tabs/global";
 import Regions from "./tabs/regions";
 import SearchResult from "./searchResult";
 
-const SCREEN_WIDTH = Dimensions.get("window").width - 36;
+const Tab = createMaterialTopTabNavigator();
 
-const ROUTES = [
-  { key: "Countries", title: "Countries" },
-  { key: "Regions", title: "Regions" },
-  { key: "Global", title: "Global" },
-];
-
-const TabBarLabel = ({ route: tabRoute, focused }: any) => (
-  <ThemedText
-    style={[
-      styles.tabBarText,
-      !focused && styles.inactiveTab,
-      focused && styles.highlightTabStyle,
-    ]}
-  >
-    {_get(tabRoute, "title", "")}
-  </ThemedText>
-);
-
-const renderScene = SceneMap({
-  Countries: Countries,
-  Regions: Regions,
-  Global: Global,
-});
+const TabsNavigator = () => {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: styles.tabBarStyle,
+        tabBarIndicatorStyle: styles.indicatorStyle,
+        tabBarItemStyle: styles.tabStyle,
+        tabBarContentContainerStyle: styles.tabBarContentContainer,
+        tabBarLabelStyle: styles.tabBarText,
+        tabBarActiveTintColor: Colors.dark.text,
+        tabBarInactiveTintColor: Colors.dark.inactive,
+        tabBarPressColor: "#5C5C61",
+      }}
+    >
+      <Tab.Screen
+        name="Countries"
+        component={Countries}
+        options={{ tabBarLabel: "Countries" }}
+      />
+      <Tab.Screen
+        name="Regions"
+        component={Regions}
+        options={{ tabBarLabel: "Regions" }}
+      />
+      <Tab.Screen
+        name="Global"
+        component={Global}
+        options={{ tabBarLabel: "Global" }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 const Shop = () => {
-  const [index, setIndex] = useState<number>(0);
   const [searchText, setSearchText] = useState<string>("");
 
   const debouncedOnSearch = _debounce(setSearchText, 500);
@@ -54,22 +60,7 @@ const Shop = () => {
         {searchText ? (
           <SearchResult searchText={searchText} />
         ) : (
-          // <TabView
-          //   navigationState={{ index, routes: ROUTES }}
-          //   renderScene={renderScene}
-          //   onIndexChange={setIndex}
-          //   renderTabBar={(args) => (
-          //     <TabBar
-          //       {...args}
-          //       style={styles.tabBarStyle}
-          //       renderLabel={TabBarLabel}
-          //       indicatorStyle={styles.indicatorStyle}
-          //       tabStyle={styles.tabStyle}
-          //       contentContainerStyle={styles.tabBarContentContainer}
-          //     />
-          //   )}
-          // />
-          <Countries />
+          <TabsNavigator />
         )}
       </ThemedView>
     </ThemedView>
@@ -86,24 +77,20 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 30,
   },
-  highlightTabStyle: {
-    borderRadius: Theme.borderRadius.medium,
-    backgroundColor: "#5C5C61",
-  },
   tabBarContentContainer: {
     justifyContent: "space-around",
-  },
-  inactiveTab: {
-    color: Colors.dark.inactive,
   },
   tabBarText: {
     color: Colors.dark.text,
     textAlign: "center",
     paddingVertical: 2,
-    width: SCREEN_WIDTH / ROUTES.length,
+    fontSize: 14,
+    fontWeight: "500",
   },
   indicatorStyle: {
-    display: "none",
+    backgroundColor: Colors.dark.muted,
+    height: "100%",
+    borderRadius: Theme.borderRadius.medium,
   },
   shopContainer: {
     paddingRight: Theme.spacing.sm,

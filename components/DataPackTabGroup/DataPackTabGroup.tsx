@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
-import { StyleSheet, FlatList, Dimensions } from "react-native";
-import { TabView, TabBar } from "react-native-tab-view";
+import React, { useMemo } from "react";
+import { StyleSheet, FlatList } from "react-native";
+import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
 import _get from "lodash/get";
 import _groupBy from "lodash/groupBy";
@@ -13,28 +13,20 @@ import EsimItemSkeleton from "@/components/EsimItemSkeleton";
 
 import ESIMItem, { Esim } from "../ESIMItem";
 
-const SCREEN_WIDTH = Dimensions.get("window").width - 28;
+const Tab = createMaterialTopTabNavigator();
 
 const TAB_KEYS = {
   DATA: "DATA",
   DATA_CALLS_SMS: "DATA_CALLS_SMS",
 };
 
-const ROUTES = [
-  { key: TAB_KEYS.DATA, title: "Data" },
-  { key: TAB_KEYS.DATA_CALLS_SMS, title: "Data+Calls+SMS" },
-];
-
 const EmptyListComponent = () => (
   <ThemedText
-    style={[
-      {
-        textAlign: "center",
-        verticalAlign: "middle",
-        flex: 1,
-        paddingTop: 42,
-      },
-    ]}
+    style={{
+      textAlign: "center",
+      flex: 1,
+      paddingTop: 42,
+    }}
   >
     No Plans found
   </ThemedText>
@@ -48,7 +40,7 @@ const ESIMsFlatList = React.memo(
         renderItem={() => (
           <EsimItemSkeleton containerStyle={styles.eSimItemContainer} />
         )}
-        keyExtractor={(_, index) => index}
+        keyExtractor={(_, index) => index.toString()}
         contentContainerStyle={styles.flatListContainer}
       />
     ) : (
@@ -61,24 +53,12 @@ const ESIMsFlatList = React.memo(
             containerStyle={styles.eSimItemContainer}
           />
         )}
-        keyExtractor={(item, index) => item.catalogueId || index}
+        keyExtractor={(item, index) => item.catalogueId || index.toString()}
         contentContainerStyle={styles.flatListContainer}
         ListEmptyComponent={EmptyListComponent}
       />
     );
   }
-);
-
-const TabBarLabel = ({ route: tabRoute, focused }: any) => (
-  <ThemedText
-    style={[
-      styles.tabBarText,
-      !focused && styles.inactiveTab,
-      focused && styles.highlightTabStyle,
-    ]}
-  >
-    {_get(tabRoute, "title", "")}
-  </ThemedText>
 );
 
 function DataPackTabGroup({
@@ -90,8 +70,6 @@ function DataPackTabGroup({
   containerStyle?: any;
   isLoading?: any;
 }) {
-  const [index, setIndex] = useState<number>(0);
-
   const { eSimsByData, eSimsByDataCallsSMS } = useMemo(() => {
     const eSimsGroupedByPlanType = _groupBy(esims, "planType");
     const eSimsByData = _get(eSimsGroupedByPlanType, TAB_KEYS.DATA);
@@ -102,17 +80,50 @@ function DataPackTabGroup({
     return { eSimsByData, eSimsByDataCallsSMS };
   }, [esims]);
 
-  const renderScene = ({ route }: any) => {
-    switch (route.key) {
-      case TAB_KEYS.DATA:
-        return <ESIMsFlatList esims={eSimsByData} isLoading={isLoading} />;
-      case TAB_KEYS.DATA_CALLS_SMS:
-        return (
-          <ESIMsFlatList esims={eSimsByDataCallsSMS} isLoading={isLoading} />
-        );
-      default:
-        return null;
-    }
+  const DataTab = () => (
+    <ESIMsFlatList esims={eSimsByData} isLoading={isLoading} />
+  );
+  const DataCallsSMSTab = () => (
+    <ESIMsFlatList esims={eSimsByDataCallsSMS} isLoading={isLoading} />
+  );
+
+  const TabsNavigator = () => {
+    return (
+      <Tab.Navigator
+        screenOptions={{
+          tabBarStyle: styles.tabBarStyle,
+          tabBarIndicatorStyle: styles.indicatorStyle,
+          tabBarItemStyle: styles.tabStyle,
+          tabBarContentContainerStyle: styles.tabBarContentContainer,
+          tabBarLabelStyle: styles.tabBarText,
+          tabBarActiveTintColor: Colors.dark.text,
+          tabBarInactiveTintColor: Colors.dark.inactive,
+          tabBarPressColor: "#5C5C61",
+        }}
+      >
+        <Tab.Screen
+          name="Data"
+          component={DataTab}
+          options={{ tabBarLabel: "Data" }}
+        />
+        {/* NOTE: DATA_CALLS_SMS is disabled until needed */}
+        <Tab.Screen
+          name="DataCallsSMS"
+          component={DataCallsSMSTab}
+          options={{
+            tabBarLabel: "Data+Calls+SMS",
+            tabBarAccessibilityLabel: "Data+Calls+SMS (disabled)",
+            tabBarLabelStyle: [styles.tabBarText, styles.disabledTabText],
+          }}
+          listeners={{
+            tabPress: (e) => {
+              // Prevent default action to disable the tab
+              e.preventDefault();
+            },
+          }}
+        />
+      </Tab.Navigator>
+    );
   };
 
   return (
@@ -123,27 +134,7 @@ function DataPackTabGroup({
           isLoading={isLoading}
         />
       ) : (
-        <TabView
-          navigationState={{ index, routes: ROUTES }}
-          renderScene={renderScene}
-          onIndexChange={setIndex}
-          renderTabBar={(args) => (
-            <TabBar
-              {...args}
-              style={styles.tabBarStyle}
-              renderLabel={TabBarLabel}
-              indicatorStyle={styles.indicatorStyle}
-              tabStyle={styles.tabStyle}
-              contentContainerStyle={styles.tabBarContentContainer}
-              // NOTE: DATA_CALLS_SMS is disabled until needed
-              onTabPress={({ route, preventDefault }) => {
-                if (route.key === TAB_KEYS.DATA_CALLS_SMS) {
-                  preventDefault();
-                }
-              }}
-            />
-          )}
-        />
+        <TabsNavigator />
       )}
     </ThemedView>
   );
@@ -161,22 +152,22 @@ const styles = StyleSheet.create({
     padding: 0,
     minHeight: 30,
   },
-  highlightTabStyle: {
-    borderRadius: Theme.borderRadius.medium,
-    backgroundColor: "#5C5C61",
-  },
-  inactiveTab: {
-    color: Colors.dark.inactive,
-  },
+
   tabBarText: {
     color: Colors.dark.text,
-    backgroundColor: Colors.dark.secondaryBackground,
     textAlign: "center",
     paddingVertical: 2,
-    width: SCREEN_WIDTH / ROUTES.length,
+    fontSize: 14,
+    fontWeight: "500",
   },
   indicatorStyle: {
-    display: "none",
+    backgroundColor: Colors.dark.muted,
+    height: "100%",
+    borderRadius: Theme.borderRadius.medium,
+  },
+  disabledTabText: {
+    opacity: 0.5,
+    color: Colors.dark.inactive,
   },
   container: {
     flex: 1,

@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 5,
+    color: "#000000",
   },
   detailsContainer: {
     flexDirection: "row",
@@ -140,6 +141,7 @@ const styles = StyleSheet.create({
   details: {
     fontSize: 14,
     fontWeight: "800",
+    color: "#000000",
   },
   detailItem: {
     flexDirection: "row",
