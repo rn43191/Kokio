@@ -56,9 +56,8 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     console.log("data", deviceUniqueIdentifier, deviceWalletOwnerKey);
 
     if (user && kokio.sdk) {
-      let deviceWallet;
       // Calculates device wallet address without deploying
-      deviceWallet = await kokio.sdk.smartAccount.getSmartWallet(
+      const deviceWallet = await kokio.sdk.smartAccount.getSmartWallet(
         deviceUniqueIdentifier,
         deviceWalletOwnerKey,
         salt
