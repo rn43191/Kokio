@@ -33,6 +33,7 @@ export const initializeKokioSDK = async (user: User, userPasskey: UserPasskey, w
     userPasskey.credentialId,
     PASSKEY_CONFIG.RP_ID,
     process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
+    process.env.EXPO_PUBLIC_PIMLICO_API_KEY ?? "",
     process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
   );
 
