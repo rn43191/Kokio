@@ -92,7 +92,7 @@ const ESIMItem = ({
               value={(item.actualSellingPrice || 0).toFixed(2)}
             />
             <View style={styles.buyButtonText}>
-              <Ionicons name="cart-outline" size={20} />
+              <Ionicons name="cart-outline" size={20} color="black" />
               <Text style={styles.details}>Buy</Text>
             </View>
           </TouchableOpacity>
@@ -131,6 +131,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     marginBottom: 5,
+    color: "#000000",
   },
   detailsContainer: {
     flexDirection: "row",
@@ -140,6 +141,7 @@ const styles = StyleSheet.create({
   details: {
     fontSize: 14,
     fontWeight: "800",
+    color: "#000000",
   },
   detailItem: {
     flexDirection: "row",

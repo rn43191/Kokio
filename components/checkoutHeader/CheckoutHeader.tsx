@@ -244,6 +244,7 @@ const styles = StyleSheet.create({
   countryText: {
     fontSize: 32,
     fontWeight: "700",
+    color: "#000000",
   },
   flag: {
     borderRadius: 6,

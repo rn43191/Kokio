@@ -55,9 +55,17 @@ export default function HomeScreen() {
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView>
         <Hero />
-        <ActiveESIMsScroll esims={mockEsims} />
-        {kokio.userWallet && (
-          <Wallet walletId={kokio.userWallet?.address} balance="500" />
+        {kokio.userWallet ? (
+          <>
+            <ActiveESIMsScroll esims={mockEsims} />
+            <Wallet
+              walletId={kokio.userWallet?.address}
+              balance="0"
+              isWalletAdded
+            />
+          </>
+        ) : (
+          <Wallet isWalletAdded={false} />
         )}
       </ScrollView>
     </SafeAreaView>
