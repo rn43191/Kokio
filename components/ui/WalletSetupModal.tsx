@@ -11,8 +11,10 @@ import {
   Platform,
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { openBrowserAsync } from "expo-web-browser";
 import { SmartContractAccount } from "@aa-sdk/core";
 import { ThemedText } from "@/components/ThemedText";
+import { OP_SEPOLIA_TESTNET } from "@/constants/general.constants";
 import { useKokio } from "@/hooks/useKokio";
 import { checkIfEmailInUse } from "@/utils/api";
 import {
@@ -31,6 +33,16 @@ interface WalletSetupModalProps {
   onContinue: () => void;
 }
 
+// Utility function to format wallet address
+const formatWalletAddress = (
+  address: string | undefined,
+  startLength = 4,
+  endLength = 4
+) => {
+  if (!address) return "";
+  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
+};
+
 const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   visible,
   onClose,
@@ -39,6 +51,9 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
   const [email, setEmail] = useState("");
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(
+    undefined
+  );
   const modalRef = React.useRef<Modal>(null);
   const { kokio, setupKokioUserWallet } = useKokio();
   const { session, user } = useTurnkey();
@@ -100,6 +115,17 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 
   const { updateUser } = useTurnkey();
 
+  const handleAddressPress = useCallback(async () => {
+    if (walletAddress) {
+      const url = `${OP_SEPOLIA_TESTNET}/${walletAddress}`;
+      try {
+        await openBrowserAsync(url);
+      } catch (error) {
+        console.error("Error opening browser:", error);
+      }
+    }
+  }, [walletAddress]);
+
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
 
@@ -108,7 +134,11 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
       console.log("Setting up wallet...");
       const wallet = await returnSmartAccountAddress();
       if (wallet) {
-        console.log(wallet);
+        console.log("setWalletAddress", wallet);
+
+        // Store the wallet address for display
+        setWalletAddress(wallet?.address);
+
         await setupKokioUserWallet(kokio.deviceUID, wallet);
       }
     }
@@ -121,6 +151,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     setIsLoading(false);
     setShowRecovery(false);
     setEmail("");
+    setWalletAddress(undefined);
     onClose();
   }, [onClose]);
 
@@ -167,6 +198,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const handleRemindLater = useCallback(() => {
     setShowRecovery(false);
     setEmail("");
+    setWalletAddress(undefined);
     onClose();
   }, [onClose]);
 
@@ -214,7 +246,28 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             Wallet Recovery
           </ThemedText>
 
-          <Text style={styles.addressText}>Address: 0xf68...5f8g</Text>
+          <View style={styles.addressContainer}>
+            <Text style={styles.addressText}>Address: </Text>
+            <TouchableOpacity
+              style={styles.clickableAddressContainer}
+              onPress={handleAddressPress}
+              disabled={!walletAddress}
+            >
+              <Text style={styles.addressText}>
+                {walletAddress
+                  ? formatWalletAddress(walletAddress)
+                  : "Loading..."}
+              </Text>
+              {walletAddress && (
+                <MaterialIcons
+                  name="open-in-new"
+                  size={16}
+                  color="#AEAEB2"
+                  style={styles.linkIcon}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.recoveryDescription}>
             Please provide an email address for recovery purpose and to restore
@@ -246,7 +299,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
         </View>
       </>
     ),
-    [email, handleRemindLater, handleDone]
+    [email, handleRemindLater, handleDone, walletAddress]
   );
 
   const renderContent = () => {
@@ -392,10 +445,22 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 12,
   },
+  addressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  clickableAddressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   addressText: {
     color: "#AEAEB2",
     fontSize: 14,
-    marginBottom: 16,
+    marginRight: 8,
+  },
+  linkIcon: {
+    marginLeft: 4,
   },
   recoveryDescription: {
     color: "#AEAEB2",
