@@ -89,3 +89,6 @@ export const REGION_CONFIG = {
     imagePath: require("@/assets/images/australia.png"),
   },
 };
+
+export const OP_SEPOLIA_TESTNET =
+  "https://sepolia-optimism.etherscan.io/address";
