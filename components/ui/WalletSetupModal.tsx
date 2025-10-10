@@ -14,7 +14,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { openBrowserAsync } from "expo-web-browser";
 import { SmartContractAccount } from "@aa-sdk/core";
 import { ThemedText } from "@/components/ThemedText";
-import { OP_SEPOLIA_TESTNET } from "@/constants/general.constants";
+import { BASE_SEPOLIA_TESTNET } from "@/constants/general.constants";
 import { useKokio } from "@/hooks/useKokio";
 import { checkIfEmailInUse } from "@/utils/api";
 import {
@@ -117,7 +117,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 
   const handleAddressPress = useCallback(async () => {
     if (walletAddress) {
-      const url = `${OP_SEPOLIA_TESTNET}/${walletAddress}`;
+      const url = `${BASE_SEPOLIA_TESTNET}/${walletAddress}`;
       try {
         await openBrowserAsync(url);
       } catch (error) {

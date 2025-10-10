@@ -17,7 +17,7 @@ import { decode } from "cbor";
 import { Buffer } from "buffer";
 import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
 import { toHex, http, createWalletClient, Account, WalletClient } from "viem";
-import { optimismSepolia } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 import { createAccount } from "@turnkey/viem";
 import { User } from "@turnkey/sdk-react-native";
 import { checkIfEmailInUse, createSubOrganization } from "./api";
@@ -161,9 +161,9 @@ export const returnViemWalletClient = async (
 
   const viemClient = createWalletClient({
     account: viemAccount as Account,
-    chain: optimismSepolia,
+    chain: baseSepolia,
     transport: http(
-      `https://opt-sepolia.g.alchemy.com/v2/${process.env.EXPO_PUBLIC_ALCHEMY_API_KEY}`
+      `https://base-sepolia.g.alchemy.com/v2/${process.env.EXPO_PUBLIC_ALCHEMY_API_KEY}`
     ),
   });
 
