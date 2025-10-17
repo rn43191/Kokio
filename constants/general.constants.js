@@ -93,5 +93,4 @@ export const REGION_CONFIG = {
 export const OP_SEPOLIA_TESTNET =
   "https://sepolia-optimism.etherscan.io/address";
 
-export const BASE_SEPOLIA_TESTNET =
-  "https://sepolia.basescan.org/address/";
+export const BASE_SEPOLIA_TESTNET = "https://sepolia.basescan.org/address";
