@@ -52,7 +52,7 @@ const api = ((args) => {
       return getDefaultHeaders();
     },
     getBaseURL() {
-      return process.env.EXPO_PUBLIC_API_BASE_URL;
+      return process.env.API_BASE_URL;
     },
     getConfig() {
       const baseURL = this.getBaseURL();

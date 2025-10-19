@@ -163,7 +163,7 @@ export const returnViemWalletClient = async (
     account: viemAccount as Account,
     chain: baseSepolia,
     transport: http(
-      `https://base-sepolia.g.alchemy.com/v2/${process.env.EXPO_PUBLIC_ALCHEMY_API_KEY}`
+      `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
     ),
   });
 

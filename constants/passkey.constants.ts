@@ -13,5 +13,5 @@ export const DEFAULT_ETHEREUM_ACCOUNTS = [
 ];
 
 export const TURNKEY_PARENT_ORG_ID =
-  process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "";
+  process.env.TURNKEY_ORGANIZATION_ID ?? "";
 export const TURNKEY_API_URL = process.env.EXPO_PUBLIC_TURNKEY_API_URL ?? "";

@@ -12,8 +12,8 @@ import { createPasskey } from "@turnkey/react-native-passkey-stamper";
 export const turnkeyConfig = {
   apiBaseUrl: TURNKEY_API_URL,
   defaultOrganizationId: TURNKEY_PARENT_ORG_ID,
-  apiPublicKey: process.env.EXPO_PUBLIC_TURNKEY_API_PUBLIC_KEY!,
-  apiPrivateKey: process.env.EXPO_PUBLIC_TURNKEY_API_PRIVATE_KEY!,
+  apiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY!,
+  apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
 };
 
 export async function handleInitOtpAuth({ email }: { email: string }) {

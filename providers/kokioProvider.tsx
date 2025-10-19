@@ -383,9 +383,9 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       turnkeyClient,
       kokio.userPasskey?.credentialId,
       PASSKEY_CONFIG.RP_ID,
-      process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
-      process.env.EXPO_PUBLIC_PIMLICO_API_KEY ?? "",
-      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
+      process.env.TURNKEY_ORGANIZATION_ID ?? "",
+      process.env.PIMLICO_API_KEY ?? "",
+      process.env.GAS_MANAGER_POLICY_ID ?? ""
     );
 
     if (!kokioSDK) {

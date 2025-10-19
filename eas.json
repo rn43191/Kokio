@@ -26,6 +26,15 @@
       "android": {
         "buildType": "apk",
         "credentialsSource": "local"
+      },
+      "env": {
+        "ALCHEMY_API_KEY": "ALCHEMY_API_KEY",
+        "GAS_MANAGER_POLICY_ID": "GAS_MANAGER_POLICY_ID",
+        "PIMLICO_API_KEY": "PIMLICO_API_KEY",
+        "TURNKEY_ORGANIZATION_ID": "TURNKEY_ORGANIZATION_ID",
+        "TURNKEY_API_PUBLIC_KEY": "TURNKEY_API_PUBLIC_KEY",
+        "TURNKEY_API_PRIVATE_KEY": "TURNKEY_API_PRIVATE_KEY",
+        "API_BASE_URL": "API_BASE_URL"
       }
     },
     "production": {}
