@@ -27,6 +27,9 @@
       "android": {
         "buildType": "apk",
         "credentialsSource": "local"
+      },
+      "env": {
+        "APP_VARIANT": "preview"
       }
     },
     "production": {}
