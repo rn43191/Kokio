@@ -3,6 +3,7 @@ import { AppExtraConfig } from './appKeys.js';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
 
+    console.log("Is Preview? ", process.env.APP_VARIANT);
     console.log("--- RAW ENV CHECK ---");
     console.log("Raw ALCHEMY_API_KEY: ", process.env.ALCHEMY_API_KEY);
     console.log("Raw GAS_MANAGER_POLICY_ID: ", process.env.GAS_MANAGER_POLICY_ID);
