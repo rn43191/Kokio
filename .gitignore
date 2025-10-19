@@ -62,4 +62,3 @@ yarn-error.*
 # @end expo-cli
 
 .env
-.env*.local
