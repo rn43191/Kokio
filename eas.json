@@ -22,6 +22,7 @@
       }
     },
     "preview": {
+      "developmentClient": true,
       "distribution": "internal",
       "android": {
         "buildType": "apk",
@@ -34,7 +35,10 @@
         "TURNKEY_ORGANIZATION_ID": "TURNKEY_ORGANIZATION_ID",
         "TURNKEY_API_PUBLIC_KEY": "TURNKEY_API_PUBLIC_KEY",
         "TURNKEY_API_PRIVATE_KEY": "TURNKEY_API_PRIVATE_KEY",
-        "API_BASE_URL": "API_BASE_URL"
+        "API_BASE_URL": "API_BASE_URL",
+        "EXPO_PUBLIC_PASSKEY_RP_NAME": "Kokio.app",
+        "EXPO_PUBLIC_RP_ID": "docs.kokio.app",
+        "EXPO_PUBLIC_TURNKEY_API_URL": "https://api.turnkey.com"
       }
     },
     "production": {}
