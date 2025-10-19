@@ -2,6 +2,9 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
+import Constants from 'expo-constants';
+import { AppExtraConfig } from '@/appKeys';
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
 import { TurnkeyClient } from "@turnkey/http";
@@ -383,9 +386,9 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       turnkeyClient,
       kokio.userPasskey?.credentialId,
       PASSKEY_CONFIG.RP_ID,
-      process.env.TURNKEY_ORGANIZATION_ID ?? "",
-      process.env.PIMLICO_API_KEY ?? "",
-      process.env.GAS_MANAGER_POLICY_ID ?? ""
+      extra.turnkeyOrganizationId ?? "",
+      extra.pimlicoApiKey ?? "",
+      extra.gasManagerPolicyId ?? ""
     );
 
     if (!kokioSDK) {

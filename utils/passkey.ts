@@ -11,6 +11,8 @@ import {
   base64UrlToBuffer,
   parseDEREncodedSignature,
 } from "@/helpers/converters";
+import Constants from "expo-constants";
+import { AppExtraConfig } from "@/appKeys";
 import { decodeClientDataJSON } from "@simplewebauthn/server/helpers";
 
 import { decode } from "cbor";
@@ -21,6 +23,8 @@ import { baseSepolia } from "viem/chains";
 import { createAccount } from "@turnkey/viem";
 import { User } from "@turnkey/sdk-react-native";
 import { checkIfEmailInUse, createSubOrganization } from "./api";
+
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 /**
  * Decodes the attestation object and extracts public key data
@@ -163,7 +167,7 @@ export const returnViemWalletClient = async (
     account: viemAccount as Account,
     chain: baseSepolia,
     transport: http(
-      `https://base-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY}`
+      `https://base-sepolia.g.alchemy.com/v2/${extra.alchemyApiKey}`
     ),
   });
 

@@ -3,17 +3,21 @@ import {
   TURNKEY_API_URL,
   TURNKEY_PARENT_ORG_ID,
 } from "@/constants/passkey.constants";
+import Constants from "expo-constants";
+import { AppExtraConfig } from "@/appKeys";
 // run on vercel server on production on kokio.app domain
 // see turnkey+api.ts in react-native-demo-wallet
 import { Turnkey } from "@turnkey/sdk-server";
 import { ParamsType } from "./types";
 import { createPasskey } from "@turnkey/react-native-passkey-stamper";
 
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
+
 export const turnkeyConfig = {
   apiBaseUrl: TURNKEY_API_URL,
   defaultOrganizationId: TURNKEY_PARENT_ORG_ID,
-  apiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY!,
-  apiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY!,
+  apiPublicKey: extra.turnkeyApiPublicKey!,
+  apiPrivateKey: extra.turnkeyApiPrivateKey!,
 };
 
 export async function handleInitOtpAuth({ email }: { email: string }) {
