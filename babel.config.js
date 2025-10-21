@@ -7,6 +7,7 @@ module.exports = function (api) {
     ],
     plugins: [
       ["@babel/plugin-syntax-import-assertions"],
+      ["react-native-worklets/plugin"],
       [
         "module-resolver",
         {
