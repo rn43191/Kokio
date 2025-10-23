@@ -5,7 +5,7 @@ import {
   PasskeyStamper,
   TurnkeyAuthenticatorParams,
 } from "@turnkey/react-native-passkey-stamper";
-import { TurnkeyClient } from "@turnkey/http";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { v4 as uuid } from "uuid";
 import {
   base64UrlToBuffer,

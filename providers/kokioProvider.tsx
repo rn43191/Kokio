@@ -7,7 +7,7 @@ import { AppExtraConfig } from '@/appKeys';
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
-import { TurnkeyClient } from "@turnkey/http";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { SmartContractAccount } from "@aa-sdk/core";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";

@@ -1,9 +1,9 @@
 import { ReactNode, createContext, useEffect, useReducer } from "react";
-import { TurnkeyClient } from "@turnkey/http";
 import {
   isSupported,
   PasskeyStamper,
 } from "@turnkey/react-native-passkey-stamper";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { LoginMethod } from "@/utils/types";
 import {
   PASSKEY_CONFIG,
