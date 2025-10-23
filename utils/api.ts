@@ -3,125 +3,104 @@ import {
   TURNKEY_API_URL,
   TURNKEY_PARENT_ORG_ID,
 } from "@/constants/passkey.constants";
+
+// Assuming types.ts is still available for ParamsType
+import { APIKeysT, ParamsType, PasskeyT } from "./types";
 import Constants from "expo-constants";
 import { AppExtraConfig } from "@/appKeys";
-// run on vercel server on production on kokio.app domain
-// see turnkey+api.ts in react-native-demo-wallet
-import { Turnkey } from "@turnkey/sdk-server";
-import { ParamsType } from "./types";
-import { createPasskey } from "@turnkey/react-native-passkey-stamper";
 
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
+const SERVER_BASE_URL = `${extra.serverBaseUrl}:3000`;
 
-export const turnkeyConfig = {
-  apiBaseUrl: TURNKEY_API_URL,
-  defaultOrganizationId: TURNKEY_PARENT_ORG_ID,
-  apiPublicKey: extra.turnkeyApiPublicKey!,
-  apiPrivateKey: extra.turnkeyApiPrivateKey!,
-};
+// Helper function to handle POST requests and common error checking
+async function post(endpoint: string, body: any) {
+  const url = `${SERVER_BASE_URL}${endpoint}`;
 
-export async function handleInitOtpAuth({ email }: { email: string }) {
-  const turnkey = new Turnkey(turnkeyConfig).apiClient();
-
-  let organizationId: string = TURNKEY_PARENT_ORG_ID;
-
-  const { organizationIds } = await turnkey.getSubOrgIds({
-    filterType: "EMAIL",
-    filterValue: email,
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
   });
 
-  if (organizationIds.length > 0) {
-    console.log(organizationIds);
-    organizationId = organizationIds[0];
-  } else {
-    // User does not exist
-    console.error(
-      "User cannot be created with email... user needs to create account with email and passkey"
-    );
-    return;
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+    const errorMessage = errorData.error || `Server responded with status ${response.status}`;
+
+    console.error(`API Error on ${endpoint}:`, errorData);
+    throw new Error(errorMessage);
   }
 
-  const result = await turnkey.initOtpAuth({
-    organizationId,
-    otpType: "OTP_TYPE_EMAIL",
-    contact: email,
-  });
-
-  return { result, organizationId };
+  return response.json();
 }
 
-export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
-  const turnkey = new Turnkey(turnkeyConfig).apiClient();
-
-  const {
-    otpId,
-    otpCode,
-    organizationId,
-    targetPublicKey,
-    expirationSeconds,
-    invalidateExisting,
-  } = params;
-
+/**
+ * Initiates OTP auth by calling the server endpoint.
+ * Original signature: handleInitOtpAuth({ email }: { email: string })
+ */
+export async function handleInitOtpAuth({ email }: { email: string }) {
   try {
-    const result = await turnkey.otpAuth({
-      otpId,
-      otpCode,
-      organizationId,
-      targetPublicKey,
-      expirationSeconds,
-      invalidateExisting,
-    });
+    const result = await post('/api/init-otp-auth', { email });
+    // Expected server response: { result: InitOtpAuthResponse, organizationId: string }
+    return result;
+  } catch (error) {
+    console.error("error during handleInitOtpAuth", error);
+    throw error;
+  }
+}
 
+/**
+ * Completes OTP authentication by calling the server endpoint.
+ * Original signature: handleOtpAuth(params: ParamsType<"otpAuth">)
+ */
+export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
+  try {
+    // params directly match the server's expected request body
+    const result = await post('/api/otp-auth', params);
     return result;
   } catch (error) {
     console.error("error during otpAuth", error);
+    throw error;
   }
 }
 
-export async function deleteSubOrganization() {
-  const turnkey = new Turnkey(turnkeyConfig).apiClient();
-  const getWhoamiResult = await turnkey.getWhoami({
-    organizationId: TURNKEY_PARENT_ORG_ID,
-  });
-  const data = await turnkey.deleteSubOrganization({
-    organizationId: getWhoamiResult.organizationId,
-    deleteWithoutExport: true,
-  });
-  console.log("delete sub-org", data);
-  return data;
+export async function deleteSubOrganization(organizationIdToDelete: string) {
+  if (!organizationIdToDelete) {
+    throw new Error("Missing organization ID required for secure deletion.");
+  }
 }
 
+/**
+ * Creates a sub-organization, user, and wallet via the server.
+ * Also initiates a session for user's passkey
+ */
 export async function createSubOrganization(
-  authenticatorParams: Awaited<ReturnType<typeof createPasskey>>,
   user: {
     userId: string;
     username?: string;
     email?: string;
-  }
+  },
+  passkey: PasskeyT,
+  apiKeys: APIKeysT
 ) {
-  const turnkey = new Turnkey(turnkeyConfig).apiClient();
+  if (!passkey || !user || !user.userId) {
+    throw new Error("Missing required parameters for sub-organization creation.");
+  }
 
-  const data = await turnkey.createSubOrganization({
-    organizationId: TURNKEY_PARENT_ORG_ID,
-    subOrganizationName: `Sub-organization - ${user.userId} ${String(
-      Date.now()
-    )}`,
-    rootQuorumThreshold: 1,
-    rootUsers: [
-      {
-        userName: "Kokio User " + user.userId,
-        userEmail: user.email ?? "",
-        apiKeys: [],
-        authenticators: [authenticatorParams],
-        oauthProviders: [],
-      },
-    ],
-    wallet: {
-      walletName: "ETH wallet",
-      accounts: DEFAULT_ETHEREUM_ACCOUNTS,
-    },
-  });
-  return data;
+  try {
+    const response = await post("/api/create-sub-organization", {
+        user: user,
+        passkey: passkey,
+        apiKeys: apiKeys,
+      }
+    );
+    
+    return response;
+  } catch (error) {
+    console.error("error during createSubOrganization", error);
+    throw error;
+  }
 }
 
 export async function checkIfEmailInUse({
@@ -129,19 +108,9 @@ export async function checkIfEmailInUse({
 }: {
   email: string;
 }): Promise<boolean | string[]> {
-  const turnkey = new Turnkey(turnkeyConfig).apiClient();
-
-  const { organizationIds } = await turnkey.getSubOrgIds({
-    organizationId: TURNKEY_PARENT_ORG_ID,
-    filterType: "EMAIL",
-    filterValue: email,
-  });
-
-  if (organizationIds.length > 0) {
-    console.log("Existing User sub-organization Ids: ", organizationIds);
-    return true;
-  } else {
-    // User does not exist
-    return false;
+  if (!email) {
+    throw new Error("Email is required for check.");
   }
+  
+  return false;
 }

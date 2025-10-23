@@ -88,7 +88,6 @@ export async function onPasskeyCreate(user: {
 }): Promise<
   | {
       authenticatorParams: TurnkeyAuthenticatorParams;
-      subOrgCreationResponse: any;
       deviceUID: string;
     }
   | undefined
@@ -134,15 +133,7 @@ export async function onPasskeyCreate(user: {
     });
 
     console.log("authenticatorParams", authenticatorParams);
-
-    const response = await createSubOrganization(authenticatorParams, {
-      username: user.username,
-      email: user.email,
-      userId: deviceUID,
-    });
-    if (!response) return;
-    console.log("created sub-org", response);
-    return { authenticatorParams, subOrgCreationResponse: response, deviceUID };
+    return { authenticatorParams, deviceUID };
   } catch (e) {
     console.error("error during passkey creation", e);
   }

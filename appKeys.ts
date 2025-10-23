@@ -9,6 +9,7 @@ export interface AppExtraConfig {
     turnkeyApiPublicKey?: string;
     turnkeyApiPrivateKey?: string;
     apiBaseUrl?: string;
+    serverBaseUrl?:string;
 }
 
 const extra = Constants.expoConfig?.extra as AppExtraConfig | undefined;
@@ -26,6 +27,7 @@ export const Config = {
     TURNKEY_API_PRIVATE_KEY: extra?.turnkeyApiPrivateKey,
     // API Base URL
     API_BASE_URL: extra?.apiBaseUrl,
+    SERVER_BASE_URL: extra?.serverBaseUrl,
 
     // --- Public Variables (from .env) ---
     EXPO_PUBLIC_PASSKEY_RP_NAME: process.env.EXPO_PUBLIC_PASSKEY_RP_NAME,

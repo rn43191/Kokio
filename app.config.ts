@@ -23,6 +23,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
     // API Base URL
     apiBaseUrl: process.env.API_BASE_URL,
+    serverBaseUrl: process.env.SERVER_BASE_URL,
   };
 
   console.log("privateConfig: ", privateConfig);

@@ -15,7 +15,7 @@ import { decodeAttestationObj, onPasskeyCreate } from "@/utils/passkey";
 import { decodeAttestationObject } from "@simplewebauthn/server/helpers";
 
 import { useRouter } from "expo-router";
-import { handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
+import { createSubOrganization, handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
 import { base64UrlToBuffer } from "@/helpers/converters";
 import { toHex } from "@/helpers/iso/isoUint8Array";
 
@@ -144,7 +144,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
   const now = new Date().getTime();
 
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const { session, createEmbeddedKey, createSession, clearSession } =
+  const { session, createEmbeddedKey, createSessionFromEmbeddedKey, createSession, clearSession } =
     useTurnkey();
   const router = useRouter();
 
@@ -247,66 +247,67 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
 
       console.log("passkey registration succeeded: ", data.authenticatorParams);
 
-      const decodedAttestationObjectCbor = await decodeAttestationObj({
-        rawId: data.authenticatorParams.attestation.credentialId,
-        response: {
-          clientDataJson: data.authenticatorParams.attestation.clientDataJson,
-          attestationObject:
-            data.authenticatorParams.attestation.attestationObject,
-        },
-      });
-      const decodedAttestationObjSimpleWebAuthn = await decodeAttestationObject(
-        base64UrlToBuffer(
-          data.authenticatorParams.attestation.attestationObject
-        )
-      );
-
-      console.log(
-        "decoded attestation object cbor: ",
-        decodedAttestationObjectCbor
-      );
-      console.log(
-        "decoded attestation object simpleWebAuthn: ",
-        toHex(decodedAttestationObjSimpleWebAuthn.get("authData"))
-      );
-
-      if (data.subOrgCreationResponse) {
+      if (data.authenticatorParams) {
+        const authenticatorParams = data.authenticatorParams;
         // Successfully created sub-organization, proceed with the login flow
-        const stamper = await new PasskeyStamper({
-          rpId: PASSKEY_CONFIG.RP_ID,
-        });
 
-        const httpClient = new TurnkeyClient(
-          { baseUrl: TURNKEY_API_URL },
-          stamper
+        const targetPublicKey = await createEmbeddedKey({ isCompressed: true });
+
+        const userInfo = {
+          userId: data.deviceUID,
+          email: user.email ?? ""
+        };
+        const passkey = {
+          challenge: authenticatorParams.challenge,
+          attestation: authenticatorParams.attestation,
+        };
+        const apiKeys = [{
+            apiKeyName: "Passkey API Key",
+            publicKey: targetPublicKey,
+            curveType: "API_KEY_CURVE_P256",
+        }];
+        const response = await createSubOrganization(
+          userInfo, passkey, apiKeys
         );
 
-        const targetPublicKey = await createEmbeddedKey();
-
-        const sessionResponse = await httpClient.createReadWriteSession({
-          type: "ACTIVITY_TYPE_CREATE_READ_WRITE_SESSION_V2",
-          timestampMs: Date.now().toString(),
-          organizationId: TURNKEY_PARENT_ORG_ID,
-          parameters: {
-            targetPublicKey,
+        const decodedAttestationObjectCbor = await decodeAttestationObj({
+          rawId: authenticatorParams.attestation.credentialId,
+          response: {
+            clientDataJson: authenticatorParams.attestation.clientDataJson,
+            attestationObject:
+              authenticatorParams.attestation.attestationObject,
           },
         });
+        const decodedAttestationObjSimpleWebAuthn = await decodeAttestationObject(
+          base64UrlToBuffer(
+            authenticatorParams.attestation.attestationObject
+          )
+        );
 
-        const credentialBundle =
-          sessionResponse.activity.result.createReadWriteSessionResultV2
-            ?.credentialBundle;
+        console.log(
+          "decoded attestation object cbor: ",
+          decodedAttestationObjectCbor
+        );
+        console.log(
+          "decoded attestation object simpleWebAuthn: ",
+          toHex(decodedAttestationObjSimpleWebAuthn.get("authData"))
+        );
 
-        if (credentialBundle) {
-          const session = await createSession({
-            bundle: credentialBundle,
-            expirationSeconds: 3600,
+        const subOrganizationId = response.subOrganizationId;
+
+        if(subOrganizationId) {
+          const session = await createSessionFromEmbeddedKey({ 
+            subOrganizationId,
+            expirationSeconds: 3600
           });
+          
           dispatch({
             type: "PASSKEY",
             payload: session.user,
           });
+
           return {
-            authenticatorParams: data.authenticatorParams,
+            authenticatorParams: authenticatorParams,
             decodedAttestationObject: {
               decodedAttestationObjectCbor,
               decodedAttestationObjectSimpleWebAuthnHex: toHex(
