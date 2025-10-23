@@ -22,7 +22,7 @@ import { toHex, http, createWalletClient, Account, WalletClient } from "viem";
 import { baseSepolia } from "viem/chains";
 import { createAccount } from "@turnkey/viem";
 import { User } from "@turnkey/sdk-react-native";
-import { checkIfEmailInUse, createSubOrganization } from "./api";
+import { checkIfEmailInUse } from "./api";
 
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
 

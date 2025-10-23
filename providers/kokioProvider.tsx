@@ -14,6 +14,7 @@ import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import * as SecureStore from "expo-secure-store";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { useRouter } from "expo-router";
+import { deleteSubOrganization } from "@/utils/api";
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -402,7 +403,17 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_KOKIO" });
   };
 
-  const clearKokioUser = async () => {
+  const clearKokioUser = async (user: User) => {
+    const subOrgId = user?.organizationId;
+    console.log("Calling deleteSubOrganization!!!", subOrgId);
+    if(subOrgId) {
+      try {
+        deleteSubOrganization(subOrgId as string);
+      } catch (e) {
+        console.error("Could not delete sub-org: ", e);
+      }
+    }
+
     // Clear user data from secure store
     dispatch({ type: "CLEAR_KOKIO_USER" });
     await deleteValueForUser(`userPasskey-${kokio.deviceUID}`);

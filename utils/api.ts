@@ -7,7 +7,8 @@ import {
 // Assuming types.ts is still available for ParamsType
 import { APIKeysT, ParamsType, PasskeyT } from "./types";
 import Constants from "expo-constants";
-import { AppExtraConfig } from "@/appKeys";
+import { AppExtraConfig, Config } from "@/appKeys";
+import { PasskeyStamper, TurnkeyClient } from "@turnkey/sdk-react-native";
 
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
 const SERVER_BASE_URL = `${extra.serverBaseUrl}:3000`;
@@ -39,9 +40,9 @@ async function post(endpoint: string, body: any) {
  * Initiates OTP auth by calling the server endpoint.
  * Original signature: handleInitOtpAuth({ email }: { email: string })
  */
-export async function handleInitOtpAuth({ email }: { email: string }) {
+export async function handleInitEmailOtpAuth({ email }: { email: string }) {
   try {
-    const result = await post('/api/init-otp-auth', { email });
+    const result = await post('/api/init-email-otp-auth', { email });
     // Expected server response: { result: InitOtpAuthResponse, organizationId: string }
     return result;
   } catch (error) {
@@ -65,9 +66,35 @@ export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
   }
 }
 
+/**
+ * Deletes a sub-organization.
+ * The sub-org can be deleted by a session or an API key belonging to the sub-org itself
+ * Easy to delete as passkey is the session signer
+ * This is not done in backend, as backend will have to then store API keys for 
+ * each sub-org created by the client
+ */
 export async function deleteSubOrganization(organizationIdToDelete: string) {
+  console.log("organizationIdToDelete: ", organizationIdToDelete);
   if (!organizationIdToDelete) {
     throw new Error("Missing organization ID required for secure deletion.");
+  }
+  const stamper = new PasskeyStamper({
+    rpId: Config.EXPO_PUBLIC_RP_ID as string,
+  });
+
+  const turnkeyClient = new TurnkeyClient({ baseUrl: TURNKEY_API_URL }, stamper);
+
+  const timestampMs = Date.now().toString();
+
+  try {
+    await turnkeyClient.deleteSubOrganization({
+      type: "ACTIVITY_TYPE_DELETE_SUB_ORGANIZATION",
+      timestampMs: timestampMs,
+      organizationId: organizationIdToDelete,
+      parameters: { deleteWithoutExport: true }
+    });
+  } catch (e) {
+    console.error("Error deleting sub-org: ", e);
   }
 }
 
@@ -103,6 +130,10 @@ export async function createSubOrganization(
   }
 }
 
+/**
+ * Checks if a sub-organization exists for an email via the server.
+ * Original signature: checkIfEmailInUse({ email }: { email: string }): Promise<boolean | string[]>
+ */
 export async function checkIfEmailInUse({
   email,
 }: {
@@ -111,6 +142,19 @@ export async function checkIfEmailInUse({
   if (!email) {
     throw new Error("Email is required for check.");
   }
-  
-  return false;
+
+  try {
+    // The server returns { inUse: boolean, organizationIds: string[] }
+    const result = await post('/api/check-email', { email });
+
+    // Match the original function's return type: boolean (false) or string[] (organization IDs)
+    if (result.inUse) {
+      return result.organizationIds;
+    } else {
+      return false;
+    }
+  } catch (error) {
+    console.error("error during checkIfEmailInUse", error);
+    throw error;
+  }
 }

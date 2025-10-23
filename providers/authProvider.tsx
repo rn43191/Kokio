@@ -15,7 +15,7 @@ import { decodeAttestationObj, onPasskeyCreate } from "@/utils/passkey";
 import { decodeAttestationObject } from "@simplewebauthn/server/helpers";
 
 import { useRouter } from "expo-router";
-import { createSubOrganization, handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
+import { createSubOrganization, handleInitEmailOtpAuth, handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
 import { base64UrlToBuffer } from "@/helpers/converters";
 import { toHex } from "@/helpers/iso/isoUint8Array";
 
@@ -159,7 +159,7 @@ export const AuthRelayProvider: React.FC<AuthRelayProviderProps> = ({
   const initEmailLogin = async (email: string) => {
     dispatch({ type: "LOADING", payload: LoginMethod.Email });
     try {
-      const response = await handleInitOtpAuth({
+      const response = await handleInitEmailOtpAuth({
         email,
       });
 
