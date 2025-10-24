@@ -1,3 +1,9 @@
+configurations {
+    all {
+        exclude group: 'com.swmansion.worklets', module: 'react-native-worklets'
+    }
+}
+
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
@@ -94,6 +100,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
+
+        multiDexEnabled true
     }
     signingConfigs {
         debug {
@@ -148,8 +156,13 @@ android {
 }
 
 dependencies {
+    implementation(project(':react-native-reanimated')) {
+        exclude group: 'com.facebook.react', module: 'react-native-worklets'
+    }
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    implementation("androidx.multidex:multidex:2.0.1")
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
@@ -173,5 +186,15 @@ dependencies {
         implementation("com.facebook.react:hermes-android")
     } else {
         implementation jscFlavor
+    }
+}
+
+configurations.all {
+    exclude group: "com.swmansion.worklets"
+    resolutionStrategy.eachDependency { details ->
+        def requested = details.requested
+        if (requested.group == 'com.android.support' && requested.name != 'multidex') {
+            details.useVersion "${rootProject.ext.supportLibVersion}"
+        }
     }
 }

@@ -3,10 +3,14 @@ import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import { returnViemWalletClient } from "./passkey";
 import { TurnkeyClient, User } from "@turnkey/sdk-react-native";
 import { UserPasskey } from "@/providers/kokioProvider";
+import Constants from "expo-constants";
+import { AppExtraConfig } from "@/appKeys";
 import { SmartContractAccount } from "@aa-sdk/core";
 import { Kokio } from "kokio-sdk";
 
 export const initializeKokioSDK = async (user: User, userPasskey: UserPasskey, walletAddress: string) => {
+  const extra = Constants.expoConfig?.extra as AppExtraConfig;
+  
   const stamper = new PasskeyStamper({
     rpId: PASSKEY_CONFIG.RP_ID,
   });
@@ -32,9 +36,9 @@ export const initializeKokioSDK = async (user: User, userPasskey: UserPasskey, w
     turnkeyClient,
     userPasskey.credentialId,
     PASSKEY_CONFIG.RP_ID,
-    process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
-    process.env.EXPO_PUBLIC_PIMLICO_API_KEY ?? "",
-    process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
+    extra.turnkeyOrganizationId ?? "",
+    extra.pimlicoApiKey ?? "",
+    extra.gasManagerPolicyId ?? ""
   );
 
   return kokioSDK;

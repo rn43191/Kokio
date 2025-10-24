@@ -47,7 +47,7 @@ export default function MenuScreen() {
   const { loginWithPasskey, signUpWithPasskey, reauthenticate } =
     useAuthRelay();
   const { clearKokioUser } = useKokio();
-  const { clearAllSessions } = useTurnkey();
+  const { clearAllSessions, user } = useTurnkey();
   const router = useRouter();
   const menuItems = [
     {
@@ -96,10 +96,9 @@ export default function MenuScreen() {
       iconLeft: "log-out-outline",
       iconRight: "chevron-forward-outline",
       action: async () => {
-        deleteSubOrganization();
         clearAllSessions()
           .then(async () => {
-            await clearKokioUser();
+            await clearKokioUser(user);
           })
           .finally(() => {
             reauthenticate();

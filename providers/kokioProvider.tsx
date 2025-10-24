@@ -2,15 +2,19 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
+import Constants from 'expo-constants';
+import { AppExtraConfig } from '@/appKeys';
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
-import { TurnkeyClient } from "@turnkey/http";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { SmartContractAccount } from "@aa-sdk/core";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import * as SecureStore from "expo-secure-store";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { useRouter } from "expo-router";
+import { deleteSubOrganization } from "@/utils/api";
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -383,9 +387,9 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       turnkeyClient,
       kokio.userPasskey?.credentialId,
       PASSKEY_CONFIG.RP_ID,
-      process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
-      process.env.EXPO_PUBLIC_PIMLICO_API_KEY ?? "",
-      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
+      extra.turnkeyOrganizationId ?? "",
+      extra.pimlicoApiKey ?? "",
+      extra.gasManagerPolicyId ?? ""
     );
 
     if (!kokioSDK) {
@@ -399,7 +403,17 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_KOKIO" });
   };
 
-  const clearKokioUser = async () => {
+  const clearKokioUser = async (user: User) => {
+    const subOrgId = user?.organizationId;
+    console.log("Calling deleteSubOrganization!!!", subOrgId);
+    if(subOrgId) {
+      try {
+        deleteSubOrganization(subOrgId as string);
+      } catch (e) {
+        console.error("Could not delete sub-org: ", e);
+      }
+    }
+
     // Clear user data from secure store
     dispatch({ type: "CLEAR_KOKIO_USER" });
     await deleteValueForUser(`userPasskey-${kokio.deviceUID}`);

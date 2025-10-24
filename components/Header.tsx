@@ -57,7 +57,7 @@ const Header = ({
           style={{
             marginRight: Theme.spacing.sm,
             position: "absolute",
-            zIndex: 0.8,
+            zIndex: 1,
           }}
           onPress={handleBack}
         />
