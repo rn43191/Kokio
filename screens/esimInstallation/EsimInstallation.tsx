@@ -12,6 +12,7 @@ import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
+import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme, Colors } from "@/constants/Colors";
@@ -19,9 +20,9 @@ import { Theme, Colors } from "@/constants/Colors";
 const Tab = createMaterialTopTabNavigator();
 
 const EsimInstallation = () => {
-  // TODO: From API
-  const qrData =
-    "LPA:1$activation.airalo.com$LPA:1$activation.airalo.com$sample-qr-data";
+  const { qrcode, appleInstallationUrl, iccid, orderId } =
+    useLocalSearchParams();
+  const qrData = qrcode || "LPA:1$activation.airalo.com$sample-qr-data";
 
   const handleShareQR = async () => {
     try {

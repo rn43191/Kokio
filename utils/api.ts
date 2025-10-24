@@ -38,7 +38,7 @@ async function post(endpoint: string, body: any) {
 
 /**
  * Initiates OTP auth by calling the server endpoint.
- * Original signature: handleInitOtpAuth({ email }: { email: string })
+ * Original signature: handleInitEmailOtpAuth({ email }: { email: string })
  */
 export async function handleInitEmailOtpAuth({ email }: { email: string }) {
   try {
@@ -46,7 +46,7 @@ export async function handleInitEmailOtpAuth({ email }: { email: string }) {
     // Expected server response: { result: InitOtpAuthResponse, organizationId: string }
     return result;
   } catch (error) {
-    console.error("error during handleInitOtpAuth", error);
+    console.error("error during handleInitEmailOtpAuth", error);
     throw error;
   }
 }

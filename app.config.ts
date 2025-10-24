@@ -3,11 +3,6 @@ import { AppExtraConfig } from './appKeys.js';
 
 export default ({ config }: ConfigContext): ExpoConfig => {
 
-    console.log("--- RAW ENV CHECK ---");
-    console.log("Raw ALCHEMY_API_KEY: ", process.env.ALCHEMY_API_KEY);
-    console.log("Raw GAS_MANAGER_POLICY_ID: ", process.env.GAS_MANAGER_POLICY_ID);
-    console.log("--- END RAW ENV CHECK ---");
-
   const privateConfig: AppExtraConfig = {
     // ALCHEMY
     alchemyApiKey: process.env.ALCHEMY_API_KEY,
@@ -25,8 +20,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     apiBaseUrl: process.env.API_BASE_URL,
     serverBaseUrl: process.env.SERVER_BASE_URL,
   };
-
-  console.log("privateConfig: ", privateConfig);
 
   return {
     // Merge any default or existing config

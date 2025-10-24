@@ -15,7 +15,7 @@ import { decodeAttestationObj, onPasskeyCreate } from "@/utils/passkey";
 import { decodeAttestationObject } from "@simplewebauthn/server/helpers";
 
 import { useRouter } from "expo-router";
-import { createSubOrganization, handleInitEmailOtpAuth, handleInitOtpAuth, handleOtpAuth } from "@/utils/api";
+import { createSubOrganization, handleInitEmailOtpAuth, handleOtpAuth } from "@/utils/api";
 import { base64UrlToBuffer } from "@/helpers/converters";
 import { toHex } from "@/helpers/iso/isoUint8Array";
 
