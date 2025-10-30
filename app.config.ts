@@ -1,8 +1,7 @@
-import { ExpoConfig, ConfigContext } from 'expo/config';
-import { AppExtraConfig } from './appKeys.js';
+import { ExpoConfig, ConfigContext } from "expo/config";
+import { AppExtraConfig } from "./appKeys.js";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-
   const privateConfig: AppExtraConfig = {
     // ALCHEMY
     alchemyApiKey: process.env.ALCHEMY_API_KEY,
@@ -25,78 +24,76 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     // Merge any default or existing config
     ...config,
 
-    "newArchEnabled": true,
-    "name": "Kokio",
-    "slug": "Kokio",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "kokio",
-    "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+    newArchEnabled: true,
+    name: "Kokio",
+    slug: "Kokio",
+    version: "1.0.0",
+    orientation: "portrait",
+    icon: "./assets/images/icon.png",
+    scheme: "kokio",
+    userInterfaceStyle: "automatic",
+    splash: {
+      image: "./assets/images/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
     },
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "app.kokio",
-      "associatedDomains": [
-        "webcredentials:kokio.app",
-        "webcredentials:kokio.app"
-      ],
-      "config": {
-        "usesNonExemptEncryption": false
+    ios: {
+      supportsTablet: true,
+      bundleIdentifier: "app.kokio",
+      associatedDomains: ["webcredentials:kokio.app"],
+      config: {
+        usesNonExemptEncryption: false,
       },
-      "runtimeVersion": {
-        "policy": "appVersion"
-      }
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+      runtimeVersion: {
+        policy: "appVersion",
       },
-      "package": "app.kokio",
-      "edgeToEdgeEnabled": false,
-      "runtimeVersion": "1.0.0"
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+    android: {
+      adaptiveIcon: {
+        foregroundImage: "./assets/images/adaptive-icon.png",
+        backgroundColor: "#ffffff",
+      },
+      package: "app.kokio",
+      edgeToEdgeEnabled: false,
+      runtimeVersion: "1.0.0",
     },
-    "plugins": [
+    web: {
+      bundler: "metro",
+      output: "static",
+      favicon: "./assets/images/favicon.png",
+    },
+    plugins: [
       [
         "expo-build-properties",
         {
-          "android": {
-            "compileSdkVersion": 36,
-            "targetSdkVersion": 36,
-            "kotlinVersion": "2.1.20"
-          }
-        }
+          android: {
+            compileSdkVersion: 36,
+            targetSdkVersion: 36,
+            kotlinVersion: "2.1.20",
+          },
+        },
       ],
       "expo-router",
       "expo-font",
       [
         "expo-secure-store",
         {
-          "configureAndroidBackup": true,
-          "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
-        }
+          configureAndroidBackup: true,
+          faceIDPermission:
+            "Allow $(PRODUCT_NAME) to access your Face ID biometric data.",
+        },
       ],
-      "expo-asset"
+      "expo-asset",
     ],
-    "experiments": {
-      "typedRoutes": true
+    experiments: {
+      typedRoutes: true,
     },
-    "updates": {
-      "url": "https://u.expo.dev/113a4624-12f1-425b-b76c-a7bedc503b5e"
+    updates: {
+      url: "https://u.expo.dev/113a4624-12f1-425b-b76c-a7bedc503b5e",
     },
     extra: {
       eas: {
-        projectId: "113a4624-12f1-425b-b76c-a7bedc503b5e"
+        projectId: "113a4624-12f1-425b-b76c-a7bedc503b5e",
       },
       ...privateConfig,
     },
