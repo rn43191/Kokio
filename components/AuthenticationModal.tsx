@@ -78,12 +78,13 @@ export function AuthenticationModal() {
                 y:
                   data.decodedAttestationObject?.decodedAttestationObjectCbor
                     ?.y || "",
+                credentialId:
+                  data.decodedAttestationObject?.decodedAttestationObjectCbor
+                    ?.credentialId || "",
                 attestationObject:
                   data.authenticatorParams?.attestation.attestationObject || "",
                 clientDataJson:
                   data.authenticatorParams.attestation.clientDataJson,
-                credentialId:
-                  data.authenticatorParams?.attestation?.credentialId,
               });
             }
           })

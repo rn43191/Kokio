@@ -7,11 +7,15 @@ import {
   Text,
   Dimensions,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
 import ToggleSwitch from "toggle-switch-react-native";
 import _sum from "lodash/sum";
+import _trim from "lodash/trim";
+import _subtract from "lodash/subtract";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme } from "@/constants/Colors";
@@ -20,7 +24,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import AmountInput from "@/components/amountInput";
 import { Esim } from "@/components/ESIMItem";
 import { getEsimOrderPayload } from "@/helpers/esimOrder";
-// import { eSimOderCheckout } from "@/services/esims";
+import { eSimOderCheckout } from "@/services/esims";
 import CheckoutSuccessModal from "@/components/ui/CheckoutSuccessModal";
 import WalletSetupModal from "@/components/ui/WalletSetupModal";
 import CreditCardModal from "@/components/CreditCardModal";
@@ -57,6 +61,11 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
   const [showCreditCardModal, setShowCreditCardModal] = useState(false);
   const { kokio } = useKokio();
+  const [discountCode, setDiscountCode] = useState<string>("");
+  const [isDiscountApplied, setIsDiscountApplied] = useState<boolean>(false);
+  const [discountAmount, setDiscountAmount] = useState<number>(0);
+  const [orderResponse, setOrderResponse] = useState<any>(null);
+  const [discountError, setDiscountError] = useState<string>("");
 
   const radioButtons: RadioButtonProps[] = useMemo(
     () => createRadioButtons(selectedPaymentMethod, styles.buttonStyle),
@@ -70,7 +79,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
           <ThemedText
             style={{ color: Theme.colors.foreground, marginRight: 4 }}
           >
-            Add this amount to my eSIM wallet
+            Add this amount to my device wallet
           </ThemedText>
           <ThemedText style={{ color: Theme.colors.foreground }}>
             (1USD=1USDC)
@@ -101,6 +110,32 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     );
   }, [amount, setAmount]);
 
+  const handleEsimCheckout = useCallback(async () => {
+    try {
+      const payload = getEsimOrderPayload({ eSimItem });
+      console.log({ eSimItem });
+
+      const response = await eSimOderCheckout(payload);
+
+      if (response?.success && response?.data) {
+        setOrderResponse(response.data);
+        setShowSuccessModal(true);
+      } else {
+        // Handle API error
+        console.error("Checkout failed:", response?.message);
+        // TODO: Show error modal/toast
+      }
+    } catch (err) {
+      console.error("Checkout error:", err);
+      const { data } = err || {};
+      if (data?.message) {
+        console.error("Checkout failed:", data.message);
+      }
+      // TODO: Show error handling
+      // setShowSuccessModal(true); // Remove this when proper error handling is added
+    }
+  }, [eSimItem]);
+
   const handleCheckout = useCallback(async () => {
     // If credit card is selected, open the credit card modal instead of proceeding with checkout
     if (selectedPaymentMethod === RADIO_KEYS.CREDIT_CARD) {
@@ -108,25 +143,22 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       return;
     }
 
-    try {
-      const payload = getEsimOrderPayload({ eSimItem });
-      // TODO: Uncomment on API integrate
-      // const response = await eSimOderCheckout(payload);
-
-      setShowSuccessModal(true);
-      // TODO: Persist API response for navigating to QA Screen
-    } catch (err) {
-      setShowSuccessModal(true); // TODO: false on API integrate
-    }
+    handleEsimCheckout();
   }, [eSimItem, selectedPaymentMethod]);
 
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
     router.navigate({
       pathname: "/(tabs)/(shop)/installation",
-      params: {},
+      params: {
+        orderId: orderResponse?.orderId || "",
+        qrcode: orderResponse?.installationDetails?.qrcode || "",
+        appleInstallationUrl:
+          orderResponse?.installationDetails?.appleInstallationUrl || "",
+        iccid: orderResponse?.iccid || "",
+      },
     });
-  }, []);
+  }, [orderResponse]);
 
   const handleWalletModalClose = useCallback(() => {
     setShowWalletSetupModal(false);
@@ -134,7 +166,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handlePaymentMethodChange = useCallback((value: string) => {
     if (value === RADIO_KEYS.E_SIM_WALLET) {
-      console.log(kokio.userWallet?.address)
+      console.log(kokio.userWallet?.address);
       if (kokio.userWallet) {
         setSelectedPaymentMethod(value);
       } else {
@@ -163,18 +195,57 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       setShowCreditCardModal(false);
 
       // Now proceed with the actual checkout process
-      try {
-        const payload = getEsimOrderPayload({ eSimItem });
-        // TODO: Uncomment on API integrate
-        // const response = await eSimOderCheckout(payload);
-
-        setShowSuccessModal(true);
-        // TODO: Persist API response for navigating to QA Screen
-      } catch (err) {
-        setShowSuccessModal(true); // TODO: false on API integrate
-      }
+      handleEsimCheckout();
     },
     [eSimItem]
+  );
+
+  const handleApplyDiscount = useCallback(() => {
+    // TODO: Implement API Integration for coupon validation
+    if (_trim(discountCode)) {
+      // Clear previous error
+      setDiscountError("");
+
+      // Mock validation - replace with actual API call
+      const isValidCoupon = discountCode.toLowerCase() === "save100"; // Example validation
+
+      if (!isValidCoupon) {
+        setDiscountError("Invalid discount code");
+        setIsDiscountApplied(false);
+        setDiscountAmount(0);
+        return;
+      }
+
+      // Apply full discount (100% off)
+      setIsDiscountApplied(true);
+      setDiscountAmount(eSimItem.actualSellingPrice);
+      console.log("Applying discount code:", discountCode);
+
+      // Check if wallet is set up when applying discount
+      if (!kokio.userWallet) {
+        setShowWalletSetupModal(true);
+        return;
+      }
+    }
+  }, [discountCode, eSimItem.actualSellingPrice, kokio.userWallet]);
+
+  const handleRemoveDiscount = useCallback(() => {
+    setIsDiscountApplied(false);
+    setDiscountAmount(0);
+    setDiscountCode("");
+    setDiscountError("");
+  }, []);
+
+  const totalAmount = useMemo(() => {
+    if (isDiscountApplied) {
+      return _subtract(eSimItem.actualSellingPrice, discountAmount);
+    }
+    return eSimItem.actualSellingPrice;
+  }, [eSimItem.actualSellingPrice, isDiscountApplied, discountAmount]);
+
+  const canCheckout = useMemo(
+    () => isESimEnabled && (selectedPaymentMethod || totalAmount === 0),
+    [isESimEnabled, selectedPaymentMethod, totalAmount]
   );
 
   return (
@@ -207,6 +278,51 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         </View>
 
         <View style={{ marginTop: 16 }}>
+          <ThemedText>Discount</ThemedText>
+          <View style={styles.discountContainer}>
+            <TextInput
+              style={styles.discountInput}
+              value={discountCode}
+              onChangeText={setDiscountCode}
+              placeholder="Enter discount code"
+              placeholderTextColor={Theme.colors.muted}
+            />
+            <TouchableOpacity
+              style={[
+                styles.applyButton,
+                !_trim(discountCode) && { opacity: 0.5 },
+              ]}
+              onPress={handleApplyDiscount}
+              disabled={!_trim(discountCode)}
+            >
+              <ThemedText style={styles.applyButtonText}>Apply</ThemedText>
+            </TouchableOpacity>
+          </View>
+          {isDiscountApplied && (
+            <View style={styles.discountAppliedContainer}>
+              <View style={styles.discountAppliedContent}>
+                <ThemedText style={styles.discountAppliedText}>
+                  Discount applied: -${discountAmount.toFixed(2)}
+                </ThemedText>
+                <TouchableOpacity
+                  onPress={handleRemoveDiscount}
+                  style={styles.removeDiscountButton}
+                >
+                  <Ionicons name="close" size={16} color="#FF453A" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          {discountError && (
+            <View style={styles.discountErrorContainer}>
+              <ThemedText style={styles.discountErrorText}>
+                {discountError}
+              </ThemedText>
+            </View>
+          )}
+        </View>
+
+        <View style={{ marginTop: 16 }}>
           <ThemedText>Fund Device Wallet</ThemedText>
           <Text style={{ color: Theme.colors.foreground, marginTop: 12 }}>
             Speed up and secure your next eSIM purchase or top-up by funding
@@ -229,18 +345,13 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       </ScrollView>
 
       <TouchableOpacity
-        style={[
-          styles.bottomButtonContainer,
-          (!isESimEnabled || !selectedPaymentMethod) && { opacity: 0.5 },
-        ]}
-        onPress={
-          isESimEnabled && selectedPaymentMethod ? handleCheckout : undefined
-        }
-        disabled={!isESimEnabled || !selectedPaymentMethod}
+        style={[styles.bottomButtonContainer, !canCheckout && { opacity: 0.5 }]}
+        onPress={canCheckout ? handleCheckout : undefined}
+        disabled={!canCheckout}
       >
         <DetailItem
           prefix="Total "
-          value={eSimItem.actualSellingPrice}
+          value={totalAmount}
           suffix="USD"
           containerStyles={styles.checkoutButton}
         />
@@ -378,5 +489,64 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "600",
+  },
+  discountContainer: {
+    flexDirection: "row",
+    marginTop: 12,
+    gap: 8,
+  },
+  discountInput: {
+    flex: 1,
+    backgroundColor: "#7676803D",
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    color: Theme.colors.foreground,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "transparent",
+  },
+  applyButton: {
+    backgroundColor: Theme.colors.secondary,
+    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  applyButtonText: {
+    color: "black",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  discountAppliedContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: "#30D15820",
+    borderRadius: 8,
+  },
+  discountAppliedContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  discountAppliedText: {
+    color: "#30D158",
+    fontSize: 14,
+  },
+  removeDiscountButton: {
+    padding: 4,
+    backgroundColor: "#FF453A20",
+    borderRadius: 32,
+  },
+  discountErrorContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: "#FF453A20",
+    borderRadius: 8,
+  },
+  discountErrorText: {
+    color: "#FF453A",
+    fontSize: 14,
   },
 });

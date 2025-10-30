@@ -2,7 +2,7 @@ import api from "./httpService";
 
 const API_PATHS = {
   FETCH_ESIMS: "/v1/catalogue",
-  ORDER: "/v1/ordersssss", // TODO: Endpoint correction
+  ORDER: "/v1/order",
 };
 
 export const fetchEsimsCatalogue = (payload) =>

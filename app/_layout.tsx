@@ -77,7 +77,7 @@ export default function RootLayout() {
   }, [loaded, isLoading]);
 
   // Wait until ready
-  if (!loaded || isLoading) {
+  if (!loaded) {
     return <FullScreenLoader />;
   }
 

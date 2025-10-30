@@ -32,10 +32,10 @@ export type KeyPair = {
 
 export type SignRawPayloadResult =
   | {
-      r: string;
-      s: string;
-      v: string;
-    }
+    r: string;
+    s: string;
+    v: string;
+  }
   | undefined;
 
 export type Email = `${string}@${string}.${string}`;
@@ -114,3 +114,25 @@ export type JSONRPCRequest<M extends MethodName> = {
   method: M;
   params: ParamsType<M>;
 };
+
+export type PasskeyT = {
+  challenge: string,
+  attestation: {
+    credentialId: string;
+    clientDataJson: string;
+    attestationObject: string;
+    transports: (
+      "AUTHENTICATOR_TRANSPORT_BLE" |
+      "AUTHENTICATOR_TRANSPORT_INTERNAL" |
+      "AUTHENTICATOR_TRANSPORT_NFC" |
+      "AUTHENTICATOR_TRANSPORT_USB" |
+      "AUTHENTICATOR_TRANSPORT_HYBRID"
+    )[];
+  }
+}
+
+export type APIKeysT = {
+  apiKeyName: string;
+  publicKey: string;
+  curveType: string;
+}[]

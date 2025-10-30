@@ -81,10 +81,12 @@ const styles = StyleSheet.create({
   header: {
     fontSize: 18,
     fontWeight: "700",
+    color: "#000000",
   },
   subHeader: {
     fontSize: 10,
     fontWeight: "400",
+    color: "#000000",
   },
   heroButton: {
     backgroundColor: Theme.colors.text,

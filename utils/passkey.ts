@@ -5,22 +5,26 @@ import {
   PasskeyStamper,
   TurnkeyAuthenticatorParams,
 } from "@turnkey/react-native-passkey-stamper";
-import { TurnkeyClient } from "@turnkey/http";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { v4 as uuid } from "uuid";
 import {
   base64UrlToBuffer,
   parseDEREncodedSignature,
 } from "@/helpers/converters";
+import Constants from "expo-constants";
+import { AppExtraConfig } from "@/appKeys";
 import { decodeClientDataJSON } from "@simplewebauthn/server/helpers";
 
 import { decode } from "cbor";
 import { Buffer } from "buffer";
 import { parseAuthenticatorData } from "@/helpers/parseAuthenticatorData";
 import { toHex, http, createWalletClient, Account, WalletClient } from "viem";
-import { optimismSepolia } from "viem/chains";
+import { baseSepolia } from "viem/chains";
 import { createAccount } from "@turnkey/viem";
 import { User } from "@turnkey/sdk-react-native";
-import { checkIfEmailInUse, createSubOrganization } from "./api";
+import { checkIfEmailInUse } from "./api";
+
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 /**
  * Decodes the attestation object and extracts public key data
@@ -84,7 +88,6 @@ export async function onPasskeyCreate(user: {
 }): Promise<
   | {
       authenticatorParams: TurnkeyAuthenticatorParams;
-      subOrgCreationResponse: any;
       deviceUID: string;
     }
   | undefined
@@ -130,15 +133,7 @@ export async function onPasskeyCreate(user: {
     });
 
     console.log("authenticatorParams", authenticatorParams);
-
-    const response = await createSubOrganization(authenticatorParams, {
-      username: user.username,
-      email: user.email,
-      userId: deviceUID,
-    });
-    if (!response) return;
-    console.log("created sub-org", response);
-    return { authenticatorParams, subOrgCreationResponse: response, deviceUID };
+    return { authenticatorParams, deviceUID };
   } catch (e) {
     console.error("error during passkey creation", e);
   }
@@ -149,7 +144,7 @@ export const returnViemWalletClient = async (
   client: TurnkeyClient,
   smartAccountAddress: string
 ): Promise<WalletClient> => {
-  // Kokio user wallet address comes from kokio SDK not Turnkey here - change
+  // Kokio user wallet address comes from kokio SDK not Turnkey here - change??
   console.log("user wallet address", smartAccountAddress);
 
   const viemAccount = await createAccount({
@@ -161,9 +156,9 @@ export const returnViemWalletClient = async (
 
   const viemClient = createWalletClient({
     account: viemAccount as Account,
-    chain: optimismSepolia,
+    chain: baseSepolia,
     transport: http(
-      `https://opt-sepolia.g.alchemy.com/v2/${process.env.EXPO_PUBLIC_ALCHEMY_API_KEY}`
+      `https://base-sepolia.g.alchemy.com/v2/${extra.alchemyApiKey}`
     ),
   });
 

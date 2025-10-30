@@ -11,19 +11,37 @@ import {
   Platform,
 } from "react-native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { openBrowserAsync } from "expo-web-browser";
 import { SmartContractAccount } from "@aa-sdk/core";
 import { ThemedText } from "@/components/ThemedText";
+import { BASE_SEPOLIA_TESTNET } from "@/constants/general.constants";
 import { useKokio } from "@/hooks/useKokio";
 import { checkIfEmailInUse } from "@/utils/api";
-import { User, useTurnkey } from "@turnkey/sdk-react-native";
-import { isValidEmail } from "@/helpers/isValidEmail";
+import {
+  PasskeyStamper,
+  TurnkeyClient,
+  useTurnkey,
+} from "@turnkey/sdk-react-native";
 import { P256Key } from "kokio-sdk/types";
+import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
+import { Kokio } from "kokio-sdk";
+import { returnViemWalletClient } from "@/utils/passkey";
 
 interface WalletSetupModalProps {
   visible: boolean;
   onClose: () => void;
   onContinue: () => void;
 }
+
+// Utility function to format wallet address
+const formatWalletAddress = (
+  address: string | undefined,
+  startLength = 4,
+  endLength = 4
+) => {
+  if (!address) return "";
+  return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
+};
 
 const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   visible,
@@ -33,23 +51,28 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
   const [email, setEmail] = useState("");
+  const [walletAddress, setWalletAddress] = useState<string | undefined>(
+    undefined
+  );
   const modalRef = React.useRef<Modal>(null);
   const { kokio, setupKokioUserWallet } = useKokio();
-  const { session } = useTurnkey();
+  const { session, user } = useTurnkey();
 
-  const returnSmartAccountAddress =
-    useCallback(async (): Promise<SmartContractAccount> => {
-      const deviceUniqueIdentifier = kokio.deviceUID;
-      const deviceWalletOwnerKey: P256Key = [
-        kokio.userPasskey?.x as `0x${string}`, // Public Key X from attestationObject
-        kokio.userPasskey?.y as `0x${string}`, // Public Key Y from attestationObject
-      ];
-      const salt = 25042025n; // BigInt
+  const returnSmartAccountAddress = useCallback(async (): Promise<
+    SmartContractAccount | undefined
+  > => {
+    const deviceUniqueIdentifier = kokio.deviceUID;
+    const deviceWalletOwnerKey: P256Key = [
+      kokio.userPasskey?.x as `0x${string}`, // Public Key X from attestationObject
+      kokio.userPasskey?.y as `0x${string}`, // Public Key Y from attestationObject
+    ];
+    const salt = 25042025n; // BigInt
 
-      console.log("data", deviceUniqueIdentifier, deviceWalletOwnerKey);
+    console.log("data", deviceUniqueIdentifier, deviceWalletOwnerKey);
 
+    if (user && kokio.sdk) {
       // Calculates device wallet address without deploying
-      const deviceWallet = await kokio.sdk!.smartAccount.getSmartWallet(
+      const deviceWallet = await kokio.sdk.smartAccount.getSmartWallet(
         deviceUniqueIdentifier,
         deviceWalletOwnerKey,
         salt
@@ -61,25 +84,63 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
        ** Alchemy’s SDK
        */
       const deviceWalletClient =
-        await kokio.sdk!.smartAccount.getSmartWalletClient(
+        await kokio.sdk.smartAccount.getSmartWalletClient(
           deviceWallet // Returned by getSmartWallet fn
         );
       console.log("device wallet client", deviceWalletClient.account?.address);
 
+      try {
+        const uo = await deviceWalletClient.sendUserOperation({
+          uo: {
+            target: deviceWalletClient.account.address,
+            data: "0x",
+            value: 0n,
+          },
+          overrides: {
+            preVerificationGas: 0xEEEE
+          }
+        });
+        console.log("uo", uo);
+      } catch (e) {
+        console.log("error uo", e);
+      }
+
       return deviceWallet;
-    }, [kokio]);
+    } else {
+      console.error(
+        "Wallet setup error... User is not authenticated or kokio sdk not set"
+      );
+    }
+  }, [kokio]);
 
   const { updateUser } = useTurnkey();
+
+  const handleAddressPress = useCallback(async () => {
+    if (walletAddress) {
+      const url = `${BASE_SEPOLIA_TESTNET}/${walletAddress}`;
+      try {
+        await openBrowserAsync(url);
+      } catch (error) {
+        console.error("Error opening browser:", error);
+      }
+    }
+  }, [walletAddress]);
 
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
 
     //wallet setup
-    if (session?.user && kokio.sdk && !kokio.userWallet) {
+    if (session?.user && kokio.sdk) {
       console.log("Setting up wallet...");
       const wallet = await returnSmartAccountAddress();
-      console.log(wallet);
-      await setupKokioUserWallet(kokio.deviceUID, wallet);
+      if (wallet) {
+        console.log("setWalletAddress", wallet);
+
+        // Store the wallet address for display
+        setWalletAddress(wallet?.address);
+
+        await setupKokioUserWallet(kokio.deviceUID, wallet);
+      }
     }
 
     setIsLoading(false);
@@ -90,6 +151,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     setIsLoading(false);
     setShowRecovery(false);
     setEmail("");
+    setWalletAddress(undefined);
     onClose();
   }, [onClose]);
 
@@ -97,11 +159,11 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     () => (
       <>
         <ThemedText bold style={styles.title}>
-          eSIM Wallet
+          Device Wallet
         </ThemedText>
 
         <Text style={styles.description}>
-          Before you can fund your on-device eSIM wallet, it need to be setup.
+          Press "Continue" to setup your device wallet.
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -136,6 +198,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const handleRemindLater = useCallback(() => {
     setShowRecovery(false);
     setEmail("");
+    setWalletAddress(undefined);
     onClose();
   }, [onClose]);
 
@@ -174,7 +237,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
           />
           <Text style={styles.warningText}>
             If you no longer have your device, you'll need this email id to
-            restore access to your eSIM wallet funds.
+            restore access to your wallet funds.
           </Text>
         </View>
 
@@ -183,11 +246,32 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             Wallet Recovery
           </ThemedText>
 
-          <Text style={styles.addressText}>Address: 0xf68...5f8g</Text>
+          <View style={styles.addressContainer}>
+            <Text style={styles.addressText}>Address: </Text>
+            <TouchableOpacity
+              style={styles.clickableAddressContainer}
+              onPress={handleAddressPress}
+              disabled={!walletAddress}
+            >
+              <Text style={styles.addressText}>
+                {walletAddress
+                  ? formatWalletAddress(walletAddress)
+                  : "Loading..."}
+              </Text>
+              {walletAddress && (
+                <MaterialIcons
+                  name="open-in-new"
+                  size={16}
+                  color="#AEAEB2"
+                  style={styles.linkIcon}
+                />
+              )}
+            </TouchableOpacity>
+          </View>
 
           <Text style={styles.recoveryDescription}>
             Please provide an email address for recovery purpose and to restore
-            access to your eSIM wallet funds
+            access to your device wallet funds
           </Text>
 
           <TextInput
@@ -215,7 +299,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
         </View>
       </>
     ),
-    [email, handleRemindLater, handleDone]
+    [email, handleRemindLater, handleDone, walletAddress]
   );
 
   const renderContent = () => {
@@ -361,10 +445,22 @@ const styles = StyleSheet.create({
     color: "white",
     marginBottom: 12,
   },
+  addressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  clickableAddressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   addressText: {
     color: "#AEAEB2",
     fontSize: 14,
-    marginBottom: 16,
+    marginRight: 8,
+  },
+  linkIcon: {
+    marginLeft: 4,
   },
   recoveryDescription: {
     color: "#AEAEB2",

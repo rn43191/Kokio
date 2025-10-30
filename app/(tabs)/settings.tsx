@@ -8,6 +8,8 @@ import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTurnkey } from "@turnkey/sdk-react-native";
+import { deleteSubOrganization } from "@/utils/api";
+import * as Updates from "expo-updates";
 
 const MenuItem = ({
   title,
@@ -42,9 +44,10 @@ const MenuItem = ({
 );
 
 export default function MenuScreen() {
-  const { reauthenticate } = useAuthRelay();
+  const { loginWithPasskey, signUpWithPasskey, reauthenticate } =
+    useAuthRelay();
   const { clearKokioUser } = useKokio();
-  const { clearAllSessions } = useTurnkey();
+  const { clearAllSessions, user } = useTurnkey();
   const router = useRouter();
   const menuItems = [
     {
@@ -79,17 +82,27 @@ export default function MenuScreen() {
     },
     {
       id: "6",
+      title: "Login with Passkey",
+      iconLeft: "log-in-outline",
+      iconRight: "chevron-forward-outline",
+      action: async () => {
+        router.push("/");
+        loginWithPasskey();
+      },
+    },
+    {
+      id: "7",
       title: "Logout and Clear Data",
       iconLeft: "log-out-outline",
       iconRight: "chevron-forward-outline",
       action: async () => {
         clearAllSessions()
-          .then(() => {
-            clearKokioUser();
+          .then(async () => {
+            await clearKokioUser(user);
           })
           .finally(() => {
-            router.push("/");
             reauthenticate();
+            Updates.reloadAsync();
           });
       },
     },

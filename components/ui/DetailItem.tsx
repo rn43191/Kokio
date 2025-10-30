@@ -27,12 +27,12 @@ const DetailItem = ({
 
   return (
     <View style={[styles.detailItem, containerStyles]}>
-      {iconName && <IconRenderer name={iconName} size={20} />}
-      {prefix && <Text>{prefix}</Text>}
+      {iconName && <IconRenderer name={iconName} size={20} color="#000000" />}
+      {prefix && <Text style={styles.text}>{prefix}</Text>}
       <Text style={[styles.details, highlight && { fontWeight: "800" }]}>
         {value ?? ""}
       </Text>
-      {suffix && <Text>{suffix}</Text>}
+      {suffix && <Text style={styles.text}>{suffix}</Text>}
     </View>
   );
 };
@@ -47,5 +47,9 @@ const styles = StyleSheet.create({
   },
   details: {
     fontSize: 14,
+    color: "#000000",
+  },
+  text: {
+    color: "#000000",
   },
 });

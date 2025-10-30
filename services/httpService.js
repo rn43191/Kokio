@@ -4,6 +4,7 @@ import qs from "qs";
 import _get from "lodash/get";
 
 import { uuid } from "@/utils/general";
+import { Config } from "@/appKeys";
 
 const REQUEST_TIMEOUT_MS_SHORT = 30000;
 
@@ -52,7 +53,7 @@ const api = ((args) => {
       return getDefaultHeaders();
     },
     getBaseURL() {
-      return process.env.EXPO_PUBLIC_API_BASE_URL;
+      return Config.API_BASE_URL;
     },
     getConfig() {
       const baseURL = this.getBaseURL();

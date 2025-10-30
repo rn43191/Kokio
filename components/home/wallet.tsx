@@ -12,19 +12,24 @@ import { ThemedText } from "../ThemedText";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors } from "@/constants/Colors";
 
-interface WalletProps{
-  balance:string,
-  walletId:string
+interface WalletProps {
+  balance?: string;
+  walletId?: string;
+  isWalletAdded?: boolean;
 }
-const shortenId = (address: string|undefined, startLength = 3, endLength = 6) => {
+const shortenId = (
+  address: string | undefined,
+  startLength = 3,
+  endLength = 6
+) => {
   if (!address) return "";
   return `${address.slice(0, startLength)}...${address.slice(-endLength)}`;
 };
 
-const Wallet = ({balance,walletId}:WalletProps) => {
+const Wallet = ({ balance, walletId, isWalletAdded }: WalletProps) => {
   return (
     <View style={{ marginVertical: 12 }}>
-     
+      <Text style={styles.headingText}>Device Wallet</Text>
       <View style={styles.shadowContainer}>
         <LinearGradient
           colors={["#404040", "#000000"]}
@@ -38,26 +43,38 @@ const Wallet = ({balance,walletId}:WalletProps) => {
             resizeMode="cover"
           />
           <ThemedView style={styles.headerWithLogo}>
-            <ThemedText variant="xl" className=" font-Lexend ml-4">eSIM Wallet</ThemedText>
+            <ThemedText variant="xl" className=" font-Lexend ml-4">
+              Device Wallet
+            </ThemedText>
             <Image
               source={require("@/assets/images/logo.png")}
               style={styles.logo}
             />
           </ThemedView>
-          <ThemedView style={styles.balanceContainer}>
-            <ThemedText variant="sm" className="text-white mb-1">Total balance</ThemedText>
-            <View style={styles.balanceAmountContainer}>
-              <ThemedText
-               className="text-white text-[40px] mr-1"
-               
-              
-              >
-                {balance}
+          {isWalletAdded ? (
+            <>
+              <ThemedView style={styles.balanceContainer}>
+                <ThemedText variant="sm" className="text-white mb-1">
+                  Total balance
+                </ThemedText>
+                <View style={styles.balanceAmountContainer}>
+                  <ThemedText className="text-white text-[40px] mr-1">
+                    {balance}
+                  </ThemedText>
+                  <ThemedText className="text-white mb-2 ml-1">USD</ThemedText>
+                </View>
+              </ThemedView>
+              <ThemedText variant="sm" className="text-white ml-[250]">
+                {shortenId(walletId)}
               </ThemedText>
-              <ThemedText className="text-white mb-2 ml-1">USD</ThemedText>
-            </View>
-          </ThemedView>
-          <ThemedText variant="sm" className="text-white ml-[250]">{shortenId(walletId)}</ThemedText>
+            </>
+          ) : (
+            <>
+              <ThemedText className="mt-8 mb-20 ml-4">
+                Tap here to setup your device wallet
+              </ThemedText>
+            </>
+          )}
         </LinearGradient>
       </View>
     </View>
@@ -71,7 +88,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.dark.accentForeground,
     paddingLeft: 20,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   shadowContainer: {
     marginHorizontal: 8,

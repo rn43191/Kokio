@@ -1,11 +1,35 @@
-{
-  "expo": {
-    "newArchEnabled": true,
+import { ExpoConfig, ConfigContext } from 'expo/config';
+import { AppExtraConfig } from './appKeys.js';
+
+export default ({ config }: ConfigContext): ExpoConfig => {
+
+  const privateConfig: AppExtraConfig = {
+    // ALCHEMY
+    alchemyApiKey: process.env.ALCHEMY_API_KEY,
+    gasManagerPolicyId: process.env.GAS_MANAGER_POLICY_ID,
+
+    // PIMLICO
+    pimlicoApiKey: process.env.PIMLICO_API_KEY,
+
+    // TURNKEY
+    turnkeyOrganizationId: process.env.TURNKEY_ORGANIZATION_ID,
+    turnkeyApiPublicKey: process.env.TURNKEY_API_PUBLIC_KEY,
+    turnkeyApiPrivateKey: process.env.TURNKEY_API_PRIVATE_KEY,
+
+    // API Base URL
+    apiBaseUrl: process.env.API_BASE_URL,
+    serverBaseUrl: process.env.SERVER_BASE_URL,
+  };
+
+  return {
+    // Merge any default or existing config
+    ...config,
+
+    "newArchEnabled": false,
     "name": "Kokio",
     "slug": "Kokio",
     "version": "1.0.0",
     "orientation": "portrait",
-    // "logo": "./assets/images/logo.png",
     "icon": "./assets/images/icon.png",
     "scheme": "kokio",
     "userInterfaceStyle": "automatic",
@@ -17,9 +41,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.kokio",
-      "associatedDomains": ["webcredentials:kokio.app"],
+      "associatedDomains": [
+        "webcredentials:kokio.app",
+        "webcredentials:kokio.app"
+      ],
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "android": {
@@ -28,7 +58,8 @@
         "backgroundColor": "#ffffff"
       },
       "package": "app.kokio",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": false,
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "bundler": "metro",
@@ -60,10 +91,14 @@
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {
-      "eas": {
-        "projectId": "0e210f4c-4470-4718-9e06-1ba50aa9f9a5"
-      }
-    }
-  }
-}
+    "updates": {
+      "url": "https://u.expo.dev/113a4624-12f1-425b-b76c-a7bedc503b5e"
+    },
+    extra: {
+      eas: {
+        projectId: "113a4624-12f1-425b-b76c-a7bedc503b5e"
+      },
+      ...privateConfig,
+    },
+  };
+};

@@ -2,13 +2,19 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
+import Constants from 'expo-constants';
+import { AppExtraConfig } from '@/appKeys';
+const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
-import { TurnkeyClient } from "@turnkey/http";
+import { TurnkeyClient } from "@turnkey/sdk-react-native";
 import { SmartContractAccount } from "@aa-sdk/core";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import * as SecureStore from "expo-secure-store";
+import { useAuthRelay } from "@/hooks/useAuthRelayer";
+import { useRouter } from "expo-router";
+import { deleteSubOrganization } from "@/utils/api";
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -21,7 +27,7 @@ type AuthActionType =
   | { type: "CLEAR_KOKIO" }
   | { type: "CLEAR_KOKIO_USER" };
 
-interface UserPasskey {
+export interface UserPasskey {
   x: string;
   y: string;
   attestationObject: string;
@@ -125,6 +131,7 @@ interface KokioProviderProps {
 export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   const [kokio, dispatch] = useReducer(kokioReducer, initialState);
   const { user, clearSession } = useTurnkey();
+  const { reauthenticate } = useAuthRelay();
 
   const saveValueForDeviceUID = async (key: string, value: string) => {
     await SecureStore.setItemAsync(key, JSON.stringify(value));
@@ -254,7 +261,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   // Check if user is already saved with data inside the expo secure store then disable the passkey creation
   // and use the existing user data
   useEffect(() => {
-    if (user && kokio.deviceUID) {
+    if (!kokio.sdk && user && kokio.deviceUID && kokio.userPasskey) {
       // If user is found, setup Kokio SDK with current user data and user organizationId from Turnkey
       setupKokioUserData(kokio.deviceUID, user);
       setupKokio();
@@ -262,8 +269,9 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     if (!user) {
       // If user is not found, clear Kokio SDK
       clearKokio();
+      reauthenticate();
     }
-  }, [user, kokio.deviceUID]);
+  }, [user, kokio.deviceUID, kokio.userPasskey, kokio.sdk]);
 
   const clearError = () => {
     dispatch({ type: "CLEAR_ERROR" });
@@ -354,6 +362,11 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       return;
     }
 
+    if (!kokio.userPasskey?.credentialId) {
+      dispatch({ type: "ERROR", payload: "Credential Id not found" });
+      return;
+    }
+
     const stamper = new PasskeyStamper({
       rpId: PASSKEY_CONFIG.RP_ID,
     });
@@ -366,16 +379,17 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     const viemClient = await returnViemWalletClient(
       user,
       turnkeyClient,
-      kokio.userWallet?.address!
+      kokio.userWallet?.address ?? ""
     );
 
     const kokioSDK = new Kokio(
       viemClient,
       turnkeyClient,
-      "" /* credentialId will be set internally by Kokio SDK */,
+      kokio.userPasskey?.credentialId,
       PASSKEY_CONFIG.RP_ID,
-      process.env.EXPO_PUBLIC_TURNKEY_ORGANIZATION_ID ?? "",
-      process.env.EXPO_PUBLIC_GAS_MANAGER_POLICY_ID ?? ""
+      extra.turnkeyOrganizationId ?? "",
+      extra.pimlicoApiKey ?? "",
+      extra.gasManagerPolicyId ?? ""
     );
 
     if (!kokioSDK) {
@@ -389,7 +403,17 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_KOKIO" });
   };
 
-  const clearKokioUser = async () => {
+  const clearKokioUser = async (user: User) => {
+    const subOrgId = user?.organizationId;
+    console.log("Calling deleteSubOrganization!!!", subOrgId);
+    if(subOrgId) {
+      try {
+        deleteSubOrganization(subOrgId as string);
+      } catch (e) {
+        console.error("Could not delete sub-org: ", e);
+      }
+    }
+
     // Clear user data from secure store
     dispatch({ type: "CLEAR_KOKIO_USER" });
     await deleteValueForUser(`userPasskey-${kokio.deviceUID}`);

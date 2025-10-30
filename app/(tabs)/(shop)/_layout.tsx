@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { View } from "react-native";
+import { router } from "expo-router";
 
 import _isFunction from "lodash/isFunction";
 import _get from "lodash/get";
@@ -86,6 +86,9 @@ export default function ShopStack() {
                   title="Install eSIM"
                   style={{ justifyContent: "center" }}
                   hasBack
+                  goBackHandler={() => {
+                    router.push("/");
+                  }}
                 />
               </SafeAreaView>
             ),
