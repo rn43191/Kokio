@@ -25,7 +25,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     // Merge any default or existing config
     ...config,
 
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "name": "Kokio",
     "slug": "Kokio",
     "version": "1.0.0",
