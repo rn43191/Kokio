@@ -3,23 +3,14 @@
     "requireCommit": false
   },
   "build": {
-    "development-simulator": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "ios": {
-        "simulator": true
-      },
-      "android": {
-        "credentialsSource": "local"
-      }
-    },
     "development": {
       "developmentClient": true,
       "distribution": "internal",
       "android": {
         "buildType": "apk",
         "credentialsSource": "local"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -32,6 +23,8 @@
         "APP_VARIANT": "preview"
       }
     },
-    "production": {}
+    "production": {
+      "channel": "production"
+    }
   }
 }
