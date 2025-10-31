@@ -11,23 +11,26 @@ import { AppExtraConfig, Config } from "@/appKeys";
 import { PasskeyStamper, TurnkeyClient } from "@turnkey/sdk-react-native";
 
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
-const SERVER_BASE_URL = `${extra.serverBaseUrl}:3000`;
+const SERVER_BASE_URL = `${extra.serverBaseUrl}`;
 
 // Helper function to handle POST requests and common error checking
 async function post(endpoint: string, body: any) {
   const url = `${SERVER_BASE_URL}${endpoint}`;
 
   const response = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
-    const errorMessage = errorData.error || `Server responded with status ${response.status}`;
+    const errorData = await response
+      .json()
+      .catch(() => ({ error: "Unknown server error" }));
+    const errorMessage =
+      errorData.error || `Server responded with status ${response.status}`;
 
     console.error(`API Error on ${endpoint}:`, errorData);
     throw new Error(errorMessage);
@@ -42,7 +45,7 @@ async function post(endpoint: string, body: any) {
  */
 export async function handleInitEmailOtpAuth({ email }: { email: string }) {
   try {
-    const result = await post('/api/init-email-otp-auth', { email });
+    const result = await post("/api/init-email-otp-auth", { email });
     // Expected server response: { result: InitOtpAuthResponse, organizationId: string }
     return result;
   } catch (error) {
@@ -58,7 +61,7 @@ export async function handleInitEmailOtpAuth({ email }: { email: string }) {
 export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
   try {
     // params directly match the server's expected request body
-    const result = await post('/api/otp-auth', params);
+    const result = await post("/api/otp-auth", params);
     return result;
   } catch (error) {
     console.error("error during otpAuth", error);
@@ -70,7 +73,7 @@ export async function handleOtpAuth(params: ParamsType<"otpAuth">) {
  * Deletes a sub-organization.
  * The sub-org can be deleted by a session or an API key belonging to the sub-org itself
  * Easy to delete as passkey is the session signer
- * This is not done in backend, as backend will have to then store API keys for 
+ * This is not done in backend, as backend will have to then store API keys for
  * each sub-org created by the client
  */
 export async function deleteSubOrganization(organizationIdToDelete: string) {
@@ -82,7 +85,10 @@ export async function deleteSubOrganization(organizationIdToDelete: string) {
     rpId: Config.EXPO_PUBLIC_RP_ID as string,
   });
 
-  const turnkeyClient = new TurnkeyClient({ baseUrl: TURNKEY_API_URL }, stamper);
+  const turnkeyClient = new TurnkeyClient(
+    { baseUrl: TURNKEY_API_URL },
+    stamper
+  );
 
   const timestampMs = Date.now().toString();
 
@@ -91,7 +97,7 @@ export async function deleteSubOrganization(organizationIdToDelete: string) {
       type: "ACTIVITY_TYPE_DELETE_SUB_ORGANIZATION",
       timestampMs: timestampMs,
       organizationId: organizationIdToDelete,
-      parameters: { deleteWithoutExport: true }
+      parameters: { deleteWithoutExport: true },
     });
   } catch (e) {
     console.error("Error deleting sub-org: ", e);
@@ -112,17 +118,18 @@ export async function createSubOrganization(
   apiKeys: APIKeysT
 ) {
   if (!passkey || !user || !user.userId) {
-    throw new Error("Missing required parameters for sub-organization creation.");
+    throw new Error(
+      "Missing required parameters for sub-organization creation."
+    );
   }
 
   try {
     const response = await post("/api/create-sub-organization", {
-        user: user,
-        passkey: passkey,
-        apiKeys: apiKeys,
-      }
-    );
-    
+      user: user,
+      passkey: passkey,
+      apiKeys: apiKeys,
+    });
+
     return response;
   } catch (error) {
     console.error("error during createSubOrganization", error);
@@ -145,7 +152,7 @@ export async function checkIfEmailInUse({
 
   try {
     // The server returns { inUse: boolean, organizationIds: string[] }
-    const result = await post('/api/check-email', { email });
+    const result = await post("/api/check-email", { email });
 
     // Match the original function's return type: boolean (false) or string[] (organization IDs)
     if (result.inUse) {
