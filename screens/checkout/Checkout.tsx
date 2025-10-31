@@ -16,6 +16,7 @@ import ToggleSwitch from "toggle-switch-react-native";
 import _sum from "lodash/sum";
 import _trim from "lodash/trim";
 import _subtract from "lodash/subtract";
+import _toNumber from "lodash/toNumber";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme } from "@/constants/Colors";
@@ -24,7 +25,7 @@ import Checkbox from "@/components/ui/Checkbox";
 import AmountInput from "@/components/amountInput";
 import { Esim } from "@/components/ESIMItem";
 import { getEsimOrderPayload } from "@/helpers/esimOrder";
-import { eSimOderCheckout } from "@/services/esims";
+import { eSimOderCheckout, validateCoupon } from "@/services/esims";
 import CheckoutSuccessModal from "@/components/ui/CheckoutSuccessModal";
 import WalletSetupModal from "@/components/ui/WalletSetupModal";
 import CreditCardModal from "@/components/CreditCardModal";
@@ -112,8 +113,14 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handleEsimCheckout = useCallback(async () => {
     try {
-      const payload = getEsimOrderPayload({ eSimItem });
+      const deviceWalletId = kokio.userWallet?.address || "";
+      const payload = getEsimOrderPayload({
+        eSimItem,
+        deviceWalletId,
+        discountCode,
+      });
       console.log({ eSimItem });
+      console.log("Order Api Payload", payload);
 
       const response = await eSimOderCheckout(payload);
 
@@ -134,7 +141,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       // TODO: Show error handling
       // setShowSuccessModal(true); // Remove this when proper error handling is added
     }
-  }, [eSimItem]);
+  }, [eSimItem, discountCode, kokio?.userWallet]);
 
   const handleCheckout = useCallback(async () => {
     // If credit card is selected, open the credit card modal instead of proceeding with checkout
@@ -200,17 +207,20 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     [eSimItem]
   );
 
-  const handleApplyDiscount = useCallback(() => {
-    // TODO: Implement API Integration for coupon validation
-    if (_trim(discountCode)) {
+  const handleApplyDiscount = useCallback(async () => {
+    if (!_trim(discountCode)) return;
+
+    try {
       // Clear previous error
       setDiscountError("");
 
-      // Mock validation - replace with actual API call
-      const isValidCoupon = discountCode.toLowerCase() === "save100"; // Example validation
+      const response = await validateCoupon(discountCode);
+
+      const couponBalance = _toNumber(response?.data?.balance || 0);
+      const isValidCoupon = eSimItem.actualSellingPrice <= couponBalance;
 
       if (!isValidCoupon) {
-        setDiscountError("Invalid discount code");
+        setDiscountError("Cannot sponsor the entire amount");
         setIsDiscountApplied(false);
         setDiscountAmount(0);
         return;
@@ -226,6 +236,11 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         setShowWalletSetupModal(true);
         return;
       }
+    } catch (err) {
+      setDiscountError("Invalid discount code");
+      setIsDiscountApplied(false);
+      setDiscountAmount(0);
+      return;
     }
   }, [discountCode, eSimItem.actualSellingPrice, kokio.userWallet]);
 
