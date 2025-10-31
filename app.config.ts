@@ -35,7 +35,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     splash: {
       image: "./assets/images/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#ffffff",
+      backgroundColor: "#242427",
     },
     ios: {
       supportsTablet: true,
@@ -51,7 +51,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff",
+        backgroundColor: "#242427",
       },
       package: "app.kokio",
       edgeToEdgeEnabled: false,
@@ -71,6 +71,18 @@ export default ({ config }: ConfigContext): ExpoConfig => {
             targetSdkVersion: 36,
             kotlinVersion: "2.1.20",
           },
+        },
+      ],
+      [
+        "expo-splash-screen",
+        {
+          backgroundColor: "#242427",
+          image: "./assets/images/splash.png",
+          dark: {
+            image: "./assets/images/splash.png",
+            backgroundColor: "#242427",
+          },
+          imageWidth: 200,
         },
       ],
       "expo-router",
