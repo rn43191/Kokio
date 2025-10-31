@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useTurnkey } from "@turnkey/sdk-react-native";
 import { deleteSubOrganization } from "@/utils/api";
+import * as Updates from "expo-updates";
 
 const MenuItem = ({
   title,
@@ -101,6 +102,7 @@ export default function MenuScreen() {
           })
           .finally(() => {
             reauthenticate();
+            Updates.reloadAsync();
           });
       },
     },
