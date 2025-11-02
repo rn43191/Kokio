@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import Constants from 'expo-constants';
 
 // This ensures TypeScript knows which keys exist on Constants.expoConfig.extra

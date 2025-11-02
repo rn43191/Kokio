@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { ExpoConfig, ConfigContext } from "expo/config";
 import { AppExtraConfig } from "./appKeys.js";
 
