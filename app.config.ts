@@ -2,11 +2,6 @@ import { ExpoConfig, ConfigContext } from "expo/config";
 import { AppExtraConfig } from "./appKeys.js";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-
-  console.log("----------------------------------------------------------");
-  console.log("process.env.SERVER_BASE_URL: ", process.env.SERVER_BASE_URL);
-  console.log("----------------------------------------------------------");
-
   const privateConfig: AppExtraConfig = {
     // ALCHEMY
     alchemyApiKey: process.env.ALCHEMY_API_KEY,
@@ -24,10 +19,6 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     apiBaseUrl: process.env.API_BASE_URL,
     serverBaseUrl: process.env.SERVER_BASE_URL,
   };
-
-  console.log("----------------------------------------------------------");
-  console.log("privateConfig: ", privateConfig);
-  console.log("----------------------------------------------------------");
 
   return {
     // Merge any default or existing config

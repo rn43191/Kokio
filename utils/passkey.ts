@@ -148,6 +148,7 @@ export const returnViemWalletClient = async (
   console.log("user wallet address", smartAccountAddress);
 
   const viemAccount = await createAccount({
+    //@ts-ignore-line
     client,
     organizationId: user.organizationId,
     signWith: user.wallets[0].accounts[0].address,

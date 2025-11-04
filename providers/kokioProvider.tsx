@@ -2,8 +2,8 @@ import { ReactNode, createContext, useEffect, useReducer } from "react";
 import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
-import Constants from 'expo-constants';
-import { AppExtraConfig } from '@/appKeys';
+import Constants from "expo-constants";
+import { AppExtraConfig } from "@/appKeys";
 const extra = Constants.expoConfig?.extra as AppExtraConfig;
 
 import { useTurnkey, User, Wallet } from "@turnkey/sdk-react-native";
@@ -109,7 +109,7 @@ export interface KokioProviderType {
     wallet: SmartContractAccount
   ) => Promise<void>;
   clearKokio: () => void;
-  clearKokioUser: () => Promise<void>;
+  clearKokioUser: (user: User) => Promise<void>;
 }
 
 export const KokioContext = createContext<KokioProviderType>({
@@ -121,7 +121,7 @@ export const KokioContext = createContext<KokioProviderType>({
   setupKokioUserPasskey: async () => Promise.resolve(),
   setupKokioUserWallet: async () => Promise.resolve(),
   clearKokio: () => {},
-  clearKokioUser: async () => Promise.resolve(),
+  clearKokioUser: async (user: User) => Promise.resolve(),
 });
 
 interface KokioProviderProps {
@@ -406,7 +406,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
   const clearKokioUser = async (user: User) => {
     const subOrgId = user?.organizationId;
     console.log("Calling deleteSubOrganization!!!", subOrgId);
-    if(subOrgId) {
+    if (subOrgId) {
       try {
         deleteSubOrganization(subOrgId as string);
       } catch (e) {
