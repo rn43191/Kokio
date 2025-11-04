@@ -16,27 +16,37 @@ const SERVER_BASE_URL = `${extra.serverBaseUrl}`;
 // Helper function to handle POST requests and common error checking
 async function post(endpoint: string, body: any) {
   const url = `${SERVER_BASE_URL}${endpoint}`;
+  console.log(`POST ${url}`);
+  console.log("Request body:", body);
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) {
-    const errorData = await response
-      .json()
-      .catch(() => ({ error: "Unknown server error" }));
-    const errorMessage =
-      errorData.error || `Server responded with status ${response.status}`;
-
-    console.error(`API Error on ${endpoint}:`, errorData);
-    throw new Error(errorMessage);
+  let response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    console.error("Fetch network error:", e);
+    throw new Error("Network request failed");
   }
 
-  return response.json();
+  console.log("Response status:", response.status);
+
+  let json;
+  try {
+    json = await response.json();
+  } catch {
+    console.error("Response was not JSON");
+    throw new Error("Invalid JSON response");
+  }
+
+  if (!response.ok) {
+    console.error("API Error:", json);
+    throw new Error(json.error || `Server error (${response.status})`);
+  }
+
+  return json;
 }
 
 /**
@@ -118,19 +128,21 @@ export async function createSubOrganization(
   apiKeys: APIKeysT
 ) {
   if (!passkey || !user || !user.userId) {
-    throw new Error(
-      "Missing required parameters for sub-organization creation."
-    );
+    throw new Error("Missing required parameters for sub-organization creation.");
   }
 
   try {
-    const response = await post("/api/create-sub-organization", {
-      user: user,
-      passkey: passkey,
-      apiKeys: apiKeys,
+    const data = await post("/api/create-sub-organization", {
+      user,
+      passkey,
+      apiKeys,
     });
 
-    return response;
+    if (!data.ok) {
+      throw new Error(data.error || "Server error");
+    }
+
+    return data;
   } catch (error) {
     console.error("error during createSubOrganization", error);
     throw error;
