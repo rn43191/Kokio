@@ -236,8 +236,8 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             style={styles.warningIconTopRight}
           />
           <Text style={styles.warningText}>
-            If you no longer have your device, you'll need this email id to
-            restore access to your wallet funds.
+            If you no longer have your device, you'll need this email address or
+            EOA to restore access to your wallet.
           </Text>
         </View>
 
@@ -270,8 +270,8 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
           </View>
 
           <Text style={styles.recoveryDescription}>
-            Please provide an email address for recovery purpose and to restore
-            access to your device wallet funds
+            Please provide an email address or EOA for recovery purpose and to
+            restore access to your device wallet
           </Text>
 
           <TextInput
