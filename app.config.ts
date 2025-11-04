@@ -96,6 +96,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         },
       ],
       "expo-asset",
+      "expo-web-browser",
     ],
     experiments: {
       typedRoutes: true,
