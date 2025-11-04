@@ -98,7 +98,7 @@ export default function MenuScreen() {
       action: async () => {
         clearAllSessions()
           .then(async () => {
-            await clearKokioUser();
+            await clearKokioUser(user);
           })
           .finally(() => {
             reauthenticate();

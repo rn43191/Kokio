@@ -109,7 +109,7 @@ export interface KokioProviderType {
     wallet: SmartContractAccount
   ) => Promise<void>;
   clearKokio: () => void;
-  clearKokioUser: (user: User) => Promise<void>;
+  clearKokioUser: (user: User | undefined) => Promise<void>;
 }
 
 export const KokioContext = createContext<KokioProviderType>({
@@ -121,7 +121,7 @@ export const KokioContext = createContext<KokioProviderType>({
   setupKokioUserPasskey: async () => Promise.resolve(),
   setupKokioUserWallet: async () => Promise.resolve(),
   clearKokio: () => {},
-  clearKokioUser: async (user: User) => Promise.resolve(),
+  clearKokioUser: async () => Promise.resolve(),
 });
 
 interface KokioProviderProps {
@@ -403,7 +403,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     dispatch({ type: "CLEAR_KOKIO" });
   };
 
-  const clearKokioUser = async (user: User) => {
+  const clearKokioUser = async (user: User | undefined) => {
     const subOrgId = user?.organizationId;
     console.log("Calling deleteSubOrganization!!!", subOrgId);
     if (subOrgId) {
