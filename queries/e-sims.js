@@ -4,6 +4,7 @@ import _defaults from "lodash/defaults";
 import _find from "lodash/find";
 import _map from "lodash/map";
 import _get from "lodash/get";
+import _filter from "lodash/filter";
 
 import { fetchEsimsCatalogue } from "@/services/esims";
 
@@ -19,6 +20,9 @@ export const emisQueryKeys = {
   esimsByGlobal: (item) => [...emisQueryKeys.all, "byGlobal", item],
 };
 
+// NOTE: Currently only showing ESIM Plan and not showing Topup
+const getSimPlans = (allPlans) => _filter(allPlans, { purchaseType: "SIM" });
+
 function useEsimsByCountry(serviceRegionCode, options = defaultOptions) {
   try {
     const result = useQuery({
@@ -27,7 +31,8 @@ function useEsimsByCountry(serviceRegionCode, options = defaultOptions) {
         try {
           const payload = { serviceRegionCode };
           const response = await fetchEsimsCatalogue(payload);
-          return _get(response, "data.plans") || [];
+          const allPlans = _get(response, "data.plans") || [];
+          return getSimPlans(allPlans);
         } catch (err) {
           return [];
         }
@@ -49,7 +54,8 @@ function useEsimsByRegion(region, options = defaultOptions) {
         try {
           const payload = { serviceRegionCode: region };
           const response = await fetchEsimsCatalogue(payload);
-          return _get(response, "data.plans") || [];
+          const allPlans = _get(response, "data.plans") || [];
+          return getSimPlans(allPlans);
         } catch (err) {
           return [];
         }
@@ -71,7 +77,8 @@ function useGloabalEsims(options = defaultOptions) {
         try {
           const payload = { serviceRegionCode: "GLOBAL" };
           const response = await fetchEsimsCatalogue(payload);
-          return _get(response, "data.plans") || [];
+          const allPlans = _get(response, "data.plans") || [];
+          return getSimPlans(allPlans);
         } catch (err) {
           return [];
         }

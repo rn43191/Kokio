@@ -10,10 +10,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const styles = createStyles(StyleSheet);
 
+// Feature flags for tab availability
+// Set to true to enable the tab, false to disable (but keep visible)
+const TAB_ENABLED = {
+  WALLET: false, // Change to true to enable Wallet tab
+  PHONE: false, // Change to true to enable Phone tab
+};
+
+// Disabled tab styling
+const DISABLED_TAB_OPACITY = 0.3;
+
 export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={({ navigation, route }) => {
+      screenOptions={({ navigation }) => {
         const navigationState = navigation.getState();
         const routeName = getRouteName(navigationState);
         const tabBarVisible = getIsTabBarVisible(routeName);
@@ -61,10 +71,21 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "wallet" : "wallet-outline"}
-              color={color}
-              style={styles.tabBarIcon}
+              color={TAB_ENABLED.WALLET ? color : Theme.colors.inactive}
+              style={[
+                styles.tabBarIcon,
+                !TAB_ENABLED.WALLET && { opacity: DISABLED_TAB_OPACITY },
+              ]}
             />
           ),
+        }}
+        // NOTE: Remove when tab is enabled
+        listeners={{
+          tabPress: (e) => {
+            if (!TAB_ENABLED.WALLET) {
+              e.preventDefault();
+            }
+          },
         }}
       />
       <Tabs.Screen
@@ -80,10 +101,21 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name={focused ? "call" : "call-outline"}
-              color={color}
-              style={styles.tabBarIcon}
+              color={TAB_ENABLED.PHONE ? color : Theme.colors.inactive}
+              style={[
+                styles.tabBarIcon,
+                !TAB_ENABLED.PHONE && { opacity: DISABLED_TAB_OPACITY },
+              ]}
             />
           ),
+        }}
+        // NOTE: Remove when tab is enabled
+        listeners={{
+          tabPress: (e) => {
+            if (!TAB_ENABLED.PHONE) {
+              e.preventDefault();
+            }
+          },
         }}
       />
       <Tabs.Screen
