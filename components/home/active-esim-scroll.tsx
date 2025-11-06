@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import _isEmpty from "lodash/isEmpty";
 
 import { Colors } from "@/constants/Colors";
 
@@ -10,6 +11,10 @@ const ITEM_WIDTH = SCREEN_WIDTH * 0.9;
 const SPACING = 8;
 
 const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
+  if (_isEmpty(esims)) {
+    return null;
+  }
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Active eSIMs</Text>
