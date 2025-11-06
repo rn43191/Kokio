@@ -33,7 +33,6 @@ import CreditCardModal from "@/components/CreditCardModal";
 import { createRadioButtons } from "./checkout.helpers";
 import { RADIO_KEYS } from "@/constants/checkout.constants";
 import { useKokio } from "@/hooks/useKokio";
-import { useTurnkey } from "@turnkey/sdk-react-native";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const RADIO_WIDTH = SCREEN_WIDTH - 24;
@@ -45,7 +44,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     if (typeof eSimDetails === "string") {
       try {
         return JSON.parse(eSimDetails);
-      } catch (error) {
+      } catch {
         return null;
       }
     }
@@ -109,7 +108,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         </View>
       </View>
     );
-  }, [amount, setAmount]);
+  }, [amount, currentBalance, setAmount]);
 
   const handleEsimCheckout = useCallback(async () => {
     try {
@@ -151,7 +150,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     }
 
     handleEsimCheckout();
-  }, [eSimItem, selectedPaymentMethod]);
+  }, [selectedPaymentMethod, handleEsimCheckout]);
 
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
@@ -171,18 +170,21 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     setShowWalletSetupModal(false);
   }, []);
 
-  const handlePaymentMethodChange = useCallback((value: string) => {
-    if (value === RADIO_KEYS.E_SIM_WALLET) {
-      console.log(kokio.userWallet?.address);
-      if (kokio.userWallet) {
-        setSelectedPaymentMethod(value);
+  const handlePaymentMethodChange = useCallback(
+    (value: string) => {
+      if (value === RADIO_KEYS.E_SIM_WALLET) {
+        console.log(kokio.userWallet?.address);
+        if (kokio.userWallet) {
+          setSelectedPaymentMethod(value);
+        } else {
+          setShowWalletSetupModal(true);
+        }
       } else {
-        setShowWalletSetupModal(true);
+        setSelectedPaymentMethod(value);
       }
-    } else {
-      setSelectedPaymentMethod(value);
-    }
-  }, []);
+    },
+    [kokio?.userWallet]
+  );
 
   const handleCreditModalClose = useCallback(() => {
     setShowCreditCardModal(false);
@@ -204,7 +206,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       // Now proceed with the actual checkout process
       handleEsimCheckout();
     },
-    [eSimItem]
+    [handleEsimCheckout]
   );
 
   const handleApplyDiscount = useCallback(async () => {
@@ -236,7 +238,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
         setShowWalletSetupModal(true);
         return;
       }
-    } catch (err) {
+    } catch {
       setDiscountError("Invalid discount code");
       setIsDiscountApplied(false);
       setDiscountAmount(0);
@@ -259,7 +261,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   }, [eSimItem.actualSellingPrice, isDiscountApplied, discountAmount]);
 
   const canCheckout = useMemo(
-    () => isESimEnabled && (selectedPaymentMethod || totalAmount === 0),
+    () => isESimEnabled && selectedPaymentMethod && totalAmount === 0,
     [isESimEnabled, selectedPaymentMethod, totalAmount]
   );
 
@@ -303,6 +305,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
               placeholderTextColor={Theme.colors.muted}
             />
             <TouchableOpacity
+              key={`apply-${discountCode?.length}`}
               style={[
                 styles.applyButton,
                 !_trim(discountCode) && { opacity: 0.5 },
@@ -360,6 +363,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       </ScrollView>
 
       <TouchableOpacity
+        key={`total-checkout-${canCheckout}`}
         style={[styles.bottomButtonContainer, !canCheckout && { opacity: 0.5 }]}
         onPress={canCheckout ? handleCheckout : undefined}
         disabled={!canCheckout}
