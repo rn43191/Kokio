@@ -17,6 +17,7 @@ import _sum from "lodash/sum";
 import _trim from "lodash/trim";
 import _subtract from "lodash/subtract";
 import _toNumber from "lodash/toNumber";
+import _toUpper from "lodash/toUpper";
 
 import { ThemedText } from "@/components/ThemedText";
 import { Theme } from "@/constants/Colors";
@@ -209,6 +210,10 @@ const Checkout = ({ currentBalance = 25 }: any) => {
     [handleEsimCheckout]
   );
 
+  const handleDiscountCodeChange = useCallback((text: string) => {
+    setDiscountCode(_toUpper(text));
+  }, []);
+
   const handleApplyDiscount = useCallback(async () => {
     if (!_trim(discountCode)) return;
 
@@ -300,9 +305,10 @@ const Checkout = ({ currentBalance = 25 }: any) => {
             <TextInput
               style={styles.discountInput}
               value={discountCode}
-              onChangeText={setDiscountCode}
+              onChangeText={handleDiscountCodeChange}
               placeholder="Enter discount code"
               placeholderTextColor={Theme.colors.muted}
+              autoCapitalize="characters"
             />
             <TouchableOpacity
               key={`apply-${discountCode?.length}`}
