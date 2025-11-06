@@ -27,8 +27,9 @@ const TabsNavigator = () => {
         tabBarActiveTintColor: Colors.dark.text,
         tabBarInactiveTintColor: Colors.dark.inactive,
         tabBarPressColor: "#5C5C61",
-        animationEnabled: false,
-        swipeEnabled: false,
+        // temp fix
+        // animationEnabled: false,
+        // swipeEnabled: false,
       }}
     >
       <Tab.Screen

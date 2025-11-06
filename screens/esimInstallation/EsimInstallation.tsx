@@ -204,6 +204,9 @@ const EsimInstallation = () => {
           tabBarActiveTintColor: Colors.dark.text,
           tabBarInactiveTintColor: Colors.dark.inactive,
           tabBarPressColor: "#5C5C61",
+          // temp fix
+          // animationEnabled: false,
+          // swipeEnabled: false,
         }}
       >
         <Tab.Screen
