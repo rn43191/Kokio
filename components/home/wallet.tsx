@@ -6,11 +6,16 @@ import {
   Text,
   Platform,
   ImageBackground,
+  TouchableOpacity,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import { LinearGradient } from "expo-linear-gradient";
+import { openBrowserAsync } from "expo-web-browser";
+import { MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+import { BASE_SEPOLIA_TESTNET } from "@/constants/general.constants";
 import { ThemedView } from "../ThemedView";
 import { ThemedText } from "../ThemedText";
-import { LinearGradient } from "expo-linear-gradient";
-import { Colors } from "@/constants/Colors";
 
 interface WalletProps {
   balance?: string;
@@ -27,6 +32,27 @@ const shortenId = (
 };
 
 const Wallet = ({ balance, walletId, isWalletAdded }: WalletProps) => {
+  const handleAddressPress = async () => {
+    if (walletId) {
+      const url = `${BASE_SEPOLIA_TESTNET}/${walletId}`;
+      try {
+        await openBrowserAsync(url);
+      } catch (error) {
+        console.error("Error opening browser:", error);
+      }
+    }
+  };
+
+  const handleCopyAddress = async () => {
+    if (walletId) {
+      try {
+        await Clipboard.setStringAsync(walletId);
+      } catch (error) {
+        console.error("Error copying to clipboard:", error);
+      }
+    }
+  };
+
   return (
     <View style={{ marginVertical: 12 }}>
       <Text style={styles.headingText}>Device Wallet</Text>
@@ -64,9 +90,31 @@ const Wallet = ({ balance, walletId, isWalletAdded }: WalletProps) => {
                   <ThemedText className="text-white mb-2 ml-1">USD</ThemedText>
                 </View>
               </ThemedView>
-              <ThemedText variant="sm" className="text-white ml-[250]">
-                {shortenId(walletId)}
-              </ThemedText>
+              <View style={styles.walletIdContainer}>
+                <ThemedText variant="sm" className="text-white">
+                  {shortenId(walletId)}
+                </ThemedText>
+                <View style={styles.iconContainer}>
+                  <TouchableOpacity
+                    onPress={handleAddressPress}
+                    disabled={!walletId}
+                    style={styles.iconButton}
+                  >
+                    <MaterialIcons
+                      name="open-in-new"
+                      size={16}
+                      color="#AEAEB2"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleCopyAddress}
+                    disabled={!walletId}
+                    style={styles.iconButton}
+                  >
+                    <Ionicons name="copy-outline" size={16} color="#AEAEB2" />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </>
           ) : (
             <>
@@ -168,5 +216,19 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     fontSize: 12,
     fontWeight: "600",
+  },
+  walletIdContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 8,
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconButton: {
+    padding: 4,
   },
 });
