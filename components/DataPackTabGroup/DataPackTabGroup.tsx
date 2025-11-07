@@ -12,6 +12,7 @@ import { Colors, Theme } from "@/constants/Colors";
 import EsimItemSkeleton from "@/components/EsimItemSkeleton";
 
 import ESIMItem, { Esim } from "../ESIMItem";
+import TabBar from "../tabBar";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -89,21 +90,7 @@ function DataPackTabGroup({
 
   const TabsNavigator = () => {
     return (
-      <Tab.Navigator
-        screenOptions={{
-          tabBarStyle: styles.tabBarStyle,
-          tabBarIndicatorStyle: styles.indicatorStyle,
-          tabBarItemStyle: styles.tabStyle,
-          tabBarContentContainerStyle: styles.tabBarContentContainer,
-          tabBarLabelStyle: styles.tabBarText,
-          tabBarActiveTintColor: Colors.dark.text,
-          tabBarInactiveTintColor: Colors.dark.inactive,
-          tabBarPressColor: "#5C5C61",
-          // temp fix
-          // animationEnabled: false,
-          // swipeEnabled: false,
-        }}
-      >
+      <Tab.Navigator tabBar={(props) => <TabBar {...props} />}>
         <Tab.Screen
           name="Data"
           component={DataTab}
@@ -144,29 +131,12 @@ function DataPackTabGroup({
 }
 
 const styles = StyleSheet.create({
-  tabBarContentContainer: {
-    justifyContent: "space-around",
-  },
-  tabBarStyle: {
-    backgroundColor: Colors.dark.secondaryBackground,
-    borderRadius: Theme.borderRadius.medium,
-  },
-  tabStyle: {
-    padding: 0,
-    minHeight: 30,
-  },
-
   tabBarText: {
     color: Colors.dark.text,
     textAlign: "center",
     paddingVertical: 2,
     fontSize: 14,
     fontWeight: "500",
-  },
-  indicatorStyle: {
-    backgroundColor: Colors.dark.muted,
-    height: "100%",
-    borderRadius: Theme.borderRadius.medium,
   },
   disabledTabText: {
     opacity: 0.5,

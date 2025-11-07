@@ -1,5 +1,11 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import React, { useEffect, useMemo } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
@@ -14,19 +20,21 @@ import { Theme } from "@/constants/Colors";
 
 interface CheckoutSuccessModalProps {
   visible: boolean;
+  loading?: boolean;
   onClose?: () => void;
   onInstallESIM: () => void;
 }
 
 const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
   visible,
+  loading = false,
   onClose = () => {},
   onInstallESIM,
 }) => {
   const scale = useSharedValue(0);
 
   useEffect(() => {
-    if (visible) {
+    if (visible && !loading) {
       scale.value = withSequence(
         withTiming(1.2, { duration: 300 }),
         withTiming(1, { duration: 200 }),
@@ -42,11 +50,61 @@ const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
     } else {
       scale.value = 0;
     }
-  }, [visible]);
+  }, [visible, loading]);
 
   const animatedIconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
+
+  const loadingContent = useMemo(
+    () => (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={90} color={Theme.colors.highlight} />
+        <ThemedText style={styles.loadingText}>Placing your order.</ThemedText>
+        <ThemedText style={styles.loadingSubText}>
+          Do not go back or close the app while loading...
+        </ThemedText>
+      </View>
+    ),
+    []
+  );
+
+  const successContent = useMemo(
+    () => (
+      <>
+        <Animated.View style={[styles.successIcon, animatedIconStyle]}>
+          <MaterialCommunityIcons
+            name="check-decagram"
+            size={42}
+            color="#30D158"
+          />
+        </Animated.View>
+
+        <ThemedText bold style={styles.title}>
+          Transaction Successful
+        </ThemedText>
+
+        <ThemedText style={styles.subtitle}>
+          It's now time to install your newly purchased eSIM.
+        </ThemedText>
+
+        <ThemedText style={styles.description}>
+          If you are not abroad yet, no worries, the eSIM will only activate
+          once connected to your destination network.
+        </ThemedText>
+      </>
+    ),
+    [animatedIconStyle]
+  );
+
+  const installButton = useMemo(
+    () => (
+      <TouchableOpacity style={styles.installButton} onPress={onInstallESIM}>
+        <ThemedText style={styles.installButtonText}>Install eSIM</ThemedText>
+      </TouchableOpacity>
+    ),
+    [onInstallESIM]
+  );
 
   return (
     <Modal
@@ -61,37 +119,11 @@ const CheckoutSuccessModal: React.FC<CheckoutSuccessModalProps> = ({
         <View style={styles.modalContainer}>
           <View style={styles.contentContainerWrapper}>
             <View style={styles.contentContainer}>
-              <Animated.View style={[styles.successIcon, animatedIconStyle]}>
-                <MaterialCommunityIcons
-                  name="check-decagram"
-                  size={42}
-                  color="#30D158"
-                />
-              </Animated.View>
-
-              <ThemedText bold style={styles.title}>
-                Transaction Successful
-              </ThemedText>
-
-              <ThemedText style={styles.subtitle}>
-                It's now time to install your newly purchased eSIM.
-              </ThemedText>
-
-              <ThemedText style={styles.description}>
-                If you are not abroad yet, no worries, the eSIM will only
-                activate once connected to your destination network
-              </ThemedText>
+              {loading ? loadingContent : successContent}
             </View>
           </View>
 
-          <TouchableOpacity
-            style={styles.installButton}
-            onPress={onInstallESIM}
-          >
-            <ThemedText style={styles.installButtonText}>
-              Install eSIM
-            </ThemedText>
-          </TouchableOpacity>
+          {!loading && installButton}
         </View>
       </View>
     </Modal>
@@ -121,6 +153,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 24,
     paddingTop: 32,
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "white",
+    textAlign: "center",
+    marginTop: 24,
+    lineHeight: 22,
+  },
+  loadingSubText: {
+    fontSize: 16,
+    color: "white",
+    textAlign: "center",
+    lineHeight: 22,
   },
   successIcon: {
     borderRadius: 24,
