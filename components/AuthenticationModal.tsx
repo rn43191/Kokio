@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Image, Pressable, StyleSheet } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Pressable,
+  StyleSheet,
+  View,
+} from "react-native";
 import BottomSheet, {
   BottomSheetBackdrop,
   BottomSheetBackdropProps,
@@ -12,6 +19,7 @@ import { useRouter } from "expo-router";
 import { useKokio } from "@/hooks/useKokio";
 import { BlurView } from "expo-blur";
 import { Easing } from "react-native-reanimated";
+import { Theme } from "@/constants/Colors";
 
 export function AuthenticationModal() {
   const [loading, setLoading] = useState<boolean>(false);
@@ -63,6 +71,11 @@ export function AuthenticationModal() {
         });
       } catch (e) {
         console.error("Error signing in", e);
+        Alert.alert("Error signing in");
+        sheetRef.current?.close({
+          duration: 250,
+          easing: Easing.out(Easing.quad),
+        });
       }
     } else {
       try {
@@ -98,6 +111,11 @@ export function AuthenticationModal() {
       } catch (e) {
         console.error("Error signing in", e);
         setLoading(false);
+        Alert.alert("Error signing up");
+        sheetRef.current?.close({
+          duration: 250,
+          easing: Easing.out(Easing.quad),
+        });
       }
     }
   }, [signUpWithPasskey, loginWithPasskey, kokio]);
@@ -113,6 +131,20 @@ export function AuthenticationModal() {
     }
   }, [state.authenticated]);
 
+  const loadingContent = useMemo(
+    () => (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size={70}
+          style={styles.contentImage}
+          color={Theme.colors.highlight}
+        />
+        <ThemedText style={styles.loadingText}>Authenticating...</ThemedText>
+      </View>
+    ),
+    []
+  );
+
   return (
     <BottomSheet
       ref={sheetRef}
@@ -127,55 +159,27 @@ export function AuthenticationModal() {
       <BottomSheetView style={{ alignItems: "center", flex: 1, padding: 20 }}>
         <Image
           source={require("@/assets/images/kokio-text.png")}
-          style={{
-            height: 60,
-            marginTop: 10,
-            resizeMode: "contain",
-          }}
+          style={styles.kokioImage}
         />
-        <ThemedText
-          style={{
-            fontSize: 24,
-            fontWeight: "300",
-            color: "white",
-            fontFamily: "Lexend-Light",
-            marginTop: 32,
-          }}
-        >
+        <ThemedText style={styles.authRequiredText}>
           Authentication Required
         </ThemedText>
-        <ThemedText
-          style={{
-            fontSize: 13,
-            marginTop: 12,
-            fontWeight: "300",
-            color: "white",
-            fontFamily: "Lexend-Light",
-          }}
-        >
+        <ThemedText style={styles.authSubtext}>
           Secure your account using your fingerprint
         </ThemedText>
-        <Pressable onPress={loginOrSignUpWithPasskey}>
-          <Image
-            source={require("@/assets/images/fingerprint.png")}
-            style={{
-              height: 80,
-              marginTop: 24,
-              marginBottom: 5,
-              resizeMode: "contain",
-            }}
-          />
-          <ThemedText
-            style={{
-              fontSize: 13,
-              fontWeight: "300",
-              color: "white",
-              fontFamily: "Lexend-Light",
-            }}
-          >
-            Touch the fingerprint sensor
-          </ThemedText>
-        </Pressable>
+        {loading ? (
+          loadingContent
+        ) : (
+          <Pressable onPress={loginOrSignUpWithPasskey}>
+            <Image
+              source={require("@/assets/images/fingerprint.png")}
+              style={styles.contentImage}
+            />
+            <ThemedText style={styles.authTouchText}>
+              Touch the fingerprint sensor
+            </ThemedText>
+          </Pressable>
+        )}
         <Pressable
           disabled={loading}
           onPress={() =>
@@ -186,20 +190,59 @@ export function AuthenticationModal() {
           }
           style={{ alignSelf: "flex-start", marginTop: 64, marginBottom: 32 }}
         >
-          <ThemedText
-            style={{
-              fontSize: 16,
-              fontWeight: "300",
-              fontFamily: "Lexend-Light",
-              color: "#64D2FF",
-            }}
-          >
-            Cancel
-          </ThemedText>
+          <ThemedText style={styles.cancelText}>Cancel</ThemedText>
         </Pressable>
       </BottomSheetView>
     </BottomSheet>
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  kokioImage: {
+    height: 60,
+    marginTop: 10,
+    resizeMode: "contain",
+  },
+  authRequiredText: {
+    fontSize: 24,
+    fontWeight: "300",
+    color: "white",
+    fontFamily: "Lexend-Light",
+    marginTop: 32,
+  },
+  authSubtext: {
+    fontSize: 13,
+    marginTop: 12,
+    fontWeight: "300",
+    color: "white",
+    fontFamily: "Lexend-Light",
+  },
+  authTouchText: {
+    fontSize: 13,
+    fontWeight: "300",
+    color: "white",
+    fontFamily: "Lexend-Light",
+  },
+  loadingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loadingText: {
+    fontSize: 13,
+    fontWeight: "300",
+    color: "white",
+    fontFamily: "Lexend-Light",
+  },
+  contentImage: {
+    height: 80,
+    marginTop: 24,
+    marginBottom: 5,
+    resizeMode: "contain",
+  },
+  cancelText: {
+    fontSize: 16,
+    fontWeight: "300",
+    fontFamily: "Lexend-Light",
+    color: "#64D2FF",
+  },
+});
