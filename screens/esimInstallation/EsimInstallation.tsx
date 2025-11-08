@@ -15,7 +15,7 @@ import { createMaterialTopTabNavigator } from "@react-navigation/material-top-ta
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/ThemedText";
-import { Theme, Colors } from "@/constants/Colors";
+import TabBar from "@/components/tabBar";
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -195,19 +195,7 @@ const EsimInstallation = () => {
     return (
       <Tab.Navigator
         initialRouteName="QR"
-        screenOptions={{
-          tabBarStyle: styles.tabBarStyle,
-          tabBarIndicatorStyle: styles.indicatorStyle,
-          tabBarItemStyle: styles.tabStyle,
-          tabBarContentContainerStyle: styles.tabBarContentContainer,
-          tabBarLabelStyle: styles.tabBarText,
-          tabBarActiveTintColor: Colors.dark.text,
-          tabBarInactiveTintColor: Colors.dark.inactive,
-          tabBarPressColor: "#5C5C61",
-          // temp fix
-          // animationEnabled: false,
-          // swipeEnabled: false,
-        }}
+        tabBar={(props) => <TabBar {...props} />}
       >
         <Tab.Screen
           name="Direct"
@@ -257,11 +245,6 @@ const styles = StyleSheet.create({
     top: -12,
     right: 14,
     zIndex: 1,
-  },
-  warningText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
   },
   warningContent: {
     flex: 1,
@@ -325,41 +308,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
   },
-  downloadButton: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#7C3AED",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  tabBarContentContainer: {
-    justifyContent: "space-around",
-  },
-  tabBarStyle: {
-    backgroundColor: Colors.dark.secondaryBackground,
-    borderRadius: Theme.borderRadius.medium,
-  },
-  tabStyle: {
-    padding: 0,
-    minHeight: 30,
-  },
-
-  tabBarText: {
-    color: Colors.dark.text,
-    textAlign: "center",
-    paddingVertical: 2,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  indicatorStyle: {
-    backgroundColor: Colors.dark.muted,
-    height: "100%",
-    borderRadius: Theme.borderRadius.medium,
-  },
   manualDetailsCard: {
     backgroundColor: "#2a2a2a",
     borderRadius: 8,
@@ -400,26 +348,6 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 14,
     lineHeight: 20,
-  },
-  manualWarningText: {
-    color: "#999",
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  installButton: {
-    backgroundColor: "#7C3AED",
-    borderRadius: 8,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginTop: 24,
-    alignItems: "center",
-  },
-  installButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
 

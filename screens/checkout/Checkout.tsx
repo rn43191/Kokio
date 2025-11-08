@@ -59,6 +59,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [fundOnDeviceWallet, setFundOnDeviceWallet] = useState<boolean>(false);
   const [amount, setAmount] = useState<number | null>(0);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
   const [showCreditCardModal, setShowCreditCardModal] = useState(false);
   const { kokio } = useKokio();
@@ -113,6 +114,9 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   const handleEsimCheckout = useCallback(async () => {
     try {
+      setIsCheckoutLoading(true);
+      setShowSuccessModal(true);
+
       const deviceWalletId = kokio.userWallet?.address || "";
       const payload = getEsimOrderPayload({
         eSimItem,
@@ -126,20 +130,20 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
       if (response?.success && response?.data) {
         setOrderResponse(response.data);
-        setShowSuccessModal(true);
       } else {
-        // Handle API error
         console.error("Checkout failed:", response?.message);
-        // TODO: Show error modal/toast
+        setShowSuccessModal(false);
       }
+
+      setIsCheckoutLoading(false);
     } catch (err) {
       console.error("Checkout error:", err);
       const { data } = err || {};
       if (data?.message) {
         console.error("Checkout failed:", data.message);
       }
-      // TODO: Show error handling
-      // setShowSuccessModal(true); // Remove this when proper error handling is added
+      setIsCheckoutLoading(false);
+      setShowSuccessModal(false);
     }
   }, [eSimItem, discountCode, kokio?.userWallet]);
 
@@ -266,9 +270,15 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   }, [eSimItem.actualSellingPrice, isDiscountApplied, discountAmount]);
 
   const canCheckout = useMemo(
-    () => isESimEnabled && selectedPaymentMethod && totalAmount === 0,
-    [isESimEnabled, selectedPaymentMethod, totalAmount]
+    () =>
+      isESimEnabled &&
+      selectedPaymentMethod &&
+      totalAmount === 0 &&
+      !isCheckoutLoading,
+    [isESimEnabled, selectedPaymentMethod, totalAmount, isCheckoutLoading]
   );
+
+  console.log("canCheckout", canCheckout);
 
   return (
     <View style={styles.container}>
@@ -384,6 +394,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
       <CheckoutSuccessModal
         visible={showSuccessModal}
+        loading={isCheckoutLoading}
         onInstallESIM={handleInstallESIM}
       />
 
