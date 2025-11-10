@@ -62,7 +62,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
   const [showWalletSetupModal, setShowWalletSetupModal] = useState(false);
   const [showCreditCardModal, setShowCreditCardModal] = useState(false);
-  const { kokio } = useKokio();
+  const { kokio, savePurchasedESIM } = useKokio();
   const [discountCode, setDiscountCode] = useState<string>("");
   const [isDiscountApplied, setIsDiscountApplied] = useState<boolean>(false);
   const [discountAmount, setDiscountAmount] = useState<number>(0);
@@ -128,8 +128,15 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
       const response = await eSimOderCheckout(payload);
 
+      console.log("Order Api Response", response);
+
       if (response?.success && response?.data) {
         setOrderResponse(response.data);
+
+        // Store purchased eSIM in SecureStore and reducer
+        if (kokio.deviceUID) {
+          await savePurchasedESIM(kokio.deviceUID, eSimItem, response.data);
+        }
       } else {
         console.error("Checkout failed:", response?.message);
         setShowSuccessModal(false);
@@ -145,7 +152,13 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       setIsCheckoutLoading(false);
       setShowSuccessModal(false);
     }
-  }, [eSimItem, discountCode, kokio?.userWallet]);
+  }, [
+    eSimItem,
+    discountCode,
+    kokio?.userWallet,
+    kokio?.deviceUID,
+    savePurchasedESIM,
+  ]);
 
   const handleCheckout = useCallback(async () => {
     // If credit card is selected, open the credit card modal instead of proceeding with checkout
@@ -277,8 +290,6 @@ const Checkout = ({ currentBalance = 25 }: any) => {
       !isCheckoutLoading,
     [isESimEnabled, selectedPaymentMethod, totalAmount, isCheckoutLoading]
   );
-
-  console.log("canCheckout", canCheckout);
 
   return (
     <View style={styles.container}>

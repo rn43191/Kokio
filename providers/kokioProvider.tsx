@@ -15,6 +15,12 @@ import * as SecureStore from "expo-secure-store";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
 import { useRouter } from "expo-router";
 import { deleteSubOrganization } from "@/utils/api";
+import { Esim } from "@/components/ESIMItem";
+
+export interface PurchasedESIM {
+  eSimItem: Esim;
+  transactionData: any; // TODO: Create a type for this once BE contract is finalized
+}
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -24,6 +30,7 @@ type AuthActionType =
   | { type: "SET_KOKIO_USER"; payload: UserData }
   | { type: "SET_KOKIO_PASSKEY"; payload: UserPasskey }
   | { type: "SET_USER_WALLET"; payload: SmartContractAccount }
+  | { type: "SET_PURCHASED_ESIMS"; payload: PurchasedESIM[] }
   | { type: "CLEAR_KOKIO" }
   | { type: "CLEAR_KOKIO_USER" };
 
@@ -49,6 +56,7 @@ interface KokioState {
   userData?: UserData;
   userPasskey?: UserPasskey;
   userWallet?: SmartContractAccount;
+  purchasedESIMs: PurchasedESIM[];
 }
 
 const initialState: KokioState = {
@@ -58,6 +66,7 @@ const initialState: KokioState = {
   userData: undefined,
   userPasskey: undefined,
   userWallet: undefined,
+  purchasedESIMs: [],
 };
 
 function kokioReducer(kokio: KokioState, action: AuthActionType): KokioState {
@@ -76,6 +85,8 @@ function kokioReducer(kokio: KokioState, action: AuthActionType): KokioState {
       return { ...kokio, userPasskey: action.payload };
     case "SET_USER_WALLET":
       return { ...kokio, userWallet: action.payload };
+    case "SET_PURCHASED_ESIMS":
+      return { ...kokio, purchasedESIMs: action.payload };
     case "CLEAR_KOKIO":
       return {
         ...kokio,
@@ -88,6 +99,7 @@ function kokioReducer(kokio: KokioState, action: AuthActionType): KokioState {
         userPasskey: undefined,
         userData: undefined,
         userWallet: undefined,
+        purchasedESIMs: [],
       };
     default:
       return kokio;
@@ -108,6 +120,11 @@ export interface KokioProviderType {
     deviceUID: string,
     wallet: SmartContractAccount
   ) => Promise<void>;
+  savePurchasedESIM: (
+    deviceUID: string,
+    eSimItem: Esim,
+    transactionData: any // TODO: Create a type for this once BE contract is finalized
+  ) => Promise<void>;
   clearKokio: () => void;
   clearKokioUser: (user: User | undefined) => Promise<void>;
 }
@@ -120,6 +137,7 @@ export const KokioContext = createContext<KokioProviderType>({
   setupKokioUserData: async () => Promise.resolve(),
   setupKokioUserPasskey: async () => Promise.resolve(),
   setupKokioUserWallet: async () => Promise.resolve(),
+  savePurchasedESIM: async () => Promise.resolve(),
   clearKokio: () => {},
   clearKokioUser: async () => Promise.resolve(),
 });
@@ -200,6 +218,26 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     }
   };
 
+  const saveValueForPurchasedESIMs = async (
+    key: string,
+    value: PurchasedESIM[]
+  ) => {
+    await SecureStore.setItemAsync(key, JSON.stringify(value));
+  };
+
+  const getValueForPurchasedESIMs = async (
+    key: string
+  ): Promise<PurchasedESIM[] | void> => {
+    let result = await SecureStore.getItemAsync(key);
+    if (result) {
+      console.log("🔐 Here's your purchased eSIMs data 🔐 \n" + result);
+      const parsedResult: PurchasedESIM[] = JSON.parse(result);
+      return parsedResult;
+    } else {
+      console.log("No purchased eSIMs data stored under that key.");
+    }
+  };
+
   const deleteValueForUser = async (key: string): Promise<void> => {
     await SecureStore.deleteItemAsync(key);
   };
@@ -251,6 +289,15 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
           dispatch({
             type: "SET_USER_WALLET",
             payload: userWallet,
+          });
+        }
+        const purchasedESIMs = await getValueForPurchasedESIMs(
+          `purchasedESIMs-${deviceUID}`
+        );
+        if (purchasedESIMs) {
+          dispatch({
+            type: "SET_PURCHASED_ESIMS",
+            payload: purchasedESIMs,
           });
         }
       }
@@ -354,6 +401,39 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     });
   };
 
+  const savePurchasedESIM = async (
+    deviceUID: string,
+    eSimItem: Esim,
+    transactionData: any
+  ) => {
+    // Get existing purchased eSIMs
+    const existingESIMs = await getValueForPurchasedESIMs(
+      `purchasedESIMs-${deviceUID}`
+    );
+    const currentESIMs = existingESIMs || [];
+
+    // Add new purchased eSIM
+    const newPurchasedESIM: PurchasedESIM = {
+      eSimItem,
+      transactionData,
+    };
+    const updatedESIMs = [...currentESIMs, newPurchasedESIM];
+
+    // Save to SecureStore
+    await saveValueForPurchasedESIMs(
+      `purchasedESIMs-${deviceUID}`,
+      updatedESIMs
+    );
+
+    console.log("Purchased eSIM saved to secure store:", newPurchasedESIM);
+
+    // Update reducer
+    dispatch({
+      type: "SET_PURCHASED_ESIMS",
+      payload: updatedESIMs,
+    });
+  };
+
   const setupKokio = async () => {
     // Check if user and turnkeyClient are defined before proceeding
     // Kokio SDK requires a Turnkey client to be initialized with a user
@@ -419,6 +499,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     await deleteValueForUser(`userPasskey-${kokio.deviceUID}`);
     await deleteValueForUser(`userWallet-${kokio.deviceUID}`);
     await deleteValueForUser(`userData-${kokio.deviceUID}`);
+    await deleteValueForUser(`purchasedESIMs-${kokio.deviceUID}`);
     await deleteValueForUser("deviceUID");
     await clearKokio();
     await clearSession();
@@ -434,6 +515,7 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
         setupKokioUserData,
         setupKokioUserPasskey,
         setupKokioUserWallet,
+        savePurchasedESIM,
         clearKokio,
         clearKokioUser,
       }}

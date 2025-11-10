@@ -17,7 +17,7 @@ const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Active eSIMs</Text>
+      <Text style={styles.title}>eSIMs</Text>
       <FlatList
         data={esims}
         renderItem={({ item }) => (
