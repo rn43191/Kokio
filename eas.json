@@ -11,6 +11,9 @@
         "buildType": "apk",
         "credentialsSource": "local"
       },
+      "ios": {
+        "simulator": true
+      },
       "channel": "development"
     },
     "preview": {
