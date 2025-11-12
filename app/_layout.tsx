@@ -40,6 +40,13 @@ export default function RootLayout() {
 
   const { isLoading } = useBootstrap();
 
+  // Use refs to avoid recreating the NetInfo listener on every pathname change
+  const pathnameRef = useRef(pathname);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
   // Initial connectivity check
   useEffect(() => {
     NetInfo.fetch().then((state) => {
@@ -70,7 +77,7 @@ export default function RootLayout() {
       if (
         online === false &&
         !getSkipNextOfflineRedirect() &&
-        pathname !== ROUTE_NAMES.OFFLINE
+        pathnameRef.current !== ROUTE_NAMES.OFFLINE
       ) {
         router?.replace(ROUTE_NAMES.OFFLINE as any);
       }
@@ -79,14 +86,14 @@ export default function RootLayout() {
         setSkipNextOfflineRedirect(false);
 
         // If we're on the offline screen and network becomes available, go home
-        if (pathname === ROUTE_NAMES.OFFLINE) {
+        if (pathnameRef.current === ROUTE_NAMES.OFFLINE) {
           router?.replace("/" as any);
         }
       }
     });
 
     return () => unsubscribe();
-  }, [pathname, router]);
+  }, []);
 
   // Hide splash screen after fonts and bootstrap complete
   useEffect(() => {
