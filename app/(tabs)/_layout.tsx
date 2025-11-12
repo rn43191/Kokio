@@ -1,5 +1,5 @@
 import React from "react";
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import { TabBarIcon } from "@/components/navigation/TabBarIcon";
 import { StyleSheet } from "react-native";
 import { Theme, createStyles } from "@/constants/Colors";
@@ -127,6 +127,27 @@ export default function TabLayout() {
               color={color}
               style={styles.tabBarIcon}
             />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name={ROUTE_NAMES.INSTALLATION}
+        options={{
+          href: null, // Hide from tab bar
+          headerShown: true,
+          header: () => (
+            <SafeAreaView edges={["top"]}>
+              <Header
+                title="Install eSIM"
+                style={{ justifyContent: "center" }}
+                hasBack
+                goBackHandler={() => {
+                  // Reset the Shop stack by navigating to its root, then go to Home
+                  router.push("/(tabs)/(shop)");
+                  router.navigate("/(tabs)");
+                }}
+              />
+            </SafeAreaView>
           ),
         }}
       />

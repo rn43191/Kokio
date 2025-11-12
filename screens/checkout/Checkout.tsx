@@ -173,7 +173,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
     router.navigate({
-      pathname: "/(tabs)/(shop)/installation",
+      pathname: "/(tabs)/installation",
       params: {
         orderId: orderResponse?.orderId || "",
         qrcode: orderResponse?.installationDetails?.qrcode || "",
