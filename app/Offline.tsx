@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
+import _isNull from "lodash/isNull";
 import NetInfo from "@react-native-community/netinfo";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors } from "@/constants/Colors";
@@ -19,6 +20,12 @@ const OfflineScreen: React.FC = () => {
 
   const handleRetry = useCallback(async () => {
     const state = await NetInfo.fetch();
+
+    // Handle null state (network status still being determined)
+    if (_isNull(state.isInternetReachable)) {
+      return;
+    }
+
     const isOnline = !!state.isConnected && !!state.isInternetReachable;
 
     if (isOnline) {
