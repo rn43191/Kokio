@@ -26,7 +26,24 @@
       }
     },
     "production": {
-      "channel": "production"
+      "channel": "production",
+      "environment": "production",
+      "distribution": "store",
+      "ios": {},
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal"
+      },
+      "ios": {
+        "ascAppId": "6755083230",
+        "appleTeamId": "XSQ2GAB4RW"
+      }
     }
   }
 }

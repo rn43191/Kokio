@@ -45,6 +45,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         usesNonExemptEncryption: false,
       },
       runtimeVersion: "1.0.0",
+      version: "1.0.0",
+      buildNumber: "1",
     },
     android: {
       adaptiveIcon: {
@@ -53,6 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       },
       package: "app.kokio",
       edgeToEdgeEnabled: false,
+      version: "1.0.0",
       runtimeVersion: "1.0.0",
     },
     web: {
