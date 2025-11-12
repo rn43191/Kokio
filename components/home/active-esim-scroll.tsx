@@ -1,17 +1,47 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, Dimensions } from "react-native";
+import { router } from "expo-router";
 import _isEmpty from "lodash/isEmpty";
+import _get from "lodash/get";
 
 import { Colors } from "@/constants/Colors";
+import { StoredPurchasedESIM } from "@/providers/kokioProvider";
 
-import ESIMItem, { Esim } from "../ESIMItem";
+import ESIMItem from "../ESIMItem";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 const ITEM_WIDTH = SCREEN_WIDTH * 0.9;
 const SPACING = 8;
 
-const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
-  if (_isEmpty(esims)) {
+const ActiveESIMsScroll = ({
+  purchasedESIMs,
+}: {
+  purchasedESIMs: StoredPurchasedESIM[];
+}) => {
+  const handleESIMPress = useCallback((purchasedESIM: StoredPurchasedESIM) => {
+    return () => {
+      router.navigate({
+        pathname: "/(tabs)/(shop)/installation",
+        params: {
+          orderId: _get(purchasedESIM, "transactionData.orderId", ""),
+          qrcode: _get(
+            purchasedESIM,
+            "transactionData.installationDetails.qrcode",
+            ""
+          ),
+          appleInstallationUrl: _get(
+            purchasedESIM,
+            "transactionData.installationDetails.appleInstallationUrl",
+            ""
+          ),
+          iccid: _get(purchasedESIM, "transactionData.iccid", ""),
+          fromHome: "true",
+        },
+      });
+    };
+  }, []);
+
+  if (_isEmpty(purchasedESIMs)) {
     return null;
   }
 
@@ -19,13 +49,17 @@ const ActiveESIMsScroll = ({ esims }: { esims: Esim[] }) => {
     <View style={styles.container}>
       <Text style={styles.title}>eSIMs</Text>
       <FlatList
-        data={esims}
+        data={purchasedESIMs}
         renderItem={({ item }) => (
           <View style={styles.itemWrapper}>
-            <ESIMItem item={item} showBuyButton={false} />
+            <ESIMItem
+              item={item?.eSimItem}
+              showBuyButton={false}
+              onPress={handleESIMPress(item)}
+            />
           </View>
         )}
-        keyExtractor={(item) => item.catalogueId}
+        keyExtractor={(item) => item?.transactionData?.orderId}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.listContainer}

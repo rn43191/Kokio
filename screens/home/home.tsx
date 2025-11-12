@@ -1,20 +1,16 @@
 import { ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useMemo } from "react";
-import _map from "lodash/map";
+import _get from "lodash/get";
 
 import ActiveESIMsScroll from "@/components/home/active-esim-scroll";
 import Wallet from "@/components/home/wallet";
 import Hero from "@/components/home/hero";
 import { useKokio } from "@/hooks/useKokio";
-import { Esim } from "@/components/ESIMItem";
 
 export default function HomeScreen() {
   const { kokio } = useKokio();
 
-  const activeESIMs: Esim[] = useMemo(() => {
-    return _map(kokio?.purchasedESIMs, "eSimItem");
-  }, [kokio?.purchasedESIMs]);
+  const purchasedESIMs = _get(kokio, "purchasedESIMs") || [];
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -22,7 +18,7 @@ export default function HomeScreen() {
         <Hero />
         {kokio.userWallet ? (
           <>
-            <ActiveESIMsScroll esims={activeESIMs} />
+            <ActiveESIMsScroll purchasedESIMs={purchasedESIMs} />
             <Wallet
               walletId={kokio.userWallet?.address}
               balance="0"

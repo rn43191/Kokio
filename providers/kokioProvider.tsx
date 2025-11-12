@@ -1,4 +1,6 @@
 import { ReactNode, createContext, useEffect, useReducer } from "react";
+import _pick from "lodash/pick";
+import _get from "lodash/get";
 import { Kokio } from "kokio-sdk";
 import { PASSKEY_CONFIG, TURNKEY_API_URL } from "@/constants/passkey.constants";
 import { returnViemWalletClient } from "@/utils/passkey";
@@ -12,15 +14,60 @@ import { SmartContractAccount } from "@aa-sdk/core";
 
 import { PasskeyStamper } from "@turnkey/react-native-passkey-stamper";
 import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthRelay } from "@/hooks/useAuthRelayer";
-import { useRouter } from "expo-router";
 import { deleteSubOrganization } from "@/utils/api";
 import { Esim } from "@/components/ESIMItem";
 
-export interface PurchasedESIM {
-  eSimItem: Esim;
-  transactionData: any; // TODO: Create a type for this once BE contract is finalized
+export interface StoredTransactionData {
+  orderId: string;
+  iccid: string;
+  installationDetails: {
+    qrcode: string;
+    appleInstallationUrl: string;
+  };
 }
+
+export interface StoredPurchasedESIM {
+  eSimItem: Esim;
+  transactionData: StoredTransactionData;
+}
+
+const reduceESimDataForStorage = (
+  eSimItem: Esim,
+  transactionData: any
+): StoredPurchasedESIM => {
+  const reducedESimItem = _pick(eSimItem, [
+    "catalogueId",
+    "data",
+    "sms",
+    "voice",
+    "validity",
+    "isUnlimited",
+    "coverageType",
+    "serviceRegionCode",
+    "serviceRegionName",
+    "serviceRegionFlag",
+  ]) as Esim;
+
+  const reducedTransactionData: StoredTransactionData = {
+    orderId: _get(transactionData, "orderId", ""),
+    iccid: _get(transactionData, "iccid", ""),
+    installationDetails: {
+      qrcode: _get(transactionData, "installationDetails.qrcode", ""),
+      appleInstallationUrl: _get(
+        transactionData,
+        "installationDetails.appleInstallationUrl",
+        ""
+      ),
+    },
+  };
+
+  return {
+    eSimItem: reducedESimItem,
+    transactionData: reducedTransactionData,
+  };
+};
 
 type AuthActionType =
   | { type: "ERROR"; payload: string }
@@ -30,7 +77,7 @@ type AuthActionType =
   | { type: "SET_KOKIO_USER"; payload: UserData }
   | { type: "SET_KOKIO_PASSKEY"; payload: UserPasskey }
   | { type: "SET_USER_WALLET"; payload: SmartContractAccount }
-  | { type: "SET_PURCHASED_ESIMS"; payload: PurchasedESIM[] }
+  | { type: "SET_PURCHASED_ESIMS"; payload: StoredPurchasedESIM[] }
   | { type: "CLEAR_KOKIO" }
   | { type: "CLEAR_KOKIO_USER" };
 
@@ -56,7 +103,7 @@ interface KokioState {
   userData?: UserData;
   userPasskey?: UserPasskey;
   userWallet?: SmartContractAccount;
-  purchasedESIMs: PurchasedESIM[];
+  purchasedESIMs: StoredPurchasedESIM[];
 }
 
 const initialState: KokioState = {
@@ -220,21 +267,42 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
 
   const saveValueForPurchasedESIMs = async (
     key: string,
-    value: PurchasedESIM[]
+    value: StoredPurchasedESIM[]
   ) => {
-    await SecureStore.setItemAsync(key, JSON.stringify(value));
+    try {
+      await AsyncStorage.setItem(key, JSON.stringify(value));
+      console.log("✅ Purchased eSIMs saved to AsyncStorage");
+    } catch (error) {
+      console.error("Error saving purchased eSIMs to AsyncStorage:", error);
+    }
   };
 
   const getValueForPurchasedESIMs = async (
     key: string
-  ): Promise<PurchasedESIM[] | void> => {
-    let result = await SecureStore.getItemAsync(key);
-    if (result) {
-      console.log("🔐 Here's your purchased eSIMs data 🔐 \n" + result);
-      const parsedResult: PurchasedESIM[] = JSON.parse(result);
-      return parsedResult;
-    } else {
-      console.log("No purchased eSIMs data stored under that key.");
+  ): Promise<StoredPurchasedESIM[] | void> => {
+    try {
+      const result = await AsyncStorage.getItem(key);
+      if (result) {
+        console.log("🔐 Here's your purchased eSIMs data 🔐 \n" + result);
+        const parsedResult: StoredPurchasedESIM[] = JSON.parse(result);
+        return parsedResult;
+      } else {
+        console.log("No purchased eSIMs data stored under that key.");
+      }
+    } catch (error) {
+      console.error(
+        "Error retrieving purchased eSIMs from AsyncStorage:",
+        error
+      );
+    }
+  };
+
+  const deleteValueForPurchasedESIMs = async (key: string): Promise<void> => {
+    try {
+      await AsyncStorage.removeItem(key);
+      console.log("🗑️ Purchased eSIMs deleted from AsyncStorage");
+    } catch (error) {
+      console.error("Error deleting purchased eSIMs from AsyncStorage:", error);
     }
   };
 
@@ -412,20 +480,19 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
     );
     const currentESIMs = existingESIMs || [];
 
-    // Add new purchased eSIM
-    const newPurchasedESIM: PurchasedESIM = {
+    const reducedPurchasedESIM = reduceESimDataForStorage(
       eSimItem,
-      transactionData,
-    };
-    const updatedESIMs = [...currentESIMs, newPurchasedESIM];
+      transactionData
+    );
 
-    // Save to SecureStore
+    const updatedESIMs = [...currentESIMs, reducedPurchasedESIM];
+
     await saveValueForPurchasedESIMs(
       `purchasedESIMs-${deviceUID}`,
       updatedESIMs
     );
 
-    console.log("Purchased eSIM saved to secure store:", newPurchasedESIM);
+    console.log("Purchased eSIM saved to AsyncStorage:", reducedPurchasedESIM);
 
     // Update reducer
     dispatch({
@@ -494,12 +561,12 @@ export const KokioProvider: React.FC<KokioProviderProps> = ({ children }) => {
       }
     }
 
-    // Clear user data from secure store
+    // Clear user data from secure store and AsyncStorage
     dispatch({ type: "CLEAR_KOKIO_USER" });
     await deleteValueForUser(`userPasskey-${kokio.deviceUID}`);
     await deleteValueForUser(`userWallet-${kokio.deviceUID}`);
     await deleteValueForUser(`userData-${kokio.deviceUID}`);
-    await deleteValueForUser(`purchasedESIMs-${kokio.deviceUID}`);
+    await deleteValueForPurchasedESIMs(`purchasedESIMs-${kokio.deviceUID}`);
     await deleteValueForUser("deviceUID");
     await clearKokio();
     await clearSession();

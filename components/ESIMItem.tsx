@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
@@ -10,7 +10,7 @@ import DetailItem from "./ui/DetailItem";
 
 export interface Esim {
   catalogueId: string;
-  actualSellingPrice: number;
+  actualSellingPrice?: number;
   isUnlimited: boolean;
   serviceRegionCode: string;
   serviceRegionFlag: string;
@@ -26,10 +26,12 @@ const ESIMItem = ({
   item,
   showBuyButton,
   containerStyle = {},
+  onPress,
 }: {
   item: Esim;
   showBuyButton: Boolean;
   containerStyle?: Object;
+  onPress?: () => void;
 }) => {
   const handleBuyCTAClick = useCallback(
     (id: string) => () => {
@@ -41,64 +43,83 @@ const ESIMItem = ({
         },
       });
     },
-    []
+    [item]
   );
 
-  return (
-    <View style={[styles.esimItemContainer, containerStyle]}>
-      <View style={styles.flagContainer}>
-        {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
-        {/* TODO: Use flag from API response and fallback to this if not present */}
-        {item?.coverageType === "LOCAL" && item?.serviceRegionCode && (
-          <CountryFlag
-            style={[showBuyButton && styles.flag]}
-            isoCode={item?.serviceRegionCode}
-            flagUrl={item?.serviceRegionFlag}
-            size={40}
-          />
-        )}
-      </View>
-      <View style={styles.esimItem}>
-        <Text style={styles.country}>{item.serviceRegionName}</Text>
-        <View style={styles.detailsContainer}>
-          <DetailItem
-            iconName="calendar-outline"
-            value={item.validity}
-            suffix="Days"
-          />
-          <DetailItem
-            iconName="cellular-outline"
-            value={item.isUnlimited ? "Unlimited" : item.data}
-            suffix={item.isUnlimited ? "" : "GB"}
-          />
-          <DetailItem
-            iconName="call-outline"
-            value={item.voice}
-            suffix="Mins"
-          />
-          <DetailItem
-            iconName="chatbox-outline"
-            value={item.sms}
-            suffix="SMS"
-          />
-        </View>
-        {showBuyButton && (
-          <TouchableOpacity
-            style={styles.buyButton}
-            onPress={handleBuyCTAClick(item.catalogueId)}
-          >
-            <DetailItem
-              prefix="$"
-              value={(item.actualSellingPrice || 0).toFixed(2)}
+  const content = useMemo(
+    () => (
+      <>
+        <View style={styles.flagContainer}>
+          {/* <View style={[styles.flag, { backgroundColor: item.flagColor }]} /> */}
+          {/* TODO: Use flag from API response and fallback to this if not present */}
+          {item?.coverageType === "LOCAL" && item?.serviceRegionCode && (
+            <CountryFlag
+              style={[showBuyButton && styles.flag]}
+              isoCode={item?.serviceRegionCode}
+              flagUrl={item?.serviceRegionFlag}
+              size={40}
             />
-            <View style={styles.buyButtonText}>
-              <Ionicons name="cart-outline" size={20} color="black" />
-              <Text style={styles.details}>Buy</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+          )}
+        </View>
+        <View style={styles.esimItem}>
+          <Text style={styles.country}>{item.serviceRegionName}</Text>
+          <View style={styles.detailsContainer}>
+            <DetailItem
+              iconName="calendar-outline"
+              value={item.validity}
+              suffix="Days"
+            />
+            <DetailItem
+              iconName="cellular-outline"
+              value={item.isUnlimited ? "Unlimited" : item.data}
+              suffix={item.isUnlimited ? "" : "GB"}
+            />
+            <DetailItem
+              iconName="call-outline"
+              value={item.voice}
+              suffix="Mins"
+            />
+            <DetailItem
+              iconName="chatbox-outline"
+              value={item.sms}
+              suffix="SMS"
+            />
+          </View>
+          {showBuyButton && (
+            <TouchableOpacity
+              style={styles.buyButton}
+              onPress={handleBuyCTAClick(item.catalogueId)}
+            >
+              <DetailItem
+                prefix="$"
+                value={(item.actualSellingPrice || 0).toFixed(2)}
+              />
+              <View style={styles.buyButtonText}>
+                <Ionicons name="cart-outline" size={20} color="black" />
+                <Text style={styles.details}>Buy</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+      </>
+    ),
+    [item, showBuyButton, handleBuyCTAClick]
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity
+        style={[styles.esimItemContainer, containerStyle]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={[styles.esimItemContainer, containerStyle]}>{content}</View>
   );
 };
 

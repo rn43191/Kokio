@@ -1,8 +1,6 @@
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 
-import _isFunction from "lodash/isFunction";
 import _get from "lodash/get";
 
 import Header from "@/components/Header";
@@ -78,7 +76,8 @@ export default function ShopStack() {
       />
       <Stack.Screen
         name={ROUTE_NAMES.INSTALLATION}
-        options={() => {
+        options={({ route }: any) => {
+          const fromHome = _get(route, "params.fromHome");
           return {
             header: () => (
               <SafeAreaView edges={["top"]}>
@@ -87,7 +86,11 @@ export default function ShopStack() {
                   style={{ justifyContent: "center" }}
                   hasBack
                   goBackHandler={() => {
-                    router.push("/");
+                    if (fromHome) {
+                      router.navigate("/(tabs)");
+                    } else {
+                      router.push("/");
+                    }
                   }}
                 />
               </SafeAreaView>
