@@ -8,6 +8,7 @@ import { Stack, useRouter, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useRef, useState } from "react";
 import "react-native-reanimated";
+import _isNull from "lodash/isNull";
 import "../global.css";
 import useBootstrap from "@/hooks/useBootstrap";
 import FullScreenLoader from "@/components/ui/FullScreenLoader";
@@ -27,7 +28,7 @@ export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [isConnected, setIsConnected] = useState(true);
+  const [isConnected, setIsConnected] = useState<boolean | null>(null);
   const [loaded] = useFonts({
     "Lexend-Light": require("../assets/fonts/Lexend-Light.ttf"),
     Lexend: require("../assets/fonts/Lexend-Regular.ttf"),
@@ -39,30 +40,55 @@ export default function RootLayout() {
 
   const { isLoading } = useBootstrap();
 
+  // Use refs to avoid recreating the NetInfo listener on every pathname change
+  const pathnameRef = useRef(pathname);
+
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
   // Initial connectivity check
   useEffect(() => {
     NetInfo.fetch().then((state) => {
-      const online = !!state.isConnected && !!state.isInternetReachable;
-      setIsConnected(online);
+      if (_isNull(state.isInternetReachable)) {
+        // Network state is still being determined
+        setIsConnected(null);
+      } else {
+        const online = !!state.isConnected && !!state.isInternetReachable;
+        setIsConnected(online);
+      }
     });
   }, []);
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
-      const online = !!state.isConnected && !!state.isInternetReachable;
+      let online: boolean | null;
+
+      if (_isNull(state.isInternetReachable)) {
+        // Network state is still being determined
+        online = null;
+      } else {
+        online = !!state.isConnected && !!state.isInternetReachable;
+      }
+
       setIsConnected(online);
 
+      // Only redirect to offline if we're definitely offline (not null/unknown)
       if (
-        !online &&
+        online === false &&
         !getSkipNextOfflineRedirect() &&
-        pathname !== ROUTE_NAMES.OFFLINE
+        pathnameRef.current !== ROUTE_NAMES.OFFLINE
       ) {
         router?.replace(ROUTE_NAMES.OFFLINE as any);
       }
 
-      // Once back online, reset the flag
       if (online) {
         setSkipNextOfflineRedirect(false);
+
+        // If we're on the offline screen and network becomes available, go home
+        if (pathnameRef.current === ROUTE_NAMES.OFFLINE) {
+          router?.replace("/" as any);
+        }
       }
     });
 
@@ -77,7 +103,7 @@ export default function RootLayout() {
   }, [loaded, isLoading]);
 
   // Wait until ready
-  if (!loaded) {
+  if (!loaded || _isNull(isConnected)) {
     return <FullScreenLoader />;
   }
 

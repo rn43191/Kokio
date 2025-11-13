@@ -21,7 +21,7 @@ const ActiveESIMsScroll = ({
   const handleESIMPress = useCallback((purchasedESIM: StoredPurchasedESIM) => {
     return () => {
       router.navigate({
-        pathname: "/(tabs)/(shop)/installation",
+        pathname: "/(tabs)/installation",
         params: {
           orderId: _get(purchasedESIM, "transactionData.orderId", ""),
           qrcode: _get(
@@ -35,7 +35,6 @@ const ActiveESIMsScroll = ({
             ""
           ),
           iccid: _get(purchasedESIM, "transactionData.iccid", ""),
-          fromHome: "true",
         },
       });
     };

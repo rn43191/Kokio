@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
 import {
-  ScrollView,
   StyleSheet,
   View,
   Platform,
@@ -13,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, router } from "expo-router";
 import { RadioButtonProps, RadioGroup } from "react-native-radio-buttons-group";
 import ToggleSwitch from "toggle-switch-react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import _sum from "lodash/sum";
 import _trim from "lodash/trim";
 import _subtract from "lodash/subtract";
@@ -173,7 +173,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
   const handleInstallESIM = useCallback(() => {
     setShowSuccessModal(false);
     router.navigate({
-      pathname: "/(tabs)/(shop)/installation",
+      pathname: "/(tabs)/installation",
       params: {
         orderId: orderResponse?.orderId || "",
         qrcode: orderResponse?.installationDetails?.qrcode || "",
@@ -293,10 +293,14 @@ const Checkout = ({ currentBalance = 25 }: any) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.scrollContent}
         contentContainerStyle={styles.scrollContentContainer}
         keyboardShouldPersistTaps="always"
+        enableOnAndroid={true}
+        enableAutomaticScroll={true}
+        extraScrollHeight={Platform.OS === "ios" ? 20 : 0}
+        showsVerticalScrollIndicator={false}
       >
         <View style={{ marginTop: 16 }}>
           <ThemedText>eSIM & Network</ThemedText>
@@ -387,7 +391,7 @@ const Checkout = ({ currentBalance = 25 }: any) => {
           </View>
           {fundOnDeviceWallet && addAmountSection}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <TouchableOpacity
         key={`total-checkout-${canCheckout}`}

@@ -1,4 +1,4 @@
-import { Stack, router } from "expo-router";
+import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import _get from "lodash/get";
@@ -71,32 +71,6 @@ export default function ShopStack() {
           const { id, item } = route?.params || {};
           return {
             header: () => <CheckoutHeader id={id} eSimDetails={item} />,
-          };
-        }}
-      />
-      <Stack.Screen
-        name={ROUTE_NAMES.INSTALLATION}
-        options={({ route }: any) => {
-          const fromHome = _get(route, "params.fromHome");
-          return {
-            header: () => (
-              <SafeAreaView edges={["top"]}>
-                <Header
-                  title="Install eSIM"
-                  style={{ justifyContent: "center" }}
-                  hasBack
-                  goBackHandler={() => {
-                    if (fromHome) {
-                      router.navigate("/(tabs)");
-                    } else {
-                      router.push("/");
-                    }
-                  }}
-                />
-              </SafeAreaView>
-            ),
-            animation: "slide_from_right",
-            animationDuration: 100,
           };
         }}
       />
