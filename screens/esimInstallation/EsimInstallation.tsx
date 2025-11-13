@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Share,
 } from "react-native";
+import ViewShot, { captureRef } from "react-native-view-shot";
+import Share from "react-native-share";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
@@ -24,15 +25,108 @@ const EsimInstallation = () => {
     useLocalSearchParams();
   const qrData = qrcode || "LPA:1$activation.airalo.com$sample-qr-data";
 
-  const handleShareQR = async () => {
-    try {
-      await Share.share({
-        message: qrData,
-        title: "eSIM QR Code",
-      });
-    } catch (error) {
-      console.error("Error sharing QR code:", error);
-    }
+  const QRScene = () => {
+    const qrViewRef = useRef(null);
+
+    const handleShareQR = async () => {
+      try {
+        if (!qrViewRef.current) {
+          console.log("QR view ref is not available");
+          return;
+        }
+
+        const uri = await captureRef(qrViewRef.current, {
+          format: "png",
+          quality: 0.8,
+          result: "tmpfile",
+          fileName: "Install-eSIM-QR-Code.png",
+        });
+
+        Share.open({
+          url: `file://${uri}`,
+          type: "image/png",
+        }).catch((err) => {
+          err && console.log("react-native-share API failed", err);
+        });
+      } catch (error) {
+        console.error("QR Share failed with error", error);
+      }
+    };
+
+    return (
+      <ScrollView style={styles.content}>
+        {/* Warning Cards */}
+        <View style={styles.warningCard}>
+          <MaterialCommunityIcons
+            name="comment-alert"
+            size={32}
+            color="#FF9500"
+            style={styles.warningIconTopRight}
+          />
+          <View style={styles.warningContent}>
+            <Text style={styles.warningTitle}>
+              Most eSIMs can only be installed once.
+            </Text>
+            <Text style={styles.warningDescription}>
+              If you remove the eSIM from your device, you cannot install it
+              again.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.warningCard}>
+          <MaterialCommunityIcons
+            name="comment-alert"
+            size={32}
+            color="#FF9500"
+            style={styles.warningIconTopRight}
+          />
+          <View style={styles.warningContent}>
+            <Text style={styles.warningTitle}>
+              Make sure your device has a stable internet connection before
+              installing
+            </Text>
+          </View>
+        </View>
+
+        {/* Install eSIM Section */}
+        <View style={styles.installSection}>
+          <ThemedText style={styles.sectionTitle}>Install eSIM</ThemedText>
+          <Text style={styles.sectionDescription}>
+            Scan the QR code by printing out or displaying the code on another
+            device to install your eSIM.
+          </Text>
+
+          {/* QR Code */}
+          <ViewShot style={styles.qrContainer} ref={qrViewRef}>
+            <QRCode
+              value={qrData}
+              size={200}
+              color="white"
+              backgroundColor="#1a1a1a"
+            />
+          </ViewShot>
+
+          {/* Share Button */}
+          <TouchableOpacity style={styles.shareButton} onPress={handleShareQR}>
+            <Text style={styles.shareButtonText}>Share QR code</Text>
+            <Ionicons name="share-outline" size={20} color="white" />
+          </TouchableOpacity>
+
+          {/* Instructions */}
+          <View style={styles.instructionsContainer}>
+            <Text style={styles.instructionText}>
+              {
+                "1. Go to Settings > Cellular/Mobile Data > Add eSIM or Set up Cellular/Mobile Service > Use QR Code on your device."
+              }
+            </Text>
+            <Text style={styles.instructionText}>
+              {" 2. Scan the QR code or take a screenshot."}
+            </Text>
+          </View>
+        </View>
+      </ScrollView>
+    );
   };
 
   const handleCopyQRData = async () => {
@@ -42,81 +136,6 @@ const EsimInstallation = () => {
       console.error("Error copying to clipboard:", error);
     }
   };
-
-  const QRScene = () => (
-    <ScrollView style={styles.content}>
-      {/* Warning Cards */}
-      <View style={styles.warningCard}>
-        <MaterialCommunityIcons
-          name="comment-alert"
-          size={32}
-          color="#FF9500"
-          style={styles.warningIconTopRight}
-        />
-        <View style={styles.warningContent}>
-          <Text style={styles.warningTitle}>
-            Most eSIMs can only be installed once.
-          </Text>
-          <Text style={styles.warningDescription}>
-            If you remove the eSIM from your device, you cannot install it
-            again.
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.warningCard}>
-        <MaterialCommunityIcons
-          name="comment-alert"
-          size={32}
-          color="#FF9500"
-          style={styles.warningIconTopRight}
-        />
-        <View style={styles.warningContent}>
-          <Text style={styles.warningTitle}>
-            Make sure your device has a stable internet connection before
-            installing
-          </Text>
-        </View>
-      </View>
-
-      {/* Install eSIM Section */}
-      <View style={styles.installSection}>
-        <ThemedText style={styles.sectionTitle}>Install eSIM</ThemedText>
-        <Text style={styles.sectionDescription}>
-          Scan the QR code by printing out or displaying the code on another
-          device to install your eSIM.
-        </Text>
-
-        {/* QR Code */}
-        <View style={styles.qrContainer}>
-          <QRCode
-            value={qrData}
-            size={200}
-            color="white"
-            backgroundColor="#1a1a1a"
-          />
-        </View>
-
-        {/* Share Button */}
-        <TouchableOpacity style={styles.shareButton} onPress={handleShareQR}>
-          <Text style={styles.shareButtonText}>Share QR code</Text>
-          <Ionicons name="share-outline" size={20} color="white" />
-        </TouchableOpacity>
-
-        {/* Instructions */}
-        <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionText}>
-            {
-              "1. Go to Settings > Cellular/Mobile Data > Add eSIM or Set up Cellular/Mobile Service > Use QR Code on your device."
-            }
-          </Text>
-          <Text style={styles.instructionText}>
-            {" 2. Scan the QR code or take a screenshot."}
-          </Text>
-        </View>
-      </View>
-    </ScrollView>
-  );
 
   const ManualScene = () => (
     <ScrollView style={styles.content}>
@@ -282,6 +301,8 @@ const styles = StyleSheet.create({
   },
   qrContainer: {
     alignItems: "center",
+    padding: 20,
+    backgroundColor: "#1a1a1a",
   },
   shareButton: {
     flexDirection: "row",

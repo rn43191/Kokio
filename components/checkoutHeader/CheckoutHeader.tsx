@@ -1,16 +1,17 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import {
-  Animated,
-  StyleSheet,
-  View,
-  Text,
-  PanResponder,
-  Dimensions,
-} from "react-native";
+import { StyleSheet, View, Text, Dimensions, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 import _get from "lodash/get";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Easing,
+} from "react-native-reanimated";
 
 import { Theme } from "@/constants/Colors";
 import { ESIM_EXTRA_DETAILS } from "@/constants/checkout.constants";
@@ -18,7 +19,7 @@ import CountryFlag from "@/components/ui/CountryFlag";
 
 import DetailItem from "../ui/DetailItem";
 
-const HEADER_MIN_HEIGHT = 200; // Increased from 140 to accommodate top padding + content
+const HEADER_MIN_HEIGHT = Platform.OS === "android" ? 150 : 200;
 const SCREEN_HEIGHT = Dimensions.get("window").height;
 const MAX_ALLOWED_HEIGHT = SCREEN_HEIGHT * 0.6;
 
@@ -57,9 +58,9 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
     return eSimDetails;
   }, [eSimDetails]);
 
-  const [isExpanded, setIsExpanded] = useState(false);
   const [contentHeight, setContentHeight] = useState(0);
-  const animation = useRef(new Animated.Value(HEADER_MIN_HEIGHT)).current;
+  const animatedHeight = useSharedValue(HEADER_MIN_HEIGHT);
+  const isExpanded = useSharedValue(false);
 
   const navigation = useNavigation();
 
@@ -68,37 +69,28 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
     MAX_ALLOWED_HEIGHT
   );
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onPanResponderRelease: (_, { dy }) => {
-          if (Math.abs(dy) > 20) {
-            const expand = dy > 0 && !isExpanded;
-            const collapse = dy < 0 && isExpanded;
-            if (expand) {
-              setIsExpanded(true);
-              Animated.spring(animation, {
-                toValue: headerMaxHeight,
-                useNativeDriver: false,
-              }).start();
-            } else if (collapse) {
-              setIsExpanded(false);
-              Animated.spring(animation, {
-                toValue: HEADER_MIN_HEIGHT,
-                useNativeDriver: false,
-              }).start();
-            } else {
-              Animated.spring(animation, {
-                toValue: isExpanded ? headerMaxHeight : HEADER_MIN_HEIGHT,
-                useNativeDriver: false,
-              }).start();
-            }
-          }
-        },
-      }),
-    [headerMaxHeight, isExpanded]
-  );
+  const panGesture = Gesture.Pan().onEnd((event) => {
+    "worklet";
+    const dy = event.translationY;
+    if (Math.abs(dy) > 20) {
+      const shouldExpand = dy > 0 && !isExpanded.value;
+      const shouldCollapse = dy < 0 && isExpanded.value;
+
+      if (shouldExpand) {
+        isExpanded.value = true;
+        animatedHeight.value = withTiming(headerMaxHeight, {
+          duration: 250,
+          easing: Easing.out(Easing.ease),
+        });
+      } else if (shouldCollapse) {
+        isExpanded.value = false;
+        animatedHeight.value = withTiming(HEADER_MIN_HEIGHT, {
+          duration: 250,
+          easing: Easing.out(Easing.ease),
+        });
+      }
+    }
+  });
 
   const onContentLayout = (event: any) =>
     setContentHeight(_get(event, "nativeEvent.layout.height"));
@@ -166,61 +158,65 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
     [eSimItem]
   );
 
+  const animatedHeaderStyle = useAnimatedStyle(() => ({
+    height: animatedHeight.value,
+  }));
+
+  const animatedIndicatorStyle = useAnimatedStyle(() => ({
+    height: interpolate(
+      animatedHeight.value,
+      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [4, 1]
+    ),
+    width: interpolate(
+      animatedHeight.value,
+      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [40, DIVIDER_WIDTH]
+    ),
+  }));
+
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      animatedHeight.value,
+      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [0, 1]
+    ),
+  }));
+
   return (
-    <Animated.View
-      style={[
-        styles.header,
-        {
-          height: animation,
-          paddingTop: insets.top + 16, // Add status bar height + some padding
-        },
-      ]}
-      {...panResponder.panHandlers}
-    >
-      <View
-        style={{
-          marginBottom:
-            eSimItem?.coverageType === "LOCAL" && eSimItem?.serviceRegionCode
-              ? 4
-              : 18,
-        }}
-      >
-        {countryAndFlagWithGoBack}
-        {detailItems}
-      </View>
-
+    <GestureDetector gesture={panGesture}>
       <Animated.View
         style={[
-          styles.expandIndicator,
+          styles.header,
           {
-            height: animation.interpolate({
-              inputRange: [HEADER_MIN_HEIGHT, headerMaxHeight],
-              outputRange: [4, 1],
-            }),
-            width: animation.interpolate({
-              inputRange: [HEADER_MIN_HEIGHT, headerMaxHeight],
-              outputRange: [40, DIVIDER_WIDTH],
-            }),
+            paddingTop: insets.top + 16,
           },
+          animatedHeaderStyle,
         ]}
-      />
-
-      <Animated.View
-        style={[
-          {
-            opacity: animation.interpolate({
-              inputRange: [HEADER_MIN_HEIGHT, headerMaxHeight],
-              outputRange: [0, 1],
-            }),
-          },
-        ]}
-        pointerEvents="none"
       >
-        <View onLayout={onContentLayout}>
-          <ExpandableContent eSimItem={eSimItem} />
+        <View
+          style={{
+            marginBottom:
+              eSimItem?.coverageType === "LOCAL" && eSimItem?.serviceRegionCode
+                ? 4
+                : 18,
+          }}
+        >
+          {countryAndFlagWithGoBack}
+          {detailItems}
         </View>
+
+        <Animated.View
+          style={[styles.expandIndicator, animatedIndicatorStyle]}
+        />
+
+        <Animated.View style={animatedContentStyle} pointerEvents="none">
+          <View onLayout={onContentLayout}>
+            <ExpandableContent eSimItem={eSimItem} />
+          </View>
+        </Animated.View>
       </Animated.View>
-    </Animated.View>
+    </GestureDetector>
   );
 };
 
@@ -230,7 +226,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 16,
     paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingBottom: 8,
   },
   countryFlagContainer: {
     flexDirection: "row",
@@ -264,7 +260,8 @@ const styles = StyleSheet.create({
     opacity: 0.2,
     borderRadius: 2,
     alignSelf: "center",
-    marginVertical: 10,
+    marginTop: Platform.OS === "android" ? 8 : 10,
+    marginBottom: Platform.OS === "android" ? 4 : 6,
   },
   extraContentLabel: {
     marginRight: 8,
