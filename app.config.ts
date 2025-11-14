@@ -47,6 +47,9 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       runtimeVersion: "1.0.0",
       version: "1.0.0",
       buildNumber: "1",
+      infoPlist: {
+        NSPhotoLibraryUsageDescription: "This app may access your photo library when selecting or sharing images."
+      }
     },
     android: {
       adaptiveIcon: {
