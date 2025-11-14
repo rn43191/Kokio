@@ -47,6 +47,14 @@ const ExpandableContent = ({ eSimItem = {} }: any) => (
 
 const CheckoutHeader = ({ eSimDetails = {} }: any) => {
   const insets = useSafeAreaInsets();
+
+  const computedHeaderHeight = useMemo(() => {
+    if (Platform.OS === "android") {
+      return HEADER_MIN_HEIGHT + insets.top;
+    }
+    return HEADER_MIN_HEIGHT;
+  }, []);
+
   const eSimItem = React.useMemo(() => {
     if (typeof eSimDetails === "string") {
       try {
@@ -59,13 +67,13 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
   }, [eSimDetails]);
 
   const [contentHeight, setContentHeight] = useState(0);
-  const animatedHeight = useSharedValue(HEADER_MIN_HEIGHT);
+  const animatedHeight = useSharedValue(computedHeaderHeight);
   const isExpanded = useSharedValue(false);
 
   const navigation = useNavigation();
 
   const headerMaxHeight = Math.min(
-    contentHeight + HEADER_MIN_HEIGHT + 16,
+    contentHeight + computedHeaderHeight + 16,
     MAX_ALLOWED_HEIGHT
   );
 
@@ -84,7 +92,7 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
         });
       } else if (shouldCollapse) {
         isExpanded.value = false;
-        animatedHeight.value = withTiming(HEADER_MIN_HEIGHT, {
+        animatedHeight.value = withTiming(computedHeaderHeight, {
           duration: 250,
           easing: Easing.out(Easing.ease),
         });
@@ -165,12 +173,12 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
   const animatedIndicatorStyle = useAnimatedStyle(() => ({
     height: interpolate(
       animatedHeight.value,
-      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [computedHeaderHeight, headerMaxHeight],
       [4, 1]
     ),
     width: interpolate(
       animatedHeight.value,
-      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [computedHeaderHeight, headerMaxHeight],
       [40, DIVIDER_WIDTH]
     ),
   }));
@@ -178,7 +186,7 @@ const CheckoutHeader = ({ eSimDetails = {} }: any) => {
   const animatedContentStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
       animatedHeight.value,
-      [HEADER_MIN_HEIGHT, headerMaxHeight],
+      [computedHeaderHeight, headerMaxHeight],
       [0, 1]
     ),
   }));

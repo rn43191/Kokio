@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -8,22 +8,26 @@ import {
 } from "react-native";
 import ViewShot, { captureRef } from "react-native-view-shot";
 import Share from "react-native-share";
+import _head from "lodash/head";
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { useLocalSearchParams } from "expo-router";
 
 import { ThemedText } from "@/components/ThemedText";
-import TabBar from "@/components/tabBar";
+import { Colors, Theme } from "@/constants/Colors";
 
-const Tab = createMaterialTopTabNavigator();
+type TabType = "Direct" | "QR" | "Manual";
 
 const EsimInstallation = () => {
   const { qrcode, appleInstallationUrl, iccid, orderId } =
     useLocalSearchParams();
-  const qrData = qrcode || "LPA:1$activation.airalo.com$sample-qr-data";
+  const qrData =
+    (Array.isArray(qrcode) ? _head(qrcode) : qrcode) ||
+    "LPA:1$activation.airalo.com$sample-qr-data";
+
+  const [activeTab, setActiveTab] = useState<TabType>("QR");
 
   const QRScene = () => {
     const qrViewRef = useRef(null);
@@ -210,34 +214,57 @@ const EsimInstallation = () => {
     </ScrollView>
   );
 
-  const TabsNavigator = () => {
+  const renderTabBar = () => {
+    const tabs: TabType[] = ["Direct", "QR", "Manual"];
+
     return (
-      <Tab.Navigator
-        initialRouteName="QR"
-        tabBar={(props) => <TabBar {...props} />}
-      >
-        <Tab.Screen
-          name="Direct"
-          component={DirectScene}
-          options={{ tabBarLabel: "Direct" }}
-        />
-        <Tab.Screen
-          name="QR"
-          component={QRScene}
-          options={{ tabBarLabel: "QR" }}
-        />
-        <Tab.Screen
-          name="Manual"
-          component={ManualScene}
-          options={{ tabBarLabel: "Manual" }}
-        />
-      </Tab.Navigator>
+      <View style={styles.tabBarOuterContainer}>
+        <View style={styles.tabBarContainer}>
+          {tabs.map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              style={styles.tabButton}
+              onPress={() => setActiveTab(tab)}
+              activeOpacity={0.7}
+            >
+              {activeTab === tab && <View style={styles.tabIndicator} />}
+              <Text
+                style={[
+                  styles.tabButtonText,
+                  {
+                    color:
+                      activeTab === tab
+                        ? Colors.dark.text
+                        : Colors.dark.inactive,
+                  },
+                ]}
+              >
+                {tab}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
     );
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "Direct":
+        return <DirectScene />;
+      case "QR":
+        return <QRScene />;
+      case "Manual":
+        return <ManualScene />;
+      default:
+        return <QRScene />;
+    }
   };
 
   return (
     <View style={styles.container}>
-      <TabsNavigator />
+      {renderTabBar()}
+      {renderContent()}
     </View>
   );
 };
@@ -246,6 +273,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  tabBarOuterContainer: {
+    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: Theme.spacing.sm,
+    paddingVertical: Theme.spacing.xs,
+  },
+  tabBarContainer: {
+    backgroundColor: Colors.dark.secondaryBackground,
+    borderRadius: Theme.borderRadius.medium,
+    flexDirection: "row",
+    overflow: "hidden",
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 6,
+    minHeight: 30,
+  },
+  tabButtonText: {
+    color: Colors.dark.text,
+    textAlign: "center",
+    fontWeight: "500",
+    zIndex: 1,
+  },
+  tabIndicator: {
+    position: "absolute",
+    backgroundColor: Colors.dark.muted,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: Theme.borderRadius.medium,
+    zIndex: 0,
   },
   content: {
     flex: 1,
