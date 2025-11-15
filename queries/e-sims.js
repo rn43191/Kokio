@@ -21,7 +21,12 @@ export const emisQueryKeys = {
 };
 
 // NOTE: Currently only showing ESIM Plan and not showing Topup
-const getSimPlans = (allPlans) => _filter(allPlans, { purchaseType: "SIM" });
+const getSimPlans = (allPlans) =>
+  _filter(
+    allPlans,
+    (plan) =>
+      plan?.purchaseType === "SIM" || plan?.purchaseType === "SIM_OR_TOPUP"
+  );
 
 function useEsimsByCountry(serviceRegionCode, options = defaultOptions) {
   try {
