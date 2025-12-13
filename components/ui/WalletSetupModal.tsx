@@ -50,6 +50,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showRecovery, setShowRecovery] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
   const [email, setEmail] = useState("");
   const [walletAddress, setWalletAddress] = useState<string | undefined>(
     undefined
@@ -58,9 +59,10 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   const { kokio, setupKokioUserWallet } = useKokio();
   const { session, user } = useTurnkey();
 
-  const returnSmartAccountAddress = useCallback(async (): Promise<
-    SmartContractAccount | undefined
-  > => {
+  const returnSmartAccountAddress = useCallback(async (): Promise<{
+    wallet?: SmartContractAccount;
+    shouldRetry?: boolean;
+  }> => {
     const deviceUniqueIdentifier = kokio.deviceUID;
     const deviceWalletOwnerKey: P256Key = [
       kokio.userPasskey?.x as `0x${string}`, // Public Key X from attestationObject
@@ -71,25 +73,23 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     console.log("data", deviceUniqueIdentifier, deviceWalletOwnerKey);
 
     if (user && kokio.sdk) {
-      // Calculates device wallet address without deploying
-      const deviceWallet = await kokio.sdk.smartAccount.getSmartWallet(
-        deviceUniqueIdentifier,
-        deviceWalletOwnerKey,
-        salt
-      );
-
-      console.log("wallet", deviceWallet);
-
-      /* Returns the smart account client, inline with
-       ** Alchemy’s SDK
-       */
-      const deviceWalletClient =
-        await kokio.sdk.smartAccount.getSmartWalletClient(
-          deviceWallet // Returned by getSmartWallet fn
-        );
-      console.log("device wallet client", deviceWalletClient.account?.address);
-
       try {
+        // Calculates device wallet address without deploying
+        const deviceWallet = await kokio.sdk.smartAccount.getSmartWallet(
+          deviceUniqueIdentifier,
+          deviceWalletOwnerKey,
+          salt
+        );
+
+        console.log("wallet", deviceWallet);
+
+        // Returns the smart account client, inline with Alchemy’s SDK
+        const deviceWalletClient =
+          await kokio.sdk.smartAccount.getSmartWalletClient(
+            deviceWallet // Returned by getSmartWallet fn
+          );
+        console.log("deviceWalletClient", deviceWalletClient.account?.address);
+
         const uo = await deviceWalletClient.sendUserOperation({
           uo: {
             target: deviceWalletClient.account.address,
@@ -97,19 +97,20 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
             value: 0n,
           },
           overrides: {
-            preVerificationGas: 0xEEEE
-          }
+            preVerificationGas: 0xeeee,
+          },
         });
-        console.log("uo", uo);
+        console.log("sendUserOperation", uo);
+        return { wallet: deviceWallet, shouldRetry: false };
       } catch (e) {
         console.log("error uo", e);
+        return { wallet: undefined, shouldRetry: true };
       }
-
-      return deviceWallet;
     } else {
       console.error(
         "Wallet setup error... User is not authenticated or kokio sdk not set"
       );
+      return { wallet: undefined, shouldRetry: false };
     }
   }, [kokio]);
 
@@ -128,11 +129,19 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 
   const handleContinue = useCallback(async () => {
     setIsLoading(true);
+    setShowRetry(false);
 
     //wallet setup
     if (session?.user && kokio.sdk) {
       console.log("Setting up wallet...");
-      const wallet = await returnSmartAccountAddress();
+      const { wallet, shouldRetry } = await returnSmartAccountAddress();
+
+      if (shouldRetry) {
+        setIsLoading(false);
+        setShowRetry(true);
+        return;
+      }
+
       if (wallet) {
         console.log("setWalletAddress", wallet);
 
@@ -140,16 +149,18 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
         setWalletAddress(wallet?.address);
 
         await setupKokioUserWallet(kokio.deviceUID, wallet);
+
+        setShowRecovery(true);
       }
     }
 
     setIsLoading(false);
-    setShowRecovery(true);
   }, []);
 
   const handleClose = useCallback(() => {
     setIsLoading(false);
     setShowRecovery(false);
+    setShowRetry(false);
     setEmail("");
     setWalletAddress(undefined);
     onClose();
@@ -195,6 +206,41 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
     []
   );
 
+  const retryContent = useMemo(
+    () => (
+      <>
+        <View style={styles.errorContainer}>
+          <MaterialCommunityIcons
+            name="alert-circle"
+            size={60}
+            color="#FF3B30"
+            style={styles.errorIcon}
+          />
+          <ThemedText bold style={styles.errorTitle}>
+            Wallet Creation Failed
+          </ThemedText>
+          <Text style={styles.errorDescription}>
+            There was an error creating your wallet. Please try again.
+          </Text>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.laterButton} onPress={handleClose}>
+            <Text style={styles.laterButtonText}>Cancel</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}
+          >
+            <Text style={styles.continueButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </>
+    ),
+    [handleClose, handleContinue]
+  );
+
   const handleRemindLater = useCallback(() => {
     setShowRecovery(false);
     setEmail("");
@@ -203,6 +249,8 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
   }, [onClose]);
 
   const onChangeUserEmail = useCallback(async () => {
+    if (!email) return;
+
     const inUse = await checkIfEmailInUse({ email });
     if (inUse) {
       alert("Email already in use");
@@ -254,9 +302,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
               disabled={!walletAddress}
             >
               <Text style={styles.addressText}>
-                {walletAddress
-                  ? formatWalletAddress(walletAddress)
-                  : "Loading..."}
+                {formatWalletAddress(walletAddress)}
               </Text>
               {walletAddress && (
                 <MaterialIcons
@@ -270,8 +316,8 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
           </View>
 
           <Text style={styles.recoveryDescription}>
-            Please provide an email address or EOA for recovery purpose and to
-            restore access to your device wallet
+            You may optionally provide an email address or EOA for recovery
+            purpose and to restore access to your device wallet
           </Text>
 
           <TextInput
@@ -304,6 +350,7 @@ const WalletSetupModal: React.FC<WalletSetupModalProps> = ({
 
   const renderContent = () => {
     if (isLoading) return loadingContent;
+    if (showRetry) return retryContent;
     if (showRecovery) return recoveryContent;
     return initialContent;
   };
@@ -413,6 +460,28 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 16,
     lineHeight: 22,
+  },
+  errorContainer: {
+    paddingBottom: 16,
+    paddingHorizontal: 24,
+    alignItems: "center",
+  },
+  errorIcon: {
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "white",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  errorDescription: {
+    fontSize: 14,
+    color: "#AEAEB2",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 24,
   },
   warningContainer: {
     flexDirection: "row",
