@@ -119,7 +119,7 @@ const Wallet = ({ balance, walletId, isWalletAdded }: WalletProps) => {
           ) : (
             <>
               <ThemedText className="mt-8 mb-20 ml-4">
-                Tap here to setup your device wallet
+                Proceed to shop and continue.
               </ThemedText>
             </>
           )}

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Platform,
 } from "react-native";
 import ViewShot, { captureRef } from "react-native-view-shot";
 import Share from "react-native-share";
@@ -15,10 +16,35 @@ import QRCode from "react-native-qrcode-svg";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useLocalSearchParams } from "expo-router";
 
+import _get from "lodash/get";
+import _split from "lodash/split";
 import { ThemedText } from "@/components/ThemedText";
 import { Colors, Theme } from "@/constants/Colors";
 
 type TabType = "Direct" | "QR" | "Manual";
+
+const TextWithCopy = ({ label, text }) => {
+  const handleCopyQRData = async () => {
+    try {
+      await Clipboard.setStringAsync(text);
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+    }
+  };
+  return (
+    <View style={styles.textCopyContainer}>
+      <Text style={styles.manualDetailsHeader}>{label}</Text>
+      <View style={styles.manualDetailsContent}>
+        <View style={styles.manualDetailsTextContainer}>
+          <Text style={styles.manualDetailsText}>{text}</Text>
+        </View>
+        <TouchableOpacity style={styles.copyButton} onPress={handleCopyQRData}>
+          <Ionicons name="copy-outline" size={16} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const EsimInstallation = () => {
   const { qrcode, appleInstallationUrl, iccid, orderId } =
@@ -27,6 +53,9 @@ const EsimInstallation = () => {
     (Array.isArray(qrcode) ? _head(qrcode) : qrcode) ||
     "LPA:1$activation.airalo.com$sample-qr-data";
 
+  const qrDataSplit = _split(qrData, "$");
+  const activationAddress = _get(qrDataSplit, [1]);
+  const activationCode = _get(qrDataSplit, [2]);
   const [activeTab, setActiveTab] = useState<TabType>("QR");
 
   const QRScene = () => {
@@ -133,14 +162,6 @@ const EsimInstallation = () => {
     );
   };
 
-  const handleCopyQRData = async () => {
-    try {
-      await Clipboard.setStringAsync(qrData);
-    } catch (error) {
-      console.error("Error copying to clipboard:", error);
-    }
-  };
-
   const ManualScene = () => (
     <ScrollView style={styles.content}>
       <View style={styles.installSection}>
@@ -151,20 +172,17 @@ const EsimInstallation = () => {
 
         {/* Manual Installation Details */}
         <View style={styles.manualDetailsCard}>
-          <Text style={styles.manualDetailsHeader}>
-            SM-DP+ ADDRESS & ACTIVATION CODE
-          </Text>
-          <View style={styles.manualDetailsContent}>
-            <View style={styles.manualDetailsTextContainer}>
-              <Text style={styles.manualDetailsText}>{qrData}</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.copyButton}
-              onPress={handleCopyQRData}
-            >
-              <Ionicons name="copy-outline" size={16} color="white" />
-            </TouchableOpacity>
-          </View>
+          <TextWithCopy
+            label="SM-DP+ ADDRESS & ACTIVATION CODE"
+            text={qrData}
+          />
+
+          {Platform.OS === "ios" && activationAddress && (
+            <TextWithCopy label="SM-DP+ ADDRESS" text={activationAddress} />
+          )}
+          {Platform.OS === "ios" && activationCode && (
+            <TextWithCopy label="ACTIVATION CODE" text={activationCode} />
+          )}
 
           <View style={styles.divider} />
 
@@ -208,7 +226,7 @@ const EsimInstallation = () => {
         </Text>
 
         <TouchableOpacity style={styles.shareButton}>
-          <Text style={styles.shareButtonText}>Install eSIM</Text>
+          <Text style={styles.shareButtonText}>Coming soon</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -429,6 +447,9 @@ const styles = StyleSheet.create({
     color: "#999",
     fontSize: 14,
     lineHeight: 20,
+  },
+  textCopyContainer: {
+    marginBottom: 12,
   },
 });
 
